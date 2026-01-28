@@ -1,0 +1,212 @@
+name: CSS Verification
+
+on:
+  push:
+    branches: [main, develop]
+    paths:
+      - 'app/**/*.css'
+      - 'app/globals.css'
+      - 'postcss.config.mjs'
+      - 'tailwind.config.ts'
+      - 'package.json'
+      - 'package-lock.json'
+  pull_request:
+    branches: [main, develop]
+    paths:
+      - 'app/**/*.css'
+      - 'app/globals.css'
+      - 'postcss.config.mjs'
+      - 'tailwind.config.ts'
+      - 'package.json'
+      - 'package-lock.json'
+
+jobs:
+  css-diagnostic:
+    name: CSS Configuration Diagnostic
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Run CSS diagnostic script
+        run: npm run diagnose:css
+      
+      - name: Verify PostCSS config
+        run: |
+          if ! grep -q "@tailwindcss/postcss" postcss.config.mjs; then
+            echo "Error: PostCSS config missing @tailwindcss/postcss plugin"
+            exit 1
+          fi
+          echo "✓ PostCSS config is correct"
+      
+      - name: Verify Tailwind config
+        run: |
+          if ! grep -q "app/\*\*/\*" tailwind.config.ts; then
+            echo "Error: Tailwind config missing app directory in content paths"
+            exit 1
+          fi
+          if ! grep -q "components/\*\*/\*" tailwind.config.ts; then
+            echo "Error: Tailwind config missing components directory in content paths"
+            exit 1
+          fi
+          echo "✓ Tailwind config content paths are correct"
+      
+      - name: Verify CSS import in layout
+        run: |
+          if ! grep -q "import './globals.css'" app/layout.tsx; then
+            echo "Error: Root layout missing CSS import"
+            exit 1
+          fi
+          echo "✓ CSS import in layout is correct"
+      
+      - name: Verify globals.css exists
+        run: |
+          if [ ! -f "app/globals.css" ]; then
+            echo "Error: app/globals.css not found"
+            exit 1
+          fi
+          echo "✓ globals.css exists"
+      
+      - name: Verify Tailwind directives in globals.css
+        run: |
+          if ! grep -q "@tailwind base" app/globals.css; then
+            echo "Error: Missing @tailwind base directive"
+            exit 1
+          fi
+          if ! grep -q "@tailwind components" app/globals.css; then
+            echo "Error: Missing @tailwind components directive"
+            exit 1
+          fi
+          if ! grep -q "@tailwind utilities" app/globals.css; then
+            echo "Error: Missing @tailwind utilities directive"
+            exit 1
+          fi
+          echo "✓ Tailwind directives are present in globals.css"
+
+  css-build-test:
+    name: CSS Build Test
+    runs-on: ubuntu-latest
+    needs: css-diagnostic
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Build application
+        run: npm run build
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co' }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder-key' }}
+      
+      - name: Verify CSS in build output
+        run: |
+          if [ ! -d ".next" ]; then
+            echo "Error: .next directory not found"
+            exit 1
+          fi
+          
+          # Check for CSS files in build output
+          css_files=$(find .next -name "*.css" 2>/dev/null | wc -l)
+          if [ "$css_files" -eq 0 ]; then
+            echo "Error: No CSS files found in build output"
+            exit 1
+          fi
+          
+          echo "✓ Found $css_files CSS file(s) in build output"
+      
+      - name: Check CSS file size
+        run: |
+          # Find the largest CSS file
+          largest_css=$(find .next -name "*.css" -exec ls -lh {} \; | sort -k5 -hr | head -1)
+          if [ -z "$largest_css" ]; then
+            echo "Error: Could not find CSS files"
+            exit 1
+          fi
+          
+          echo "Largest CSS file: $largest_css"
+          
+          # Extract size in bytes
+          size=$(echo "$largest_css" | awk '{print $5}')
+          echo "✓ CSS files generated successfully (largest: $size)"
+
+  css-e2e-test:
+    name: CSS E2E Delivery Test
+    runs-on: ubuntu-latest
+    needs: css-build-test
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+      
+      - name: Run CSS delivery E2E test
+        run: npm run test:e2e:css
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co' }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder-key' }}
+      
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: css-e2e-results
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 7
+
+  css-verification-summary:
+    name: CSS Verification Summary
+    runs-on: ubuntu-latest
+    needs: [css-diagnostic, css-build-test, css-e2e-test]
+    if: always()
+    
+    steps:
+      - name: Check job results
+        run: |
+          echo "CSS Verification Results:"
+          echo "========================="
+          echo "Diagnostic: ${{ needs.css-diagnostic.result }}"
+          echo "Build Test: ${{ needs.css-build-test.result }}"
+          echo "E2E Test: ${{ needs.css-e2e-test.result }}"
+          
+          if [ "${{ needs.css-diagnostic.result }}" != "success" ] || \
+             [ "${{ needs.css-build-test.result }}" != "success" ] || \
+             [ "${{ needs.css-e2e-test.result }}" != "success" ]; then
+            echo ""
+            echo "❌ CSS verification failed. Please check the logs above."
+            exit 1
+          fi
+          
+          echo ""
+          echo "✅ All CSS verification checks passed!"

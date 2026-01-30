@@ -125,7 +125,7 @@ describe('Feature: destination-wedding-platform, Property 2: Role-Based Access C
           mockSupabase.single.mockResolvedValue({
             data: { role: userRole },
             error: null,
-          });
+          } as any);
 
           const result = await accessControlService.hasRole(userId, requiredRole);
 
@@ -164,7 +164,7 @@ describe('Feature: destination-wedding-platform, Property 2: Role-Based Access C
             .mockResolvedValueOnce({
               data: { role: memberRole },
               error: null,
-            });
+            } as any);
 
           const result = await accessControlService.canAccessGroup({
             userId,
@@ -209,7 +209,7 @@ describe('Feature: destination-wedding-platform, Property 2: Role-Based Access C
           mockSupabase.single.mockResolvedValue({
             data: { role: userRole },
             error: null,
-          });
+          } as any);
 
           const result = await accessControlService.requireRole(userId, requiredRole);
 
@@ -242,7 +242,7 @@ describe('Feature: destination-wedding-platform, Property 2: Role-Based Access C
           mockSupabase.single.mockResolvedValue({
             data: { role: userRole },
             error: null,
-          });
+          } as any);
 
           const result = await accessControlService.hasAnyRole(userId, allowedRoles as any);
 
@@ -279,7 +279,7 @@ describe('Feature: destination-wedding-platform, Property 2: Role-Based Access C
             role,
             resource,
             action,
-          });
+          } as any);
 
           const result2 = await accessControlService.canPerformAction({
             userId,

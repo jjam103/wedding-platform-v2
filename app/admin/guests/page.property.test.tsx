@@ -132,7 +132,19 @@ describe('Feature: admin-ui-modernization, Property 3: Row click opens edit moda
           }),
         });
       }
-      return Promise.reject(new Error('Unknown URL'));
+      if (url.includes('/api/admin/activities')) {
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({
+            success: true,
+            data: [],
+          }),
+        });
+      }
+      return Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve({ success: true, data: [] }),
+      });
     });
   });
 
@@ -144,22 +156,34 @@ describe('Feature: admin-ui-modernization, Property 3: Row click opens edit moda
       </ToastProvider>
     );
 
-    // Wait for guests to load and table to render
+    // Wait for guests to load and table to render with reduced timeout
     await waitFor(() => {
-      expect(screen.getByText('John')).toBeInTheDocument();
-    }, { timeout: 5000 });
+      expect(screen.getAllByText('John')).toHaveLength(2); // Table and mobile view
+    }, { timeout: 2000 });
 
-    // Find and click the first guest row (John Doe)
-    const guestRow = screen.getByText('John').closest('tr');
-    expect(guestRow).toBeInTheDocument();
+    // Find and click the first guest row (John Doe) - use more specific approach
+    const johnCells = screen.getAllByText('John');
+    // Find the table cell (not the mobile view span)
+    const johnTableCell = johnCells.find(cell => cell.tagName === 'TD');
+    expect(johnTableCell).toBeInTheDocument();
 
-    if (guestRow) {
-      fireEvent.click(guestRow);
+    if (johnTableCell) {
+      const johnRow = johnTableCell.closest('tr');
+      expect(johnRow).toBeInTheDocument();
+      
+      if (johnRow) {
+        fireEvent.click(johnRow);
 
-      // Wait for modal to open
+      // Wait for modal to open with reduced timeout
       await waitFor(() => {
         expect(screen.getByText('Edit Guest')).toBeInTheDocument();
-      }, { timeout: 2000 });
+      }, { timeout: 1000 });
+
+      // Wait a bit more for form data to populate
+      await waitFor(() => {
+        const firstNameInput = screen.getByLabelText(/First Name/i) as HTMLInputElement;
+        expect(firstNameInput.value).toBe('John');
+      }, { timeout: 1000 });
 
       // Verify modal contains guest data
       const firstNameInput = screen.getByLabelText(/First Name/i) as HTMLInputElement;
@@ -167,8 +191,9 @@ describe('Feature: admin-ui-modernization, Property 3: Row click opens edit moda
 
       expect(firstNameInput.value).toBe('John');
       expect(lastNameInput.value).toBe('Doe');
+      }
     }
-  });
+  }, 10000); // Increased test timeout
 
   it('should open edit modal with correct data for different guest types', async () => {
     // Render component
@@ -178,29 +203,42 @@ describe('Feature: admin-ui-modernization, Property 3: Row click opens edit moda
       </ToastProvider>
     );
 
-    // Wait for guests to load and table to render
+    // Wait for guests to load and table to render with reduced timeout
     await waitFor(() => {
-      expect(screen.getByText('Jane')).toBeInTheDocument();
-    }, { timeout: 5000 });
+      expect(screen.getAllByText('Jane')).toHaveLength(2); // Table and mobile view
+    }, { timeout: 2000 });
 
-    // Test clicking Jane Smith (wedding party with plus one)
-    const janeRow = screen.getByText('Jane').closest('tr');
-    expect(janeRow).toBeInTheDocument();
+    // Test clicking Jane Smith (wedding party with plus one) - use more specific approach
+    const janeCells = screen.getAllByText('Jane');
+    // Find the table cell (not the mobile view span)
+    const janeTableCell = janeCells.find(cell => cell.tagName === 'TD');
+    expect(janeTableCell).toBeInTheDocument();
 
-    if (janeRow) {
-      fireEvent.click(janeRow);
+    if (janeTableCell) {
+      const janeRow = janeTableCell.closest('tr');
+      expect(janeRow).toBeInTheDocument();
+      
+      if (janeRow) {
+        fireEvent.click(janeRow);
 
-      await waitFor(() => {
-        expect(screen.getByText('Edit Guest')).toBeInTheDocument();
-      }, { timeout: 2000 });
+        await waitFor(() => {
+          expect(screen.getByText('Edit Guest')).toBeInTheDocument();
+        }, { timeout: 1000 });
 
-      const firstNameInput = screen.getByLabelText(/First Name/i) as HTMLInputElement;
-      const lastNameInput = screen.getByLabelText(/Last Name/i) as HTMLInputElement;
+        // Wait a bit more for form data to populate
+        await waitFor(() => {
+          const firstNameInput = screen.getByLabelText(/First Name/i) as HTMLInputElement;
+          expect(firstNameInput.value).toBe('Jane');
+        }, { timeout: 1000 });
 
-      expect(firstNameInput.value).toBe('Jane');
-      expect(lastNameInput.value).toBe('Smith');
+        const firstNameInput = screen.getByLabelText(/First Name/i) as HTMLInputElement;
+        const lastNameInput = screen.getByLabelText(/Last Name/i) as HTMLInputElement;
+
+        expect(firstNameInput.value).toBe('Jane');
+        expect(lastNameInput.value).toBe('Smith');
+      }
     }
-  });
+  }, 10000); // Increased test timeout
 
   it('should open edit modal for guest with minimal data (child guest)', async () => {
     // Render component
@@ -210,29 +248,42 @@ describe('Feature: admin-ui-modernization, Property 3: Row click opens edit moda
       </ToastProvider>
     );
 
-    // Wait for guests to load and table to render
+    // Wait for guests to load and table to render with reduced timeout
     await waitFor(() => {
-      expect(screen.getByText('Alice')).toBeInTheDocument();
-    }, { timeout: 5000 });
+      expect(screen.getAllByText('Alice')).toHaveLength(2); // Table and mobile view
+    }, { timeout: 2000 });
 
-    // Test clicking Alice Johnson (child with no email)
-    const aliceRow = screen.getByText('Alice').closest('tr');
-    expect(aliceRow).toBeInTheDocument();
+    // Test clicking Alice Johnson (child with no email) - use more specific approach
+    const aliceCells = screen.getAllByText('Alice');
+    // Find the table cell (not the mobile view span)
+    const aliceTableCell = aliceCells.find(cell => cell.tagName === 'TD');
+    expect(aliceTableCell).toBeInTheDocument();
 
-    if (aliceRow) {
-      fireEvent.click(aliceRow);
+    if (aliceTableCell) {
+      const aliceRow = aliceTableCell.closest('tr');
+      expect(aliceRow).toBeInTheDocument();
+      
+      if (aliceRow) {
+        fireEvent.click(aliceRow);
 
-      await waitFor(() => {
-        expect(screen.getByText('Edit Guest')).toBeInTheDocument();
-      }, { timeout: 2000 });
+        await waitFor(() => {
+          expect(screen.getByText('Edit Guest')).toBeInTheDocument();
+        }, { timeout: 1000 });
 
-      const firstNameInput = screen.getByLabelText(/First Name/i) as HTMLInputElement;
-      const lastNameInput = screen.getByLabelText(/Last Name/i) as HTMLInputElement;
+        // Wait a bit more for form data to populate
+        await waitFor(() => {
+          const firstNameInput = screen.getByLabelText(/First Name/i) as HTMLInputElement;
+          expect(firstNameInput.value).toBe('Alice');
+        }, { timeout: 1000 });
 
-      expect(firstNameInput.value).toBe('Alice');
-      expect(lastNameInput.value).toBe('Johnson');
+        const firstNameInput = screen.getByLabelText(/First Name/i) as HTMLInputElement;
+        const lastNameInput = screen.getByLabelText(/Last Name/i) as HTMLInputElement;
+
+        expect(firstNameInput.value).toBe('Alice');
+        expect(lastNameInput.value).toBe('Johnson');
+      }
     }
-  });
+  }, 10000); // Increased test timeout
 
   it('should open create modal when Add Guest button is clicked', async () => {
     // Render component
@@ -242,10 +293,10 @@ describe('Feature: admin-ui-modernization, Property 3: Row click opens edit moda
       </ToastProvider>
     );
 
-    // Wait for page to load (guests don't need to be present for this test)
+    // Wait for page to load (guests don't need to be present for this test) with reduced timeout
     await waitFor(() => {
       expect(screen.getByRole('button', { name: /Add new guest/i })).toBeInTheDocument();
-    }, { timeout: 5000 });
+    }, { timeout: 2000 });
 
     // Click Add Guest button
     const addButton = screen.getByRole('button', { name: /Add new guest/i });

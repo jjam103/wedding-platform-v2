@@ -59,7 +59,7 @@ describe('auditLogService', () => {
       mockSupabase._mocks.single.mockResolvedValue({
         data: mockAuditLog,
         error: null,
-      });
+      } as any);
 
       const result = await auditLogService.create(mockSupabase, {
         user_id: 'user-456',
@@ -118,7 +118,7 @@ describe('auditLogService', () => {
       mockSupabase._mocks.single.mockResolvedValue({
         data: null,
         error: { message: 'Database connection failed' },
-      });
+      } as any);
 
       const result = await auditLogService.create(mockSupabase, {
         entity_type: 'guest',
@@ -156,7 +156,7 @@ describe('auditLogService', () => {
         data: mockLogs,
         error: null,
         count: 2,
-      });
+      } as any);
 
       const result = await auditLogService.list(mockSupabase, {
         page: 1,
@@ -179,7 +179,7 @@ describe('auditLogService', () => {
         data: [],
         error: null,
         count: 0,
-      });
+      } as any);
 
       await auditLogService.list(mockSupabase, {
         entity_type: 'guest',
@@ -199,7 +199,7 @@ describe('auditLogService', () => {
         data: null,
         error: { message: 'Query failed' },
         count: null,
-      });
+      } as any);
 
       const result = await auditLogService.list(mockSupabase);
 
@@ -223,7 +223,7 @@ describe('auditLogService', () => {
       mockSupabase._mocks.single.mockResolvedValue({
         data: mockLog,
         error: null,
-      });
+      } as any);
 
       const result = await auditLogService.get(mockSupabase, 'log-123');
 
@@ -239,7 +239,7 @@ describe('auditLogService', () => {
       mockSupabase._mocks.single.mockResolvedValue({
         data: null,
         error: { code: 'PGRST116', message: 'Not found' },
-      });
+      } as any);
 
       const result = await auditLogService.get(mockSupabase, 'nonexistent');
 
@@ -262,7 +262,7 @@ describe('auditLogService', () => {
           entity_id: 'guest-456',
         },
         error: null,
-      });
+      } as any);
 
       const result = await auditLogService.logCreate(
         mockSupabase,
@@ -290,7 +290,7 @@ describe('auditLogService', () => {
           entity_id: 'guest-456',
         },
         error: null,
-      });
+      } as any);
 
       const result = await auditLogService.logUpdate(
         mockSupabase,
@@ -319,7 +319,7 @@ describe('auditLogService', () => {
           entity_id: 'guest-456',
         },
         error: null,
-      });
+      } as any);
 
       const result = await auditLogService.logDelete(
         mockSupabase,

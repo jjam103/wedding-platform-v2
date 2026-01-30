@@ -23,6 +23,15 @@ import { TextEncoder, TextDecoder } from 'util';
 global.TextEncoder = TextEncoder;
 global.TextDecoder = TextDecoder as any;
 
+// Mock the content pages service BEFORE importing route handlers
+jest.mock('@/services/contentPagesService', () => ({
+  createContentPage: jest.fn(),
+  listContentPages: jest.fn(),
+  getContentPage: jest.fn(),
+  updateContentPage: jest.fn(),
+  deleteContentPage: jest.fn(),
+}));
+
 // Mock Next.js server module
 jest.mock('next/server', () => ({
   NextResponse: {
@@ -38,27 +47,24 @@ jest.mock('next/server', () => ({
 jest.mock('next/headers', () => ({
   cookies: jest.fn(() => ({
     get: jest.fn(),
+    getAll: jest.fn(() => []),
     set: jest.fn(),
     delete: jest.fn(),
   })),
 }));
 
-// Mock Supabase client
+// Mock Supabase SSR client
+const mockGetUser = jest.fn();
 const mockSupabaseClient = {
   auth: {
+    getUser: mockGetUser,
     getSession: jest.fn(),
   },
   from: jest.fn(),
 };
 
-// Mock Supabase auth helper
-jest.mock('@supabase/auth-helpers-nextjs', () => ({
-  createRouteHandlerClient: jest.fn(() => mockSupabaseClient),
-}));
-
-// Mock the supabase client in the service
-jest.mock('../../lib/supabase', () => ({
-  supabase: mockSupabaseClient,
+jest.mock('@supabase/ssr', () => ({
+  createServerClient: jest.fn(() => mockSupabaseClient),
 }));
 
 import { GET as listContentPages, POST as createContentPage } from '@/app/api/admin/content-pages/route';
@@ -67,21 +73,19 @@ import {
   PUT as updateContentPage, 
   DELETE as deleteContentPage 
 } from '@/app/api/admin/content-pages/[id]/route';
+import * as contentPagesService from '@/services/contentPagesService';
 
 describe('Integration Test: Content Pages API', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     
-    // Default: authenticated session
-    mockSupabaseClient.auth.getSession.mockResolvedValue({
+    // Default: authenticated user
+    mockGetUser.mockResolvedValue({
       data: {
-        session: {
-          user: { id: 'user-123' },
-          access_token: 'token',
-        },
+        user: { id: 'user-123', email: 'test@example.com' },
       },
       error: null,
-    });
+    } as any);
   });
 
   describe('POST /api/admin/content-pages - Create Content Page', () => {
@@ -90,29 +94,15 @@ describe('Integration Test: Content Pages API', () => {
         id: 'page-123',
         title: 'Our Story',
         slug: 'our-story',
-        status: 'draft',
+        status: 'draft' as const,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
       };
 
-      // Mock database insert
-      mockSupabaseClient.from.mockReturnValue({
-        insert: jest.fn().mockReturnValue({
-          select: jest.fn().mockReturnValue({
-            single: jest.fn().mockResolvedValue({
-              data: mockContentPage,
-              error: null,
-            }),
-          }),
-        }),
-        select: jest.fn().mockReturnValue({
-          eq: jest.fn().mockReturnValue({
-            single: jest.fn().mockResolvedValue({
-              data: null,
-              error: { code: 'PGRST116' }, // Not found - slug is unique
-            }),
-          }),
-        }),
+      // Mock service to return success
+      (contentPagesService.createContentPage as jest.Mock).mockResolvedValue({
+        success: true,
+        data: mockContentPage,
       });
 
       const request = {
@@ -132,6 +122,11 @@ describe('Integration Test: Content Pages API', () => {
       expect(data.data.id).toBe('page-123');
       expect(data.data.title).toBe('Our Story');
       expect(data.data.slug).toBe('our-story');
+      expect(contentPagesService.createContentPage).toHaveBeenCalledWith({
+        title: 'Our Story',
+        slug: 'our-story',
+        status: 'draft',
+      });
     });
 
     it('should auto-generate slug from title when slug not provided', async () => {
@@ -139,28 +134,14 @@ describe('Integration Test: Content Pages API', () => {
         id: 'page-124',
         title: 'Travel Information',
         slug: 'travel-information',
-        status: 'draft',
+        status: 'draft' as const,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
       };
 
-      mockSupabaseClient.from.mockReturnValue({
-        insert: jest.fn().mockReturnValue({
-          select: jest.fn().mockReturnValue({
-            single: jest.fn().mockResolvedValue({
-              data: mockContentPage,
-              error: null,
-            }),
-          }),
-        }),
-        select: jest.fn().mockReturnValue({
-          eq: jest.fn().mockReturnValue({
-            single: jest.fn().mockResolvedValue({
-              data: null,
-              error: { code: 'PGRST116' },
-            }),
-          }),
-        }),
+      (contentPagesService.createContentPage as jest.Mock).mockResolvedValue({
+        success: true,
+        data: mockContentPage,
       });
 
       const request = {
@@ -180,10 +161,10 @@ describe('Integration Test: Content Pages API', () => {
     });
 
     it('should return 401 when not authenticated', async () => {
-      mockSupabaseClient.auth.getSession.mockResolvedValue({
-        data: { session: null },
-        error: null,
-      });
+      mockGetUser.mockResolvedValue({
+        data: { user: null },
+        error: { message: 'Not authenticated' },
+      } as any);
 
       const request = {
         json: async () => ({
@@ -255,23 +236,13 @@ describe('Integration Test: Content Pages API', () => {
     });
 
     it('should return 500 for database errors', async () => {
-      mockSupabaseClient.from.mockReturnValue({
-        insert: jest.fn().mockReturnValue({
-          select: jest.fn().mockReturnValue({
-            single: jest.fn().mockResolvedValue({
-              data: null,
-              error: { message: 'Database connection failed' },
-            }),
-          }),
-        }),
-        select: jest.fn().mockReturnValue({
-          eq: jest.fn().mockReturnValue({
-            single: jest.fn().mockResolvedValue({
-              data: null,
-              error: { code: 'PGRST116' },
-            }),
-          }),
-        }),
+      // Mock service to return database error
+      (contentPagesService.createContentPage as jest.Mock).mockResolvedValue({
+        success: false,
+        error: {
+          code: 'DATABASE_ERROR',
+          message: 'Database connection failed',
+        },
       });
 
       const request = {
@@ -298,7 +269,7 @@ describe('Integration Test: Content Pages API', () => {
           id: 'page-1',
           title: 'Our Story',
           slug: 'our-story',
-          status: 'published',
+          status: 'published' as const,
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
         },
@@ -306,19 +277,15 @@ describe('Integration Test: Content Pages API', () => {
           id: 'page-2',
           title: 'Travel Info',
           slug: 'travel-info',
-          status: 'draft',
+          status: 'draft' as const,
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
         },
       ];
 
-      mockSupabaseClient.from.mockReturnValue({
-        select: jest.fn().mockReturnValue({
-          order: jest.fn().mockResolvedValue({
-            data: mockPages,
-            error: null,
-          }),
-        }),
+      (contentPagesService.listContentPages as jest.Mock).mockResolvedValue({
+        success: true,
+        data: mockPages,
       });
 
       const request = {
@@ -332,6 +299,7 @@ describe('Integration Test: Content Pages API', () => {
       expect(data.success).toBe(true);
       expect(data.data).toHaveLength(2);
       expect(data.data[0].id).toBe('page-1');
+      expect(contentPagesService.listContentPages).toHaveBeenCalledWith(undefined);
     });
 
     it('should filter by status when provided', async () => {
@@ -340,21 +308,15 @@ describe('Integration Test: Content Pages API', () => {
           id: 'page-1',
           title: 'Our Story',
           slug: 'our-story',
-          status: 'published',
+          status: 'published' as const,
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
         },
       ];
 
-      mockSupabaseClient.from.mockReturnValue({
-        select: jest.fn().mockReturnValue({
-          order: jest.fn().mockReturnValue({
-            eq: jest.fn().mockResolvedValue({
-              data: mockPages,
-              error: null,
-            }),
-          }),
-        }),
+      (contentPagesService.listContentPages as jest.Mock).mockResolvedValue({
+        success: true,
+        data: mockPages,
       });
 
       const request = {
@@ -368,6 +330,7 @@ describe('Integration Test: Content Pages API', () => {
       expect(data.success).toBe(true);
       expect(data.data).toHaveLength(1);
       expect(data.data[0].status).toBe('published');
+      expect(contentPagesService.listContentPages).toHaveBeenCalledWith({ status: 'published' });
     });
 
     it('should return 400 for invalid status filter', async () => {
@@ -384,10 +347,10 @@ describe('Integration Test: Content Pages API', () => {
     });
 
     it('should return 401 when not authenticated', async () => {
-      mockSupabaseClient.auth.getSession.mockResolvedValue({
-        data: { session: null },
-        error: null,
-      });
+      mockGetUser.mockResolvedValue({
+        data: { user: null },
+        error: { message: 'Not authenticated' },
+      } as any);
 
       const request = {
         url: 'http://localhost:3000/api/admin/content-pages',
@@ -402,13 +365,12 @@ describe('Integration Test: Content Pages API', () => {
     });
 
     it('should return 500 for database errors', async () => {
-      mockSupabaseClient.from.mockReturnValue({
-        select: jest.fn().mockReturnValue({
-          order: jest.fn().mockResolvedValue({
-            data: null,
-            error: { message: 'Database error' },
-          }),
-        }),
+      (contentPagesService.listContentPages as jest.Mock).mockResolvedValue({
+        success: false,
+        error: {
+          code: 'DATABASE_ERROR',
+          message: 'Database error',
+        },
       });
 
       const request = {
@@ -430,52 +392,44 @@ describe('Integration Test: Content Pages API', () => {
         id: 'page-123',
         title: 'Our Story',
         slug: 'our-story',
-        status: 'published',
+        status: 'published' as const,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
       };
 
-      mockSupabaseClient.from.mockReturnValue({
-        select: jest.fn().mockReturnValue({
-          eq: jest.fn().mockReturnValue({
-            single: jest.fn().mockResolvedValue({
-              data: mockPage,
-              error: null,
-            }),
-          }),
-        }),
+      (contentPagesService.getContentPage as jest.Mock).mockResolvedValue({
+        success: true,
+        data: mockPage,
       });
 
       const request = {
         url: 'http://localhost:3000/api/admin/content-pages/page-123',
       } as any;
 
-      const response = await getContentPage(request, { params: { id: 'page-123' } });
+      const response = await getContentPage(request, { params: Promise.resolve({ id: 'page-123' }) });
       const data = await response.json();
 
       expect(response.status).toBe(200);
       expect(data.success).toBe(true);
       expect(data.data.id).toBe('page-123');
       expect(data.data.title).toBe('Our Story');
+      expect(contentPagesService.getContentPage).toHaveBeenCalledWith('page-123');
     });
 
     it('should return 404 when content page not found', async () => {
-      mockSupabaseClient.from.mockReturnValue({
-        select: jest.fn().mockReturnValue({
-          eq: jest.fn().mockReturnValue({
-            single: jest.fn().mockResolvedValue({
-              data: null,
-              error: { code: 'PGRST116', message: 'Not found' },
-            }),
-          }),
-        }),
+      (contentPagesService.getContentPage as jest.Mock).mockResolvedValue({
+        success: false,
+        error: {
+          code: 'NOT_FOUND',
+          message: 'Content page not found',
+        },
       });
 
       const request = {
         url: 'http://localhost:3000/api/admin/content-pages/nonexistent',
       } as any;
 
-      const response = await getContentPage(request, { params: { id: 'nonexistent' } });
+      const response = await getContentPage(request, { params: Promise.resolve({ id: 'nonexistent' }) });
       const data = await response.json();
 
       expect(response.status).toBe(404);
@@ -484,16 +438,16 @@ describe('Integration Test: Content Pages API', () => {
     });
 
     it('should return 401 when not authenticated', async () => {
-      mockSupabaseClient.auth.getSession.mockResolvedValue({
-        data: { session: null },
-        error: null,
-      });
+      mockGetUser.mockResolvedValue({
+        data: { user: null },
+        error: { message: 'Not authenticated' },
+      } as any);
 
       const request = {
         url: 'http://localhost:3000/api/admin/content-pages/page-123',
       } as any;
 
-      const response = await getContentPage(request, { params: { id: 'page-123' } });
+      const response = await getContentPage(request, { params: Promise.resolve({ id: 'page-123' }) });
       const data = await response.json();
 
       expect(response.status).toBe(401);
@@ -502,22 +456,19 @@ describe('Integration Test: Content Pages API', () => {
     });
 
     it('should return 500 for database errors', async () => {
-      mockSupabaseClient.from.mockReturnValue({
-        select: jest.fn().mockReturnValue({
-          eq: jest.fn().mockReturnValue({
-            single: jest.fn().mockResolvedValue({
-              data: null,
-              error: { message: 'Database error' },
-            }),
-          }),
-        }),
+      (contentPagesService.getContentPage as jest.Mock).mockResolvedValue({
+        success: false,
+        error: {
+          code: 'DATABASE_ERROR',
+          message: 'Database error',
+        },
       });
 
       const request = {
         url: 'http://localhost:3000/api/admin/content-pages/page-123',
       } as any;
 
-      const response = await getContentPage(request, { params: { id: 'page-123' } });
+      const response = await getContentPage(request, { params: Promise.resolve({ id: 'page-123' }) });
       const data = await response.json();
 
       expect(response.status).toBe(500);
@@ -532,32 +483,14 @@ describe('Integration Test: Content Pages API', () => {
         id: 'page-123',
         title: 'Our Updated Story',
         slug: 'our-story',
-        status: 'published',
+        status: 'published' as const,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
       };
 
-      mockSupabaseClient.from.mockReturnValue({
-        update: jest.fn().mockReturnValue({
-          eq: jest.fn().mockReturnValue({
-            select: jest.fn().mockReturnValue({
-              single: jest.fn().mockResolvedValue({
-                data: mockUpdatedPage,
-                error: null,
-              }),
-            }),
-          }),
-        }),
-        select: jest.fn().mockReturnValue({
-          eq: jest.fn().mockReturnValue({
-            neq: jest.fn().mockReturnValue({
-              single: jest.fn().mockResolvedValue({
-                data: null,
-                error: { code: 'PGRST116' },
-              }),
-            }),
-          }),
-        }),
+      (contentPagesService.updateContentPage as jest.Mock).mockResolvedValue({
+        success: true,
+        data: mockUpdatedPage,
       });
 
       const request = {
@@ -568,13 +501,17 @@ describe('Integration Test: Content Pages API', () => {
         url: 'http://localhost:3000/api/admin/content-pages/page-123',
       } as any;
 
-      const response = await updateContentPage(request, { params: { id: 'page-123' } });
+      const response = await updateContentPage(request, { params: Promise.resolve({ id: 'page-123' }) });
       const data = await response.json();
 
       expect(response.status).toBe(200);
       expect(data.success).toBe(true);
       expect(data.data.title).toBe('Our Updated Story');
       expect(data.data.status).toBe('published');
+      expect(contentPagesService.updateContentPage).toHaveBeenCalledWith('page-123', {
+        title: 'Our Updated Story',
+        status: 'published',
+      });
     });
 
     it('should update only provided fields (partial update)', async () => {
@@ -582,22 +519,14 @@ describe('Integration Test: Content Pages API', () => {
         id: 'page-123',
         title: 'Our Story',
         slug: 'our-story',
-        status: 'published',
+        status: 'published' as const,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
       };
 
-      mockSupabaseClient.from.mockReturnValue({
-        update: jest.fn().mockReturnValue({
-          eq: jest.fn().mockReturnValue({
-            select: jest.fn().mockReturnValue({
-              single: jest.fn().mockResolvedValue({
-                data: mockUpdatedPage,
-                error: null,
-              }),
-            }),
-          }),
-        }),
+      (contentPagesService.updateContentPage as jest.Mock).mockResolvedValue({
+        success: true,
+        data: mockUpdatedPage,
       });
 
       const request = {
@@ -607,7 +536,7 @@ describe('Integration Test: Content Pages API', () => {
         url: 'http://localhost:3000/api/admin/content-pages/page-123',
       } as any;
 
-      const response = await updateContentPage(request, { params: { id: 'page-123' } });
+      const response = await updateContentPage(request, { params: Promise.resolve({ id: 'page-123' }) });
       const data = await response.json();
 
       expect(response.status).toBe(200);
@@ -616,17 +545,12 @@ describe('Integration Test: Content Pages API', () => {
     });
 
     it('should return 404 when content page not found', async () => {
-      mockSupabaseClient.from.mockReturnValue({
-        update: jest.fn().mockReturnValue({
-          eq: jest.fn().mockReturnValue({
-            select: jest.fn().mockReturnValue({
-              single: jest.fn().mockResolvedValue({
-                data: null,
-                error: { code: 'PGRST116', message: 'Not found' },
-              }),
-            }),
-          }),
-        }),
+      (contentPagesService.updateContentPage as jest.Mock).mockResolvedValue({
+        success: false,
+        error: {
+          code: 'NOT_FOUND',
+          message: 'Content page not found',
+        },
       });
 
       const request = {
@@ -636,7 +560,7 @@ describe('Integration Test: Content Pages API', () => {
         url: 'http://localhost:3000/api/admin/content-pages/nonexistent',
       } as any;
 
-      const response = await updateContentPage(request, { params: { id: 'nonexistent' } });
+      const response = await updateContentPage(request, { params: Promise.resolve({ id: 'nonexistent' }) });
       const data = await response.json();
 
       expect(response.status).toBe(404);
@@ -645,10 +569,10 @@ describe('Integration Test: Content Pages API', () => {
     });
 
     it('should return 401 when not authenticated', async () => {
-      mockSupabaseClient.auth.getSession.mockResolvedValue({
-        data: { session: null },
-        error: null,
-      });
+      mockGetUser.mockResolvedValue({
+        data: { user: null },
+        error: { message: 'Not authenticated' },
+      } as any);
 
       const request = {
         json: async () => ({
@@ -657,7 +581,7 @@ describe('Integration Test: Content Pages API', () => {
         url: 'http://localhost:3000/api/admin/content-pages/page-123',
       } as any;
 
-      const response = await updateContentPage(request, { params: { id: 'page-123' } });
+      const response = await updateContentPage(request, { params: Promise.resolve({ id: 'page-123' }) });
       const data = await response.json();
 
       expect(response.status).toBe(401);
@@ -673,7 +597,7 @@ describe('Integration Test: Content Pages API', () => {
         url: 'http://localhost:3000/api/admin/content-pages/page-123',
       } as any;
 
-      const response = await updateContentPage(request, { params: { id: 'page-123' } });
+      const response = await updateContentPage(request, { params: Promise.resolve({ id: 'page-123' }) });
       const data = await response.json();
 
       expect(response.status).toBe(400);
@@ -682,27 +606,12 @@ describe('Integration Test: Content Pages API', () => {
     });
 
     it('should return 500 for database errors', async () => {
-      mockSupabaseClient.from.mockReturnValue({
-        update: jest.fn().mockReturnValue({
-          eq: jest.fn().mockReturnValue({
-            select: jest.fn().mockReturnValue({
-              single: jest.fn().mockResolvedValue({
-                data: null,
-                error: { message: 'Database error' },
-              }),
-            }),
-          }),
-        }),
-        select: jest.fn().mockReturnValue({
-          eq: jest.fn().mockReturnValue({
-            neq: jest.fn().mockReturnValue({
-              single: jest.fn().mockResolvedValue({
-                data: null,
-                error: { code: 'PGRST116' },
-              }),
-            }),
-          }),
-        }),
+      (contentPagesService.updateContentPage as jest.Mock).mockResolvedValue({
+        success: false,
+        error: {
+          code: 'DATABASE_ERROR',
+          message: 'Database error',
+        },
       });
 
       const request = {
@@ -712,7 +621,7 @@ describe('Integration Test: Content Pages API', () => {
         url: 'http://localhost:3000/api/admin/content-pages/page-123',
       } as any;
 
-      const response = await updateContentPage(request, { params: { id: 'page-123' } });
+      const response = await updateContentPage(request, { params: Promise.resolve({ id: 'page-123' }) });
       const data = await response.json();
 
       expect(response.status).toBe(500);
@@ -723,91 +632,51 @@ describe('Integration Test: Content Pages API', () => {
 
   describe('DELETE /api/admin/content-pages/:id - Delete Content Page', () => {
     it('should delete content page when authenticated', async () => {
-      // Mock for both sections and content_pages tables
-      mockSupabaseClient.from.mockImplementation((table: string) => {
-        if (table === 'sections') {
-          return {
-            delete: jest.fn().mockReturnValue({
-              eq: jest.fn().mockReturnValue({
-                eq: jest.fn().mockResolvedValue({
-                  data: null,
-                  error: null,
-                }),
-              }),
-            }),
-          };
-        }
-        // content_pages table
-        return {
-          delete: jest.fn().mockReturnValue({
-            eq: jest.fn().mockResolvedValue({
-              data: null,
-              error: null,
-            }),
-          }),
-        };
+      (contentPagesService.deleteContentPage as jest.Mock).mockResolvedValue({
+        success: true,
+        data: { message: 'Content page deleted successfully' },
       });
 
       const request = {
         url: 'http://localhost:3000/api/admin/content-pages/page-123',
       } as any;
 
-      const response = await deleteContentPage(request, { params: { id: 'page-123' } });
+      const response = await deleteContentPage(request, { params: Promise.resolve({ id: 'page-123' }) });
       const data = await response.json();
 
       expect(response.status).toBe(200);
       expect(data.success).toBe(true);
       expect(data.data.message).toBe('Content page deleted successfully');
+      expect(contentPagesService.deleteContentPage).toHaveBeenCalledWith('page-123');
     });
 
     it('should delete associated sections when deleting page', async () => {
-      // Mock for both sections and content_pages tables
-      mockSupabaseClient.from.mockImplementation((table: string) => {
-        if (table === 'sections') {
-          return {
-            delete: jest.fn().mockReturnValue({
-              eq: jest.fn().mockReturnValue({
-                eq: jest.fn().mockResolvedValue({
-                  data: null,
-                  error: null,
-                }),
-              }),
-            }),
-          };
-        }
-        // content_pages table
-        return {
-          delete: jest.fn().mockReturnValue({
-            eq: jest.fn().mockResolvedValue({
-              data: null,
-              error: null,
-            }),
-          }),
-        };
+      (contentPagesService.deleteContentPage as jest.Mock).mockResolvedValue({
+        success: true,
+        data: { message: 'Content page deleted successfully' },
       });
 
       const request = {
         url: 'http://localhost:3000/api/admin/content-pages/page-123',
       } as any;
 
-      await deleteContentPage(request, { params: { id: 'page-123' } });
+      await deleteContentPage(request, { params: Promise.resolve({ id: 'page-123' }) });
 
-      // Verify sections were deleted (called twice: once for sections, once for page)
-      expect(mockSupabaseClient.from).toHaveBeenCalledWith('sections');
-      expect(mockSupabaseClient.from).toHaveBeenCalledWith('content_pages');
+      // Verify service was called (service handles cascade deletion internally)
+      expect(contentPagesService.deleteContentPage).toHaveBeenCalledWith('page-123');
     });
 
     it('should return 401 when not authenticated', async () => {
-      mockSupabaseClient.auth.getSession.mockResolvedValue({
-        data: { session: null },
-        error: null,
-      });
+      mockGetUser.mockResolvedValue({
+        data: { user: null },
+        error: { message: 'Not authenticated' },
+      } as any);
 
       const request = {
         url: 'http://localhost:3000/api/admin/content-pages/page-123',
       } as any;
 
-      const response = await deleteContentPage(request, { params: { id: 'page-123' } });
+      const response = await deleteContentPage(request, { params: Promise.resolve({ id: 'page-123' }) });
       const data = await response.json();
 
       expect(response.status).toBe(401);
@@ -816,36 +685,19 @@ describe('Integration Test: Content Pages API', () => {
     });
 
     it('should return 500 for database errors', async () => {
-      // Mock sections delete to succeed, but content_pages delete to fail
-      mockSupabaseClient.from.mockImplementation((table: string) => {
-        if (table === 'sections') {
-          return {
-            delete: jest.fn().mockReturnValue({
-              eq: jest.fn().mockReturnValue({
-                eq: jest.fn().mockResolvedValue({
-                  data: null,
-                  error: null,
-                }),
-              }),
-            }),
-          };
-        }
-        // content_pages table - return error
-        return {
-          delete: jest.fn().mockReturnValue({
-            eq: jest.fn().mockResolvedValue({
-              data: null,
-              error: { message: 'Database error' },
-            }),
-          }),
-        };
+      (contentPagesService.deleteContentPage as jest.Mock).mockResolvedValue({
+        success: false,
+        error: {
+          code: 'DATABASE_ERROR',
+          message: 'Database error',
+        },
       });
 
       const request = {
         url: 'http://localhost:3000/api/admin/content-pages/page-123',
       } as any;
 
-      const response = await deleteContentPage(request, { params: { id: 'page-123' } });
+      const response = await deleteContentPage(request, { params: Promise.resolve({ id: 'page-123' }) });
       const data = await response.json();
 
       expect(response.status).toBe(500);

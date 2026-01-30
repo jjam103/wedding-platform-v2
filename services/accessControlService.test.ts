@@ -29,7 +29,7 @@ describe('accessControlService', () => {
       mockSupabase.single.mockResolvedValue({
         data: { role: 'super_admin' },
         error: null,
-      });
+      } as any);
 
       const result = await accessControlService.hasRole('user-123', 'super_admin');
 
@@ -44,7 +44,7 @@ describe('accessControlService', () => {
       mockSupabase.single.mockResolvedValue({
         data: { role: 'guest' },
         error: null,
-      });
+      } as any);
 
       const result = await accessControlService.hasRole('user-123', 'super_admin');
 
@@ -59,7 +59,7 @@ describe('accessControlService', () => {
       mockSupabase.single.mockResolvedValue({
         data: null,
         error: { message: 'User not found' },
-      });
+      } as any);
 
       const result = await accessControlService.hasRole('user-123', 'super_admin');
 
@@ -75,7 +75,7 @@ describe('accessControlService', () => {
       mockSupabase.single.mockResolvedValue({
         data: { role: 'host' },
         error: null,
-      });
+      } as any);
 
       const result = await accessControlService.hasAnyRole('user-123', ['super_admin', 'host']);
 
@@ -90,7 +90,7 @@ describe('accessControlService', () => {
       mockSupabase.single.mockResolvedValue({
         data: { role: 'guest' },
         error: null,
-      });
+      } as any);
 
       const result = await accessControlService.hasAnyRole('user-123', ['super_admin', 'host']);
 
@@ -107,7 +107,7 @@ describe('accessControlService', () => {
       mockSupabase.single.mockResolvedValue({
         data: { role: 'super_admin' },
         error: null,
-      });
+      } as any);
 
       const result = await accessControlService.canAccessGroup({
         userId: 'user-123',
@@ -279,7 +279,7 @@ describe('accessControlService', () => {
       mockSupabase.single.mockResolvedValue({
         data: { role: 'super_admin' },
         error: null,
-      });
+      } as any);
 
       const result = await accessControlService.requireRole('user-123', 'super_admin');
 
@@ -293,7 +293,7 @@ describe('accessControlService', () => {
       mockSupabase.single.mockResolvedValue({
         data: { role: 'guest' },
         error: null,
-      });
+      } as any);
 
       const result = await accessControlService.requireRole('user-123', 'super_admin');
 
@@ -309,7 +309,7 @@ describe('accessControlService', () => {
       mockSupabase.single.mockResolvedValue({
         data: { role: 'host' },
         error: null,
-      });
+      } as any);
 
       const result = await accessControlService.requireAnyRole('user-123', ['super_admin', 'host']);
 
@@ -323,7 +323,7 @@ describe('accessControlService', () => {
       mockSupabase.single.mockResolvedValue({
         data: { role: 'guest' },
         error: null,
-      });
+      } as any);
 
       const result = await accessControlService.requireAnyRole('user-123', ['super_admin', 'host']);
 
@@ -339,7 +339,7 @@ describe('accessControlService', () => {
       mockSupabase.single.mockResolvedValue({
         data: { role: 'super_admin' },
         error: null,
-      });
+      } as any);
 
       const result = await accessControlService.requireGroupAccess({
         userId: 'user-123',

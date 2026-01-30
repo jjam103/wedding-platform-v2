@@ -151,7 +151,9 @@ describe('useLocations', () => {
         expect(result.current.data).toEqual(initialData);
       });
 
-      await result.current.refetch();
+      await waitFor(async () => {
+        await result.current.refetch();
+      });
 
       await waitFor(() => {
         expect(result.current.data).toEqual(updatedData);
@@ -172,7 +174,9 @@ describe('useLocations', () => {
         expect(result.current.error).toBeInstanceOf(Error);
       });
 
-      await result.current.refetch();
+      await waitFor(async () => {
+        await result.current.refetch();
+      });
 
       await waitFor(() => {
         expect(result.current.error).toBeNull();
@@ -229,9 +233,12 @@ describe('useLocations', () => {
         expect(result.current.data).toEqual(initialData);
       });
 
-      const createResult = await result.current.create({
-        name: 'Guanacaste',
-        parentLocationId: 'loc-1',
+      let createResult;
+      await waitFor(async () => {
+        createResult = await result.current.create({
+          name: 'Guanacaste',
+          parentLocationId: 'loc-1',
+        });
       });
 
       expect(createResult.success).toBe(true);
@@ -283,8 +290,11 @@ describe('useLocations', () => {
         expect(result.current.data[0].name).toBe('Costa Rica');
       });
 
-      const updateResult = await result.current.update('loc-1', {
-        name: 'República de Costa Rica',
+      let updateResult;
+      await waitFor(async () => {
+        updateResult = await result.current.update('loc-1', {
+          name: 'República de Costa Rica',
+        });
       });
 
       expect(updateResult.success).toBe(true);
@@ -341,7 +351,10 @@ describe('useLocations', () => {
         expect(result.current.data[0].children).toHaveLength(1);
       });
 
-      const deleteResult = await result.current.remove('loc-2');
+      let deleteResult;
+      await waitFor(async () => {
+        deleteResult = await result.current.remove('loc-2');
+      });
 
       expect(deleteResult.success).toBe(true);
 
@@ -379,10 +392,13 @@ describe('useLocations', () => {
         expect(result.current.loading).toBe(false);
       });
 
-      const validationResult = await result.current.validateParent(
-        'loc-2',
-        'loc-1'
-      );
+      let validationResult;
+      await waitFor(async () => {
+        validationResult = await result.current.validateParent(
+          'loc-2',
+          'loc-1'
+        );
+      });
 
       expect(validationResult.success).toBe(true);
       expect(global.fetch).toHaveBeenCalledWith(
@@ -424,10 +440,13 @@ describe('useLocations', () => {
         expect(result.current.loading).toBe(false);
       });
 
-      const validationResult = await result.current.validateParent(
-        'loc-1',
-        'loc-2'
-      );
+      let validationResult;
+      await waitFor(async () => {
+        validationResult = await result.current.validateParent(
+          'loc-1',
+          'loc-2'
+        );
+      });
 
       expect(validationResult.success).toBe(false);
       expect(validationResult.error).toBe('Circular reference detected');
@@ -457,10 +476,13 @@ describe('useLocations', () => {
         expect(result.current.loading).toBe(false);
       });
 
-      const validationResult = await result.current.validateParent(
-        'loc-2',
-        'loc-1'
-      );
+      let validationResult;
+      await waitFor(async () => {
+        validationResult = await result.current.validateParent(
+          'loc-2',
+          'loc-1'
+        );
+      });
 
       expect(validationResult.success).toBe(false);
       expect(validationResult.error).toBe('Network error');

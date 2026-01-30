@@ -1,4 +1,4 @@
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
+import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
@@ -26,11 +26,45 @@ export interface AuthResult {
  */
 export async function verifyAuth(): Promise<AuthResult> {
   try {
-    const cookieStore = await cookies();
-    const supabase = createRouteHandlerClient({ cookies: () => cookieStore });
-    const { data: { session }, error } = await supabase.auth.getSession();
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-    if (error || !session) {
+    if (!supabaseUrl || !supabaseAnonKey) {
+      console.error('[verifyAuth] Missing Supabase environment variables');
+      return {
+        success: false,
+        error: {
+          code: 'UNAUTHORIZED',
+          message: 'Authentication configuration error',
+        },
+      };
+    }
+
+    const cookieStore = await cookies();
+    
+    // Use createServerClient (same as middleware) instead of createRouteHandlerClient
+    const supabase = createServerClient(
+      supabaseUrl,
+      supabaseAnonKey,
+      {
+        cookies: {
+          getAll() {
+            return cookieStore.getAll();
+          },
+          setAll(cookiesToSet) {
+            cookiesToSet.forEach(({ name, value }) => {
+              cookieStore.set(name, value);
+            });
+          },
+        },
+      }
+    );
+    
+    // Use getUser() instead of getSession() for more reliable auth check
+    const { data: { user }, error } = await supabase.auth.getUser();
+
+    if (error || !user) {
+      console.error('[verifyAuth] Authentication failed:', error?.message || 'No user');
       return {
         success: false,
         error: {
@@ -40,12 +74,13 @@ export async function verifyAuth(): Promise<AuthResult> {
       };
     }
 
+    console.log('[verifyAuth] User authenticated:', user.id);
     return {
       success: true,
-      userId: session.user.id,
+      userId: user.id,
     };
   } catch (error) {
-    console.error('verifyAuth error:', error);
+    console.error('[verifyAuth] Unexpected error:', error);
     return {
       success: false,
       error: {

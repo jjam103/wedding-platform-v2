@@ -15,6 +15,52 @@ if (typeof global.fetch === 'undefined') {
   );
 }
 
+// Polyfill Request for Node.js test environment
+if (typeof global.Request === 'undefined') {
+  global.Request = class MockRequest {
+    constructor(url, options = {}) {
+      this.url = url;
+      this.method = options.method || 'GET';
+      this.headers = new Headers(options.headers);
+      this.body = options.body;
+    }
+    
+    async json() {
+      return JSON.parse(this.body || '{}');
+    }
+    
+    async text() {
+      return this.body || '';
+    }
+  };
+}
+
+// Polyfill Headers for Node.js test environment
+if (typeof global.Headers === 'undefined') {
+  global.Headers = class MockHeaders {
+    constructor(init = {}) {
+      this._headers = {};
+      if (init) {
+        Object.entries(init).forEach(([key, value]) => {
+          this._headers[key.toLowerCase()] = value;
+        });
+      }
+    }
+    
+    get(name) {
+      return this._headers[name.toLowerCase()];
+    }
+    
+    set(name, value) {
+      this._headers[name.toLowerCase()] = value;
+    }
+    
+    has(name) {
+      return name.toLowerCase() in this._headers;
+    }
+  };
+}
+
 // Extend Jest matchers with jest-axe
 expect.extend(toHaveNoViolations);
 

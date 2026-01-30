@@ -5,10 +5,28 @@ import { sendEmail } from './emailService';
 import { executeCronJob, type CronJobResult } from './cronService';
 
 // Initialize Supabase client for database operations
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+// Use a getter function to allow for testing
+let supabaseInstance: ReturnType<typeof createClient> | null = null;
+
+function getSupabaseClient() {
+  if (!supabaseInstance) {
+    supabaseInstance = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    );
+  }
+  return supabaseInstance;
+}
+
+// Export for testing
+export function __setSupabaseClient(client: any) {
+  supabaseInstance = client;
+}
+
+// Export for testing
+export function __resetSupabaseClient() {
+  supabaseInstance = null;
+}
 
 /**
  * Guest with pending RSVP information.
@@ -37,6 +55,7 @@ export async function findPendingRSVPs(
   daysBeforeDeadline: number = 7
 ): Promise<Result<PendingRSVPGuest[]>> {
   try {
+    const supabase = getSupabaseClient();
     const now = new Date();
     const reminderDate = new Date(now);
     reminderDate.setDate(reminderDate.getDate() + daysBeforeDeadline);
@@ -65,7 +84,7 @@ export async function findPendingRSVPs(
     const pendingGuests: PendingRSVPGuest[] = [];
 
     // For each event, find guests with pending RSVPs
-    for (const event of events || []) {
+    for (const event of (events || []) as Array<{ id: string; name: string; rsvp_deadline: string }>) {
       // Get all guests who should RSVP to this event
       const { data: guests, error: guestsError } = await supabase
         .from('guests')
@@ -77,7 +96,7 @@ export async function findPendingRSVPs(
         continue; // Skip this event on error
       }
 
-      for (const guest of guests || []) {
+      for (const guest of (guests || []) as Array<{ id: string; first_name: string; last_name: string; email: string }>) {
         // Check if guest has pending RSVP for this event
         const { data: rsvps, error: rsvpError } = await supabase
           .from('rsvps')
@@ -90,7 +109,7 @@ export async function findPendingRSVPs(
         }
 
         // If no RSVP or RSVP is pending, add to reminder list
-        if (!rsvps || rsvps.length === 0 || rsvps.some((r) => r.status === 'pending')) {
+        if (!rsvps || rsvps.length === 0 || (rsvps as Array<{ status: string }>).some((r) => r.status === 'pending')) {
           const deadline = new Date(event.rsvp_deadline!);
           const daysUntil = Math.ceil((deadline.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
 
@@ -114,7 +133,7 @@ export async function findPendingRSVPs(
       .eq('status', 'published');
 
     if (!activitiesError && activities) {
-      for (const activity of activities) {
+      for (const activity of activities as Array<{ id: string; name: string }>) {
         // Get guests who should RSVP to this activity
         const { data: guests, error: guestsError } = await supabase
           .from('guests')
@@ -129,7 +148,7 @@ export async function findPendingRSVPs(
           continue;
         }
 
-        for (const guest of guests || []) {
+        for (const guest of (guests || []) as Array<{ id: string; first_name: string; last_name: string; email: string; rsvp_deadline: string }>) {
           // Check if guest has pending RSVP for this activity
           const { data: rsvps, error: rsvpError } = await supabase
             .from('rsvps')
@@ -141,7 +160,7 @@ export async function findPendingRSVPs(
             continue;
           }
 
-          if (!rsvps || rsvps.length === 0 || rsvps.some((r) => r.status === 'pending')) {
+          if (!rsvps || rsvps.length === 0 || (rsvps as Array<{ status: string }>).some((r) => r.status === 'pending')) {
             const deadline = new Date(guest.rsvp_deadline!);
             const daysUntil = Math.ceil((deadline.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
 
@@ -181,6 +200,7 @@ export async function findPendingRSVPs(
  */
 export async function sendRSVPReminder(guest: PendingRSVPGuest): Promise<Result<void>> {
   try {
+    const supabase = getSupabaseClient();
     const eventOrActivity = guest.event_name || guest.activity_name || 'the event';
     const deadlineDate = new Date(guest.deadline).toLocaleDateString('en-US', {
       weekday: 'long',
@@ -251,7 +271,7 @@ Pura Vida! 🌴
       activity_id: guest.activity_id,
       sent_at: new Date().toISOString(),
       days_before_deadline: guest.days_until_deadline,
-    });
+    } as any);
 
     return { success: true, data: undefined };
   } catch (error) {
@@ -328,6 +348,7 @@ export async function getReminderStats(
   }>
 > {
   try {
+    const supabase = getSupabaseClient();
     let query = supabase.from('rsvp_reminders_sent').select('*');
 
     if (since) {
@@ -350,7 +371,7 @@ export async function getReminderStats(
     const remindersByEvent: Record<string, number> = {};
     const remindersByActivity: Record<string, number> = {};
 
-    for (const reminder of reminders || []) {
+    for (const reminder of (reminders || []) as Array<{ event_id?: string; activity_id?: string }>) {
       if (reminder.event_id) {
         remindersByEvent[reminder.event_id] = (remindersByEvent[reminder.event_id] || 0) + 1;
       }

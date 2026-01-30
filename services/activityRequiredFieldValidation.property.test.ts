@@ -52,7 +52,7 @@ describe.skip('Feature: destination-wedding-platform, Property 9: Activity Requi
                 },
               ],
             },
-          });
+          } as any);
 
           const result = await activityService.create(activityData as any);
 
@@ -102,7 +102,7 @@ describe.skip('Feature: destination-wedding-platform, Property 9: Activity Requi
                 },
               ],
             },
-          });
+          } as any);
 
           const result = await activityService.create(activityData as any);
 
@@ -155,7 +155,7 @@ describe.skip('Feature: destination-wedding-platform, Property 9: Activity Requi
                 },
               ],
             },
-          });
+          } as any);
 
           const result = await activityService.create(activityData as any);
 
@@ -214,7 +214,7 @@ describe.skip('Feature: destination-wedding-platform, Property 9: Activity Requi
                 },
               ],
             },
-          });
+          } as any);
 
           const result = await activityService.create(activityData as any);
 
@@ -276,7 +276,7 @@ describe.skip('Feature: destination-wedding-platform, Property 9: Activity Requi
               createdAt: new Date().toISOString(),
               updatedAt: new Date().toISOString(),
             } as any,
-          });
+          } as any);
 
           const result = await activityService.create(activityData);
 
@@ -325,7 +325,7 @@ describe.skip('Feature: destination-wedding-platform, Property 9: Activity Requi
                 },
               ],
             },
-          });
+          } as any);
 
           const result = await activityService.update(activityId, updateData);
 
@@ -376,7 +376,7 @@ describe.skip('Feature: destination-wedding-platform, Property 9: Activity Requi
                 },
               ],
             },
-          });
+          } as any);
 
           const result = await activityService.create({
             name,
@@ -433,14 +433,14 @@ describe.skip('Feature: destination-wedding-platform, Property 9: Activity Requi
                 },
               ],
             },
-          });
+          } as any);
 
           const result = await activityService.create({
             name,
             activityType,
             startTime: startTime.toISOString(),
             endTime: endTime.toISOString(),
-          });
+          } as any);
 
           // Property 1: Creation should fail
           expect(result.success).toBe(false);

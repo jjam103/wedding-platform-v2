@@ -17,6 +17,55 @@ jest.mock('next/navigation', () => ({
   usePathname: () => '/admin/transportation',
 }));
 
+// Mock DataTable components
+jest.mock('@/components/ui/DataTable', () => ({
+  DataTable: ({ data, columns, loading }: any) => {
+    if (loading) return <div>Loading...</div>;
+    if (data.length === 0) return <div>No items found</div>;
+    return (
+      <div data-testid="data-table">
+        {data.map((item: any, index: number) => (
+          <div key={index} data-testid={`guest-row-${item.id}`}>
+            {columns.map((col: any) => {
+              // For transportation page, render function receives the entire guest object
+              const displayValue = col.render ? col.render(item) : item[col.key];
+              return (
+                <div key={col.key} data-testid={`${col.key}-${item.id}`}>
+                  {displayValue}
+                </div>
+              );
+            })}
+          </div>
+        ))}
+      </div>
+    );
+  },
+}));
+
+jest.mock('@/components/ui/DataTableWithSuspense', () => ({
+  DataTableWithSuspense: ({ data, columns, loading }: any) => {
+    if (loading) return <div>Loading...</div>;
+    if (data.length === 0) return <div>No items found</div>;
+    return (
+      <div data-testid="data-table">
+        {data.map((item: any, index: number) => (
+          <div key={index} data-testid={`guest-row-${item.id}`}>
+            {columns.map((col: any) => {
+              // For transportation page, render function receives the entire guest object
+              const displayValue = col.render ? col.render(item) : item[col.key];
+              return (
+                <div key={col.key} data-testid={`${col.key}-${item.id}`}>
+                  {displayValue}
+                </div>
+              );
+            })}
+          </div>
+        ))}
+      </div>
+    );
+  },
+}));
+
 describe('TransportationPage', () => {
   beforeEach(() => {
     jest.clearAllMocks();

@@ -73,7 +73,7 @@ describe('Feature: admin-backend-integration-cms, Property 3: Cascade Deletion o
           // Mock the content page delete operation
           const contentPageDeleteMock = jest.fn().mockResolvedValue({
             error: null,
-          });
+          } as any);
 
           mockFrom.mockImplementation((table: string) => {
             if (table === 'sections') {

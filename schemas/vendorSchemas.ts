@@ -18,9 +18,9 @@ export const createVendorSchema = z.object({
   pricingModel: z.enum(['flat_rate', 'per_guest', 'tiered'], {
     errorMap: () => ({ message: 'Pricing model must be flat_rate, per_guest, or tiered' }),
   }),
-  baseCost: z.number().nonnegative('Base cost must be non-negative'),
+  baseCost: z.coerce.number().nonnegative('Base cost must be non-negative'),
   paymentStatus: z.enum(['unpaid', 'partial', 'paid']).optional(),
-  amountPaid: z.number().nonnegative('Amount paid must be non-negative').optional(),
+  amountPaid: z.coerce.number().nonnegative('Amount paid must be non-negative').optional(),
   notes: z.string().max(2000, 'Notes must be 2000 characters or less').nullable().optional(),
 });
 
@@ -55,7 +55,7 @@ export const vendorSearchSchema = z.object({
  */
 export const recordPaymentSchema = z.object({
   vendorId: z.string().uuid('Invalid vendor ID format'),
-  amount: z.number().positive('Payment amount must be positive'),
+  amount: z.coerce.number().positive('Payment amount must be positive'),
   notes: z.string().max(500, 'Payment notes must be 500 characters or less').nullable().optional(),
 });
 

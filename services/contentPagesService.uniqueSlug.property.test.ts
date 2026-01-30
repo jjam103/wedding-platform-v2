@@ -27,7 +27,7 @@ describe('Feature: admin-backend-integration-cms, Property 1: Unique Slug Genera
     jest.clearAllMocks();
   });
 
-  // Generator for valid content page data
+  // Generator for valid content page data with unique identifiers
   const validContentPageArbitrary = fc.record({
     title: fc.string({ minLength: 1, maxLength: 200 })
       .filter(s => s.trim().length > 0)
@@ -41,7 +41,8 @@ describe('Feature: admin-backend-integration-cms, Property 1: Unique Slug Genera
           .replace(/^-+|-+$/g, ''); // Remove leading/trailing hyphens
         // Must have at least one alphanumeric character (not just underscores or hyphens)
         return slug.length > 0 && /[a-z0-9]/.test(slug);
-      }),
+      })
+      .map(s => `${s} ${Date.now()} ${Math.random().toString(36).substr(2, 5)}`), // Add unique suffix
     slug: fc.option(
       fc.string({ minLength: 1, maxLength: 200 })
         .filter(s => s.trim().length > 0)
@@ -55,13 +56,13 @@ describe('Feature: admin-backend-integration-cms, Property 1: Unique Slug Genera
           // Must have at least one alphanumeric character
           return normalized.length > 0 && /[a-z0-9]/.test(normalized);
         })
-        .map(s => s.toLowerCase()
+        .map(s => `${s.toLowerCase()
           .replace(/[^\w\s-]/g, '')
           .replace(/_/g, '-')
           .replace(/\s+/g, '-')
           .replace(/-+/g, '-')
           .replace(/^-+|-+$/g, '')
-        ),
+        }-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`), // Add unique suffix
       { nil: undefined }
     ),
     status: fc.constantFrom('draft', 'published') as fc.Arbitrary<'draft' | 'published'>,
@@ -79,11 +80,11 @@ describe('Feature: admin-backend-integration-cms, Property 1: Unique Slug Genera
           // Mock database responses for slug uniqueness checks
           let callCount = 0;
           mockFrom.mockImplementation(() => {
-            const mockQuery = {
+            const mockQuery: any = {
               select: jest.fn().mockReturnThis(),
               eq: jest.fn().mockReturnThis(),
               neq: jest.fn().mockReturnThis(),
-              single: jest.fn().mockImplementation(async () => {
+              single: jest.fn().mockImplementation(async (): Promise<any> => {
                 callCount++;
                 
                 // First call for first page - no conflict
@@ -92,8 +93,8 @@ describe('Feature: admin-backend-integration-cms, Property 1: Unique Slug Genera
                 }
                 
                 // Subsequent calls - simulate conflicts for base slug
-                const currentSlug = mockQuery._currentSlug;
-                const existingSlug = createdPages.find(p => p.slug === currentSlug);
+                const currentSlug: string = mockQuery._currentSlug;
+                const existingSlug: any = createdPages.find(p => p.slug === currentSlug);
                 
                 if (existingSlug) {
                   return { data: { id: existingSlug.id }, error: null };
@@ -132,9 +133,9 @@ describe('Feature: admin-backend-integration-cms, Property 1: Unique Slug Genera
                 updated_at: new Date().toISOString(),
               },
               error: null,
-            });
+            } as any);
 
-            mockFrom.mockImplementation((table: string) => {
+            mockFrom.mockImplementation(((table: string) => {
               if (table === 'content_pages') {
                 const mockQuery: any = {
                   select: jest.fn().mockReturnThis(),
@@ -177,9 +178,9 @@ describe('Feature: admin-backend-integration-cms, Property 1: Unique Slug Genera
               return {
                 select: jest.fn().mockReturnThis(),
                 eq: jest.fn().mockReturnThis(),
-                single: jest.fn().mockResolvedValue({ data: null, error: { code: 'PGRST116' } }),
+                single: jest.fn().mockResolvedValue({ data: null, error: { code: 'PGRST116' } } as any),
               };
-            });
+            }) as any);
 
             const result = await contentPagesService.createContentPage({
               title: pageData.title,
@@ -191,7 +192,7 @@ describe('Feature: admin-backend-integration-cms, Property 1: Unique Slug Genera
             
             if (result.success) {
               // Update the mock data with the actual slug that was generated
-              const generatedSlug = insertMock.mock.calls[0][0].slug;
+              const generatedSlug: string = (insertMock.mock.calls[0] as any)[0].slug;
               result.data.slug = generatedSlug;
               
               createdPages.push(result.data);
@@ -244,7 +245,7 @@ describe('Feature: admin-backend-integration-cms, Property 1: Unique Slug Genera
           );
 
           // Mock database to return existing slugs
-          mockFrom.mockImplementation((table: string) => {
+          mockFrom.mockImplementation(((table: string) => {
             if (table === 'content_pages') {
               const mockQuery: any = {
                 select: jest.fn().mockReturnThis(),
@@ -295,9 +296,9 @@ describe('Feature: admin-backend-integration-cms, Property 1: Unique Slug Genera
             return {
               select: jest.fn().mockReturnThis(),
               eq: jest.fn().mockReturnThis(),
-              single: jest.fn().mockResolvedValue({ data: null, error: { code: 'PGRST116' } }),
+              single: jest.fn().mockResolvedValue({ data: null, error: { code: 'PGRST116' } } as any),
             };
-          });
+          }) as any);
 
           const result = await contentPagesService.createContentPage({
             title: newPage.title,
@@ -309,7 +310,7 @@ describe('Feature: admin-backend-integration-cms, Property 1: Unique Slug Genera
           
           if (result.success) {
             // Get the generated slug from the insert call
-            const insertCall = mockFrom.mock.results[mockFrom.mock.results.length - 1].value.insert.mock.calls[0];
+            const insertCall: any = mockFrom.mock.results[mockFrom.mock.results.length - 1].value.insert.mock.calls[0];
             const generatedSlug = insertCall[0].slug;
             
             // Property: Generated slug should not match any existing slugs

@@ -19,13 +19,19 @@ import { CollapsibleForm } from '@/components/admin/CollapsibleForm';
 import { LocationSelector } from '@/components/admin/LocationSelector';
 import { ReferenceLookup } from '@/components/admin/ReferenceLookup';
 import { PhotoPicker } from '@/components/admin/PhotoPicker';
-import { BudgetDashboard } from '@/components/admin/BudgetDashboard';
+import BudgetDashboard from '@/components/admin/BudgetDashboard';
 import { EmailComposer } from '@/components/admin/EmailComposer';
-import { SettingsForm } from '@/components/admin/SettingsForm';
+import SettingsForm from '@/components/admin/SettingsForm';
+import { ToastProvider } from '@/components/ui/ToastContext';
 import { z } from 'zod';
 
 // Extend Jest matchers
 expect.extend(toHaveNoViolations);
+
+// Helper to wrap components with ToastProvider
+function renderWithToast(component: React.ReactElement) {
+  return render(<ToastProvider>{component}</ToastProvider>);
+}
 
 // Mock Next.js router
 jest.mock('next/navigation', () => ({
@@ -253,24 +259,40 @@ describe('Admin Components Accessibility Tests', () => {
     const mockPhotos = [
       {
         id: 'photo-1',
-        url: 'https://example.com/photo1.jpg',
+        photo_url: 'https://example.com/photo1.jpg',
         caption: 'Beach sunset',
         alt_text: 'Beautiful sunset over the beach',
+        moderation_status: 'approved' as const,
+        created_at: '2025-01-01T00:00:00Z',
       },
       {
         id: 'photo-2',
-        url: 'https://example.com/photo2.jpg',
+        photo_url: 'https://example.com/photo2.jpg',
         caption: 'Wedding ceremony',
         alt_text: 'Couple exchanging vows',
+        moderation_status: 'approved' as const,
+        created_at: '2025-01-01T00:00:00Z',
       },
     ];
 
+    // Mock fetch for photos
+    beforeEach(() => {
+      global.fetch = jest.fn(() =>
+        Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({
+            success: true,
+            data: { photos: mockPhotos },
+          }),
+        })
+      ) as jest.Mock;
+    });
+
     it('should have no accessibility violations', async () => {
-      const { container } = render(
+      const { container } = renderWithToast(
         <PhotoPicker
-          selectedPhotos={[]}
-          onSelect={() => {}}
-          availablePhotos={mockPhotos}
+          selectedPhotoIds={[]}
+          onSelectionChange={() => {}}
         />
       );
 
@@ -279,11 +301,10 @@ describe('Admin Components Accessibility Tests', () => {
     });
 
     it('should have proper alt text for all images', async () => {
-      const { container } = render(
+      const { container } = renderWithToast(
         <PhotoPicker
-          selectedPhotos={['photo-1']}
-          onSelect={() => {}}
-          availablePhotos={mockPhotos}
+          selectedPhotoIds={['photo-1']}
+          onSelectionChange={() => {}}
         />
       );
 
@@ -294,14 +315,14 @@ describe('Admin Components Accessibility Tests', () => {
 
   describe('BudgetDashboard', () => {
     it('should have no accessibility violations', async () => {
-      const { container } = render(<BudgetDashboard />);
+      const { container } = renderWithToast(<BudgetDashboard />);
 
       const results = await axe(container);
       expect(results).toHaveNoViolations();
     });
 
     it('should have accessible table structure', async () => {
-      const { container } = render(<BudgetDashboard />);
+      const { container } = renderWithToast(<BudgetDashboard />);
 
       const results = await axe(container, {
         rules: {
@@ -315,14 +336,14 @@ describe('Admin Components Accessibility Tests', () => {
 
   describe('EmailComposer', () => {
     it('should have no accessibility violations', async () => {
-      const { container } = render(<EmailComposer />);
+      const { container } = renderWithToast(<EmailComposer />);
 
       const results = await axe(container);
       expect(results).toHaveNoViolations();
     });
 
     it('should have proper form field labels', async () => {
-      const { container } = render(<EmailComposer />);
+      const { container } = renderWithToast(<EmailComposer />);
 
       const results = await axe(container, {
         rules: {
@@ -336,14 +357,14 @@ describe('Admin Components Accessibility Tests', () => {
 
   describe('SettingsForm', () => {
     it('should have no accessibility violations', async () => {
-      const { container } = render(<SettingsForm />);
+      const { container } = renderWithToast(<SettingsForm />);
 
       const results = await axe(container);
       expect(results).toHaveNoViolations();
     });
 
     it('should have accessible form controls', async () => {
-      const { container } = render(<SettingsForm />);
+      const { container } = renderWithToast(<SettingsForm />);
 
       const results = await axe(container, {
         rules: {

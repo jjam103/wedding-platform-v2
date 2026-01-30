@@ -73,28 +73,22 @@ describe('contentPagesService', () => {
       };
 
       // Mock slug uniqueness check (no existing page)
-      mockFrom.mockReturnValueOnce({
-        select: jest.fn().mockReturnValue({
-          eq: jest.fn().mockReturnValue({
-            single: jest.fn().mockResolvedValue({
-              data: null,
-              error: { code: 'PGRST116' }, // Not found - slug is unique
-            }),
-          }),
-        }),
-      });
+      const mockSingle1 = jest.fn().mockResolvedValue({
+        data: null,
+        error: { code: 'PGRST116' }, // Not found - slug is unique
+      } as any);
+      const mockEq1 = jest.fn().mockReturnValue({ single: mockSingle1 });
+      const mockSelect1 = jest.fn().mockReturnValue({ eq: mockEq1 });
+      mockFrom.mockReturnValueOnce({ select: mockSelect1 });
 
       // Mock insert
-      mockFrom.mockReturnValueOnce({
-        insert: jest.fn().mockReturnValue({
-          select: jest.fn().mockReturnValue({
-            single: jest.fn().mockResolvedValue({
-              data: mockContentPage,
-              error: null,
-            }),
-          }),
-        }),
-      });
+      const mockSingle2 = jest.fn().mockResolvedValue({
+        data: mockContentPage,
+        error: null,
+      } as any);
+      const mockSelect2 = jest.fn().mockReturnValue({ single: mockSingle2 });
+      const mockInsert = jest.fn().mockReturnValue({ select: mockSelect2 });
+      mockFrom.mockReturnValueOnce({ insert: mockInsert });
 
       const result = await contentPagesService.createContentPage(validData);
 
@@ -123,28 +117,22 @@ describe('contentPagesService', () => {
       };
 
       // Mock slug uniqueness check
-      mockFrom.mockReturnValueOnce({
-        select: jest.fn().mockReturnValue({
-          eq: jest.fn().mockReturnValue({
-            single: jest.fn().mockResolvedValue({
-              data: null,
-              error: { code: 'PGRST116' },
-            }),
-          }),
-        }),
-      });
+      const mockSingle1 = jest.fn().mockResolvedValue({
+        data: null,
+        error: { code: 'PGRST116' },
+      } as any);
+      const mockEq1 = jest.fn().mockReturnValue({ single: mockSingle1 });
+      const mockSelect1 = jest.fn().mockReturnValue({ eq: mockEq1 });
+      mockFrom.mockReturnValueOnce({ select: mockSelect1 });
 
       // Mock insert
-      mockFrom.mockReturnValueOnce({
-        insert: jest.fn().mockReturnValue({
-          select: jest.fn().mockReturnValue({
-            single: jest.fn().mockResolvedValue({
-              data: mockContentPage,
-              error: null,
-            }),
-          }),
-        }),
-      });
+      const mockSingle2 = jest.fn().mockResolvedValue({
+        data: mockContentPage,
+        error: null,
+      } as any);
+      const mockSelect2 = jest.fn().mockReturnValue({ single: mockSingle2 });
+      const mockInsert = jest.fn().mockReturnValue({ select: mockSelect2 });
+      mockFrom.mockReturnValueOnce({ insert: mockInsert });
 
       const result = await contentPagesService.createContentPage(dataWithoutSlug);
 
@@ -165,40 +153,31 @@ describe('contentPagesService', () => {
       };
 
       // Mock first slug check - slug exists
-      mockFrom.mockReturnValueOnce({
-        select: jest.fn().mockReturnValue({
-          eq: jest.fn().mockReturnValue({
-            single: jest.fn().mockResolvedValue({
-              data: { id: 'existing-page' },
-              error: null,
-            }),
-          }),
-        }),
-      });
+      const mockSingle1 = jest.fn().mockResolvedValue({
+        data: { id: 'existing-page' },
+        error: null,
+      } as any);
+      const mockEq1 = jest.fn().mockReturnValue({ single: mockSingle1 });
+      const mockSelect1 = jest.fn().mockReturnValue({ eq: mockEq1 });
+      mockFrom.mockReturnValueOnce({ select: mockSelect1 });
 
       // Mock second slug check - slug-2 is unique
-      mockFrom.mockReturnValueOnce({
-        select: jest.fn().mockReturnValue({
-          eq: jest.fn().mockReturnValue({
-            single: jest.fn().mockResolvedValue({
-              data: null,
-              error: { code: 'PGRST116' },
-            }),
-          }),
-        }),
-      });
+      const mockSingle2 = jest.fn().mockResolvedValue({
+        data: null,
+        error: { code: 'PGRST116' },
+      } as any);
+      const mockEq2 = jest.fn().mockReturnValue({ single: mockSingle2 });
+      const mockSelect2 = jest.fn().mockReturnValue({ eq: mockEq2 });
+      mockFrom.mockReturnValueOnce({ select: mockSelect2 });
 
       // Mock insert
-      mockFrom.mockReturnValueOnce({
-        insert: jest.fn().mockReturnValue({
-          select: jest.fn().mockReturnValue({
-            single: jest.fn().mockResolvedValue({
-              data: mockContentPage,
-              error: null,
-            }),
-          }),
-        }),
-      });
+      const mockSingle3 = jest.fn().mockResolvedValue({
+        data: mockContentPage,
+        error: null,
+      } as any);
+      const mockSelect3 = jest.fn().mockReturnValue({ single: mockSingle3 });
+      const mockInsert = jest.fn().mockReturnValue({ select: mockSelect3 });
+      mockFrom.mockReturnValueOnce({ insert: mockInsert });
 
       const result = await contentPagesService.createContentPage(validData);
 
@@ -250,28 +229,22 @@ describe('contentPagesService', () => {
 
     it('should return DATABASE_ERROR when insert fails', async () => {
       // Mock slug uniqueness check
-      mockFrom.mockReturnValueOnce({
-        select: jest.fn().mockReturnValue({
-          eq: jest.fn().mockReturnValue({
-            single: jest.fn().mockResolvedValue({
-              data: null,
-              error: { code: 'PGRST116' },
-            }),
-          }),
-        }),
-      });
+      const mockSingle1 = jest.fn().mockResolvedValue({
+        data: null,
+        error: { code: 'PGRST116' },
+      } as any);
+      const mockEq1 = jest.fn().mockReturnValue({ single: mockSingle1 });
+      const mockSelect1 = jest.fn().mockReturnValue({ eq: mockEq1 });
+      mockFrom.mockReturnValueOnce({ select: mockSelect1 });
 
       // Mock insert failure
-      mockFrom.mockReturnValueOnce({
-        insert: jest.fn().mockReturnValue({
-          select: jest.fn().mockReturnValue({
-            single: jest.fn().mockResolvedValue({
-              data: null,
-              error: { message: 'Connection failed', code: 'DB_ERROR' },
-            }),
-          }),
-        }),
-      });
+      const mockSingle2 = jest.fn().mockResolvedValue({
+        data: null,
+        error: { message: 'Connection failed', code: 'DB_ERROR' },
+      } as any);
+      const mockSelect2 = jest.fn().mockReturnValue({ single: mockSingle2 });
+      const mockInsert = jest.fn().mockReturnValue({ select: mockSelect2 });
+      mockFrom.mockReturnValueOnce({ insert: mockInsert });
 
       const result = await contentPagesService.createContentPage(validData);
 
@@ -297,28 +270,22 @@ describe('contentPagesService', () => {
       };
 
       // Mock slug uniqueness check
-      mockFrom.mockReturnValueOnce({
-        select: jest.fn().mockReturnValue({
-          eq: jest.fn().mockReturnValue({
-            single: jest.fn().mockResolvedValue({
-              data: null,
-              error: { code: 'PGRST116' },
-            }),
-          }),
-        }),
-      });
+      const mockSingle1 = jest.fn().mockResolvedValue({
+        data: null,
+        error: { code: 'PGRST116' },
+      } as any);
+      const mockEq1 = jest.fn().mockReturnValue({ single: mockSingle1 });
+      const mockSelect1 = jest.fn().mockReturnValue({ eq: mockEq1 });
+      mockFrom.mockReturnValueOnce({ select: mockSelect1 });
 
       // Mock insert
-      mockFrom.mockReturnValueOnce({
-        insert: jest.fn().mockReturnValue({
-          select: jest.fn().mockReturnValue({
-            single: jest.fn().mockResolvedValue({
-              data: mockContentPage,
-              error: null,
-            }),
-          }),
-        }),
-      });
+      const mockSingle2 = jest.fn().mockResolvedValue({
+        data: mockContentPage,
+        error: null,
+      } as any);
+      const mockSelect2 = jest.fn().mockReturnValue({ single: mockSingle2 });
+      const mockInsert = jest.fn().mockReturnValue({ select: mockSelect2 });
+      mockFrom.mockReturnValueOnce({ insert: mockInsert });
 
       const result = await contentPagesService.createContentPage(maliciousData);
 
@@ -347,18 +314,14 @@ describe('contentPagesService', () => {
         updated_at: '2024-01-02T00:00:00Z',
       };
 
-      mockFrom.mockReturnValue({
-        update: jest.fn().mockReturnValue({
-          eq: jest.fn().mockReturnValue({
-            select: jest.fn().mockReturnValue({
-              single: jest.fn().mockResolvedValue({
-                data: mockUpdatedPage,
-                error: null,
-              }),
-            }),
-          }),
-        }),
-      });
+      const mockSingle = jest.fn().mockResolvedValue({
+        data: mockUpdatedPage,
+        error: null,
+      } as any);
+      const mockSelect = jest.fn().mockReturnValue({ single: mockSingle });
+      const mockEq = jest.fn().mockReturnValue({ select: mockSelect });
+      const mockUpdate = jest.fn().mockReturnValue({ eq: mockEq });
+      mockFrom.mockReturnValue({ update: mockUpdate });
 
       const result = await contentPagesService.updateContentPage(pageId, updateData);
 
@@ -383,19 +346,14 @@ describe('contentPagesService', () => {
         updated_at: '2024-01-02T00:00:00Z',
       };
 
-      // Mock update
-      mockFrom.mockReturnValue({
-        update: jest.fn().mockReturnValue({
-          eq: jest.fn().mockReturnValue({
-            select: jest.fn().mockReturnValue({
-              single: jest.fn().mockResolvedValue({
-                data: mockUpdatedPage,
-                error: null,
-              }),
-            }),
-          }),
-        }),
-      });
+      const mockSingle = jest.fn().mockResolvedValue({
+        data: mockUpdatedPage,
+        error: null,
+      } as any);
+      const mockSelect = jest.fn().mockReturnValue({ single: mockSingle });
+      const mockEq = jest.fn().mockReturnValue({ select: mockSelect });
+      const mockUpdate = jest.fn().mockReturnValue({ eq: mockEq });
+      mockFrom.mockReturnValue({ update: mockUpdate });
 
       const result = await contentPagesService.updateContentPage(pageId, updateWithStatus);
 
@@ -428,18 +386,14 @@ describe('contentPagesService', () => {
     it('should return DATABASE_ERROR when page does not exist', async () => {
       const updateWithTitle = { title: 'Updated Story' };
       
-      mockFrom.mockReturnValue({
-        update: jest.fn().mockReturnValue({
-          eq: jest.fn().mockReturnValue({
-            select: jest.fn().mockReturnValue({
-              single: jest.fn().mockResolvedValue({
-                data: null,
-                error: { code: 'PGRST116', message: 'Not found' },
-              }),
-            }),
-          }),
-        }),
-      });
+      const mockSingle = jest.fn().mockResolvedValue({
+        data: null,
+        error: { code: 'PGRST116', message: 'Not found' },
+      } as any);
+      const mockSelect = jest.fn().mockReturnValue({ single: mockSingle });
+      const mockEq = jest.fn().mockReturnValue({ select: mockSelect });
+      const mockUpdate = jest.fn().mockReturnValue({ eq: mockEq });
+      mockFrom.mockReturnValue({ update: mockUpdate });
 
       const result = await contentPagesService.updateContentPage(pageId, updateWithTitle);
 
@@ -450,18 +404,14 @@ describe('contentPagesService', () => {
     });
 
     it('should return DATABASE_ERROR when update fails', async () => {
-      mockFrom.mockReturnValue({
-        update: jest.fn().mockReturnValue({
-          eq: jest.fn().mockReturnValue({
-            select: jest.fn().mockReturnValue({
-              single: jest.fn().mockResolvedValue({
-                data: null,
-                error: { message: 'Connection failed', code: 'DB_ERROR' },
-              }),
-            }),
-          }),
-        }),
-      });
+      const mockSingle = jest.fn().mockResolvedValue({
+        data: null,
+        error: { message: 'Connection failed', code: 'DB_ERROR' },
+      } as any);
+      const mockSelect = jest.fn().mockReturnValue({ single: mockSingle });
+      const mockEq = jest.fn().mockReturnValue({ select: mockSelect });
+      const mockUpdate = jest.fn().mockReturnValue({ eq: mockEq });
+      mockFrom.mockReturnValue({ update: mockUpdate });
 
       const result = await contentPagesService.updateContentPage(pageId, updateData);
 
@@ -485,18 +435,14 @@ describe('contentPagesService', () => {
         updated_at: '2024-01-02T00:00:00Z',
       };
 
-      mockFrom.mockReturnValue({
-        update: jest.fn().mockReturnValue({
-          eq: jest.fn().mockReturnValue({
-            select: jest.fn().mockReturnValue({
-              single: jest.fn().mockResolvedValue({
-                data: mockUpdatedPage,
-                error: null,
-              }),
-            }),
-          }),
-        }),
-      });
+      const mockSingle = jest.fn().mockResolvedValue({
+        data: mockUpdatedPage,
+        error: null,
+      } as any);
+      const mockSelect = jest.fn().mockReturnValue({ single: mockSingle });
+      const mockEq = jest.fn().mockReturnValue({ select: mockSelect });
+      const mockUpdate = jest.fn().mockReturnValue({ eq: mockEq });
+      mockFrom.mockReturnValue({ update: mockUpdate });
 
       const result = await contentPagesService.updateContentPage(pageId, maliciousData);
 
@@ -513,26 +459,21 @@ describe('contentPagesService', () => {
 
     it('should return success when page is deleted', async () => {
       // Mock delete sections
-      mockFrom.mockReturnValueOnce({
-        delete: jest.fn().mockReturnValue({
-          eq: jest.fn().mockReturnValue({
-            eq: jest.fn().mockResolvedValue({
-              data: null,
-              error: null,
-            }),
-          }),
-        }),
-      });
+      const mockEq1 = jest.fn().mockResolvedValue({
+        data: null,
+        error: null,
+      } as any);
+      const mockEq2 = jest.fn().mockReturnValue({ eq: mockEq1 });
+      const mockDelete1 = jest.fn().mockReturnValue({ eq: mockEq2 });
+      mockFrom.mockReturnValueOnce({ delete: mockDelete1 });
 
       // Mock delete content page
-      mockFrom.mockReturnValueOnce({
-        delete: jest.fn().mockReturnValue({
-          eq: jest.fn().mockResolvedValue({
-            data: null,
-            error: null,
-          }),
-        }),
-      });
+      const mockEq3 = jest.fn().mockResolvedValue({
+        data: null,
+        error: null,
+      } as any);
+      const mockDelete2 = jest.fn().mockReturnValue({ eq: mockEq3 });
+      mockFrom.mockReturnValueOnce({ delete: mockDelete2 });
 
       const result = await contentPagesService.deleteContentPage(pageId);
 
@@ -540,31 +481,24 @@ describe('contentPagesService', () => {
     });
 
     it('should delete associated sections before deleting page', async () => {
-      const mockDeleteSections = jest.fn().mockReturnValue({
-        eq: jest.fn().mockReturnValue({
-          eq: jest.fn().mockResolvedValue({
-            data: null,
-            error: null,
-          }),
-        }),
-      });
+      const mockEq1 = jest.fn().mockResolvedValue({
+        data: null,
+        error: null,
+      } as any);
+      const mockEq2 = jest.fn().mockReturnValue({ eq: mockEq1 });
+      const mockDeleteSections = jest.fn().mockReturnValue({ eq: mockEq2 });
 
-      const mockDeletePage = jest.fn().mockReturnValue({
-        eq: jest.fn().mockResolvedValue({
-          data: null,
-          error: null,
-        }),
-      });
+      const mockEq3 = jest.fn().mockResolvedValue({
+        data: null,
+        error: null,
+      } as any);
+      const mockDeletePage = jest.fn().mockReturnValue({ eq: mockEq3 });
 
       // Mock delete sections
-      mockFrom.mockReturnValueOnce({
-        delete: mockDeleteSections,
-      });
+      mockFrom.mockReturnValueOnce({ delete: mockDeleteSections });
 
       // Mock delete content page
-      mockFrom.mockReturnValueOnce({
-        delete: mockDeletePage,
-      });
+      mockFrom.mockReturnValueOnce({ delete: mockDeletePage });
 
       await contentPagesService.deleteContentPage(pageId);
 
@@ -575,26 +509,21 @@ describe('contentPagesService', () => {
 
     it('should return DATABASE_ERROR when delete fails', async () => {
       // Mock delete sections success
-      mockFrom.mockReturnValueOnce({
-        delete: jest.fn().mockReturnValue({
-          eq: jest.fn().mockReturnValue({
-            eq: jest.fn().mockResolvedValue({
-              data: null,
-              error: null,
-            }),
-          }),
-        }),
-      });
+      const mockEq1 = jest.fn().mockResolvedValue({
+        data: null,
+        error: null,
+      } as any);
+      const mockEq2 = jest.fn().mockReturnValue({ eq: mockEq1 });
+      const mockDelete1 = jest.fn().mockReturnValue({ eq: mockEq2 });
+      mockFrom.mockReturnValueOnce({ delete: mockDelete1 });
 
       // Mock delete content page failure
-      mockFrom.mockReturnValueOnce({
-        delete: jest.fn().mockReturnValue({
-          eq: jest.fn().mockResolvedValue({
-            data: null,
-            error: { message: 'Connection failed', code: 'DB_ERROR' },
-          }),
-        }),
-      });
+      const mockEq3 = jest.fn().mockResolvedValue({
+        data: null,
+        error: { message: 'Connection failed', code: 'DB_ERROR' },
+      } as any);
+      const mockDelete2 = jest.fn().mockReturnValue({ eq: mockEq3 });
+      mockFrom.mockReturnValueOnce({ delete: mockDelete2 });
 
       const result = await contentPagesService.deleteContentPage(pageId);
 
@@ -618,16 +547,13 @@ describe('contentPagesService', () => {
         updated_at: '2024-01-01T00:00:00Z',
       };
 
-      mockFrom.mockReturnValue({
-        select: jest.fn().mockReturnValue({
-          eq: jest.fn().mockReturnValue({
-            single: jest.fn().mockResolvedValue({
-              data: mockContentPage,
-              error: null,
-            }),
-          }),
-        }),
-      });
+      const mockSingle = jest.fn().mockResolvedValue({
+        data: mockContentPage,
+        error: null,
+      } as any);
+      const mockEq = jest.fn().mockReturnValue({ single: mockSingle });
+      const mockSelect = jest.fn().mockReturnValue({ eq: mockEq });
+      mockFrom.mockReturnValue({ select: mockSelect });
 
       const result = await contentPagesService.getContentPage(pageId);
 
@@ -639,16 +565,13 @@ describe('contentPagesService', () => {
     });
 
     it('should return NOT_FOUND when page does not exist', async () => {
-      mockFrom.mockReturnValue({
-        select: jest.fn().mockReturnValue({
-          eq: jest.fn().mockReturnValue({
-            single: jest.fn().mockResolvedValue({
-              data: null,
-              error: { code: 'PGRST116', message: 'Not found' },
-            }),
-          }),
-        }),
-      });
+      const mockSingle = jest.fn().mockResolvedValue({
+        data: null,
+        error: { code: 'PGRST116', message: 'Not found' },
+      } as any);
+      const mockEq = jest.fn().mockReturnValue({ single: mockSingle });
+      const mockSelect = jest.fn().mockReturnValue({ eq: mockEq });
+      mockFrom.mockReturnValue({ select: mockSelect });
 
       const result = await contentPagesService.getContentPage(pageId);
 
@@ -672,16 +595,13 @@ describe('contentPagesService', () => {
         updated_at: '2024-01-01T00:00:00Z',
       };
 
-      mockFrom.mockReturnValue({
-        select: jest.fn().mockReturnValue({
-          eq: jest.fn().mockReturnValue({
-            single: jest.fn().mockResolvedValue({
-              data: mockContentPage,
-              error: null,
-            }),
-          }),
-        }),
-      });
+      const mockSingle = jest.fn().mockResolvedValue({
+        data: mockContentPage,
+        error: null,
+      } as any);
+      const mockEq = jest.fn().mockReturnValue({ single: mockSingle });
+      const mockSelect = jest.fn().mockReturnValue({ eq: mockEq });
+      mockFrom.mockReturnValue({ select: mockSelect });
 
       const result = await contentPagesService.getContentPageBySlug(slug);
 
@@ -693,16 +613,13 @@ describe('contentPagesService', () => {
     });
 
     it('should return NOT_FOUND when slug does not exist', async () => {
-      mockFrom.mockReturnValue({
-        select: jest.fn().mockReturnValue({
-          eq: jest.fn().mockReturnValue({
-            single: jest.fn().mockResolvedValue({
-              data: null,
-              error: { code: 'PGRST116', message: 'Not found' },
-            }),
-          }),
-        }),
-      });
+      const mockSingle = jest.fn().mockResolvedValue({
+        data: null,
+        error: { code: 'PGRST116', message: 'Not found' },
+      } as any);
+      const mockEq = jest.fn().mockReturnValue({ single: mockSingle });
+      const mockSelect = jest.fn().mockReturnValue({ eq: mockEq });
+      mockFrom.mockReturnValue({ select: mockSelect });
 
       const result = await contentPagesService.getContentPageBySlug(slug);
 
@@ -734,14 +651,12 @@ describe('contentPagesService', () => {
         },
       ];
 
-      mockFrom.mockReturnValue({
-        select: jest.fn().mockReturnValue({
-          order: jest.fn().mockResolvedValue({
-            data: mockPages,
-            error: null,
-          }),
-        }),
-      });
+      const mockOrder = jest.fn().mockResolvedValue({
+        data: mockPages,
+        error: null,
+      } as any);
+      const mockSelect = jest.fn().mockReturnValue({ order: mockOrder });
+      mockFrom.mockReturnValue({ select: mockSelect });
 
       const result = await contentPagesService.listContentPages();
 
@@ -765,16 +680,13 @@ describe('contentPagesService', () => {
         },
       ];
 
-      mockFrom.mockReturnValue({
-        select: jest.fn().mockReturnValue({
-          order: jest.fn().mockReturnValue({
-            eq: jest.fn().mockResolvedValue({
-              data: mockPages,
-              error: null,
-            }),
-          }),
-        }),
-      });
+      const mockEq = jest.fn().mockResolvedValue({
+        data: mockPages,
+        error: null,
+      } as any);
+      const mockOrder = jest.fn().mockReturnValue({ eq: mockEq });
+      const mockSelect = jest.fn().mockReturnValue({ order: mockOrder });
+      mockFrom.mockReturnValue({ select: mockSelect });
 
       const result = await contentPagesService.listContentPages({ status: 'published' });
 
@@ -786,14 +698,12 @@ describe('contentPagesService', () => {
     });
 
     it('should return empty array when no pages exist', async () => {
-      mockFrom.mockReturnValue({
-        select: jest.fn().mockReturnValue({
-          order: jest.fn().mockResolvedValue({
-            data: [],
-            error: null,
-          }),
-        }),
-      });
+      const mockOrder = jest.fn().mockResolvedValue({
+        data: [],
+        error: null,
+      } as any);
+      const mockSelect = jest.fn().mockReturnValue({ order: mockOrder });
+      mockFrom.mockReturnValue({ select: mockSelect });
 
       const result = await contentPagesService.listContentPages();
 
@@ -804,14 +714,12 @@ describe('contentPagesService', () => {
     });
 
     it('should return DATABASE_ERROR when query fails', async () => {
-      mockFrom.mockReturnValue({
-        select: jest.fn().mockReturnValue({
-          order: jest.fn().mockResolvedValue({
-            data: null,
-            error: { message: 'Connection failed', code: 'DB_ERROR' },
-          }),
-        }),
-      });
+      const mockOrder = jest.fn().mockResolvedValue({
+        data: null,
+        error: { message: 'Connection failed', code: 'DB_ERROR' },
+      } as any);
+      const mockSelect = jest.fn().mockReturnValue({ order: mockOrder });
+      mockFrom.mockReturnValue({ select: mockSelect });
 
       const result = await contentPagesService.listContentPages();
 

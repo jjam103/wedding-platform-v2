@@ -64,11 +64,12 @@ export default function LocationManagementPage({}: LocationManagementPageProps) 
         await loadLocations();
         setIsFormOpen(false);
         setEditingLocation(null);
+        setError(null);
       } else {
-        throw new Error(result.error.message);
+        setError(result.error.message);
       }
     } catch (err) {
-      throw err;
+      setError(err instanceof Error ? err.message : 'Failed to save location');
     }
   }, [editingLocation, loadLocations]);
 
@@ -115,7 +116,7 @@ export default function LocationManagementPage({}: LocationManagementPageProps) 
   }, []);
 
   // Render tree node
-  const renderTreeNode = useCallback((location: LocationWithChildren, level: number = 0): JSX.Element => {
+  const renderTreeNode = useCallback((location: LocationWithChildren, level: number = 0): React.JSX.Element => {
     const hasChildren = location.children && location.children.length > 0;
     const isExpanded = expandedNodes.has(location.id);
     const indent = level * 24;

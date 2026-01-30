@@ -15,7 +15,7 @@ import { jest, describe, it, expect, beforeEach } from '@jest/globals';
  */
 
 // Mock Supabase before importing services
-const mockFrom = jest.fn();
+const mockFrom = jest.fn() as jest.MockedFunction<any>;
 const mockSupabase = {
   from: mockFrom,
 };
@@ -27,6 +27,14 @@ jest.mock('../lib/supabase', () => ({
 // Import after mocking
 import { validateReferences } from './sectionsService';
 import type { Reference } from '../schemas/cmsSchemas';
+
+// Helper to create properly typed mock chain
+function createMockQueryChain(resolvedValue: { data: any; error: any }) {
+  const mockSingle = (jest.fn() as any).mockResolvedValue(resolvedValue);
+  const mockEq = (jest.fn() as any).mockReturnValue({ single: mockSingle });
+  const mockSelect = (jest.fn() as any).mockReturnValue({ eq: mockEq });
+  return { select: mockSelect } as any;
+}
 
 describe('Feature: admin-backend-integration-cms, Property 15: Reference Validation API', () => {
   beforeEach(() => {
@@ -48,16 +56,10 @@ describe('Feature: admin-backend-integration-cms, Property 15: Reference Validat
         async (testReferences) => {
           // Mock database lookups for each reference
           for (const ref of testReferences) {
-            mockFrom.mockReturnValueOnce({
-              select: jest.fn().mockReturnValue({
-                eq: jest.fn().mockReturnValue({
-                  single: jest.fn().mockResolvedValue({
-                    data: ref.exists ? { id: ref.id } : null,
-                    error: ref.exists ? null : { code: 'PGRST116', message: 'Not found' },
-                  }),
-                }),
-              }),
-            });
+            mockFrom.mockReturnValueOnce(createMockQueryChain({
+              data: ref.exists ? { id: ref.id } : null,
+              error: ref.exists ? null : { code: 'PGRST116', message: 'Not found' },
+            }));
           }
 
           const references: Reference[] = testReferences.map(r => ({
@@ -111,16 +113,10 @@ describe('Feature: admin-backend-integration-cms, Property 15: Reference Validat
         async (testReferences) => {
           // Mock all references as existing in database
           for (const ref of testReferences) {
-            mockFrom.mockReturnValueOnce({
-              select: jest.fn().mockReturnValue({
-                eq: jest.fn().mockReturnValue({
-                  single: jest.fn().mockResolvedValue({
-                    data: { id: ref.id },
-                    error: null,
-                  }),
-                }),
-              }),
-            });
+            mockFrom.mockReturnValueOnce(createMockQueryChain({
+              data: { id: ref.id },
+              error: null,
+            }));
           }
 
           const references: Reference[] = testReferences.map(r => ({
@@ -172,30 +168,18 @@ describe('Feature: admin-backend-integration-cms, Property 15: Reference Validat
         async (testData) => {
           // Mock valid references as existing
           for (const ref of testData.validRefs) {
-            mockFrom.mockReturnValueOnce({
-              select: jest.fn().mockReturnValue({
-                eq: jest.fn().mockReturnValue({
-                  single: jest.fn().mockResolvedValue({
-                    data: { id: ref.id },
-                    error: null,
-                  }),
-                }),
-              }),
-            });
+            mockFrom.mockReturnValueOnce(createMockQueryChain({
+              data: { id: ref.id },
+              error: null,
+            }));
           }
 
           // Mock broken references as not existing
           for (const ref of testData.brokenRefs) {
-            mockFrom.mockReturnValueOnce({
-              select: jest.fn().mockReturnValue({
-                eq: jest.fn().mockReturnValue({
-                  single: jest.fn().mockResolvedValue({
-                    data: null,
-                    error: { code: 'PGRST116', message: 'Not found' },
-                  }),
-                }),
-              }),
-            });
+            mockFrom.mockReturnValueOnce(createMockQueryChain({
+              data: null,
+              error: { code: 'PGRST116', message: 'Not found' },
+            }));
           }
 
           const references: Reference[] = [
@@ -254,16 +238,10 @@ describe('Feature: admin-backend-integration-cms, Property 15: Reference Validat
             type === 'accommodation' ? 'accommodations' :
             'locations';
 
-          mockFrom.mockReturnValueOnce({
-            select: jest.fn().mockReturnValue({
-              eq: jest.fn().mockReturnValue({
-                single: jest.fn().mockResolvedValue({
-                  data: { id },
-                  error: null,
-                }),
-              }),
-            }),
-          });
+          mockFrom.mockReturnValueOnce(createMockQueryChain({
+            data: { id },
+            error: null,
+          }));
 
           const references: Reference[] = [{ type, id, label: label || undefined }];
           const result = await validateReferences(references);
@@ -293,16 +271,10 @@ describe('Feature: admin-backend-integration-cms, Property 15: Reference Validat
         async (testReferences) => {
           // Mock all as not existing
           for (const ref of testReferences) {
-            mockFrom.mockReturnValueOnce({
-              select: jest.fn().mockReturnValue({
-                eq: jest.fn().mockReturnValue({
-                  single: jest.fn().mockResolvedValue({
-                    data: null,
-                    error: { code: 'PGRST116', message: 'Not found' },
-                  }),
-                }),
-              }),
-            });
+            mockFrom.mockReturnValueOnce(createMockQueryChain({
+              data: null,
+              error: { code: 'PGRST116', message: 'Not found' },
+            }));
           }
 
           const references: Reference[] = testReferences.map(r => ({
@@ -381,16 +353,10 @@ describe('Feature: admin-backend-integration-cms, Property 15: Reference Validat
         async (testReferences) => {
           // First validation with original order
           for (const ref of testReferences) {
-            mockFrom.mockReturnValueOnce({
-              select: jest.fn().mockReturnValue({
-                eq: jest.fn().mockReturnValue({
-                  single: jest.fn().mockResolvedValue({
-                    data: ref.exists ? { id: ref.id } : null,
-                    error: ref.exists ? null : { code: 'PGRST116', message: 'Not found' },
-                  }),
-                }),
-              }),
-            });
+            mockFrom.mockReturnValueOnce(createMockQueryChain({
+              data: ref.exists ? { id: ref.id } : null,
+              error: ref.exists ? null : { code: 'PGRST116', message: 'Not found' },
+            }));
           }
 
           const references: Reference[] = testReferences.map(r => ({
@@ -403,16 +369,10 @@ describe('Feature: admin-backend-integration-cms, Property 15: Reference Validat
           // Second validation with reversed order
           const reversedRefs = [...testReferences].reverse();
           for (const ref of reversedRefs) {
-            mockFrom.mockReturnValueOnce({
-              select: jest.fn().mockReturnValue({
-                eq: jest.fn().mockReturnValue({
-                  single: jest.fn().mockResolvedValue({
-                    data: ref.exists ? { id: ref.id } : null,
-                    error: ref.exists ? null : { code: 'PGRST116', message: 'Not found' },
-                  }),
-                }),
-              }),
-            });
+            mockFrom.mockReturnValueOnce(createMockQueryChain({
+              data: ref.exists ? { id: ref.id } : null,
+              error: ref.exists ? null : { code: 'PGRST116', message: 'Not found' },
+            }));
           }
 
           const reversedReferences: Reference[] = reversedRefs.map(r => ({

@@ -49,12 +49,12 @@ describe('authService', () => {
       mockSupabase.auth.signInWithPassword.mockResolvedValue({
         data: { session: mockSession, user: mockUser },
         error: null,
-      });
+      } as any);
 
       mockSupabase.single.mockResolvedValue({
         data: { role: 'host' },
         error: null,
-      });
+      } as any);
 
       const result = await authService.loginWithPassword({
         email: 'test@example.com',
@@ -75,7 +75,7 @@ describe('authService', () => {
       mockSupabase.auth.signInWithPassword.mockResolvedValue({
         data: { session: null, user: null },
         error: { message: 'Invalid login credentials' },
-      });
+      } as any);
 
       const result = await authService.loginWithPassword({
         email: 'test@example.com',
@@ -103,12 +103,12 @@ describe('authService', () => {
       mockSupabase.auth.signInWithPassword.mockResolvedValue({
         data: { session: mockSession, user: mockUser },
         error: null,
-      });
+      } as any);
 
       mockSupabase.single.mockResolvedValue({
         data: null,
         error: { message: 'User not found' },
-      });
+      } as any);
 
       const result = await authService.loginWithPassword({
         email: 'test@example.com',
@@ -125,7 +125,7 @@ describe('authService', () => {
       mockSupabase.auth.signInWithPassword.mockResolvedValue({
         data: { session: null, user: null },
         error: null,
-      });
+      } as any);
 
       const result = await authService.loginWithPassword({
         email: 'test@example.com',
@@ -144,7 +144,7 @@ describe('authService', () => {
       mockSupabase.auth.signInWithOtp.mockResolvedValue({
         data: {},
         error: null,
-      });
+      } as any);
 
       const result = await authService.sendMagicLink({
         email: 'test@example.com',
@@ -168,7 +168,7 @@ describe('authService', () => {
       mockSupabase.auth.signInWithOtp.mockResolvedValue({
         data: null,
         error: { message: 'Email service unavailable' },
-      });
+      } as any);
 
       const result = await authService.sendMagicLink({
         email: 'test@example.com',
@@ -197,12 +197,12 @@ describe('authService', () => {
       mockSupabase.auth.getSession.mockResolvedValue({
         data: { session: mockSession },
         error: null,
-      });
+      } as any);
 
       mockSupabase.single.mockResolvedValue({
         data: { role: 'super_admin' },
         error: null,
-      });
+      } as any);
 
       const result = await authService.getSession();
 
@@ -217,7 +217,7 @@ describe('authService', () => {
       mockSupabase.auth.getSession.mockResolvedValue({
         data: { session: null },
         error: { message: 'Session expired' },
-      });
+      } as any);
 
       const result = await authService.getSession();
 
@@ -231,7 +231,7 @@ describe('authService', () => {
       mockSupabase.auth.getSession.mockResolvedValue({
         data: { session: null },
         error: null,
-      });
+      } as any);
 
       const result = await authService.getSession();
 
@@ -258,12 +258,12 @@ describe('authService', () => {
       mockSupabase.auth.refreshSession.mockResolvedValue({
         data: { session: mockSession, user: mockUser },
         error: null,
-      });
+      } as any);
 
       mockSupabase.single.mockResolvedValue({
         data: { role: 'host' },
         error: null,
-      });
+      } as any);
 
       const result = await authService.refreshSession('old-refresh-token');
 
@@ -278,7 +278,7 @@ describe('authService', () => {
       mockSupabase.auth.refreshSession.mockResolvedValue({
         data: { session: null, user: null },
         error: { message: 'Invalid refresh token' },
-      });
+      } as any);
 
       const result = await authService.refreshSession('invalid-token');
 
@@ -293,7 +293,7 @@ describe('authService', () => {
     it('should return success when logout succeeds', async () => {
       mockSupabase.auth.signOut.mockResolvedValue({
         error: null,
-      });
+      } as any);
 
       const result = await authService.logout();
 
@@ -306,7 +306,7 @@ describe('authService', () => {
     it('should return UNKNOWN_ERROR when logout fails', async () => {
       mockSupabase.auth.signOut.mockResolvedValue({
         error: { message: 'Logout failed' },
-      });
+      } as any);
 
       const result = await authService.logout();
 
@@ -352,7 +352,7 @@ describe('authService', () => {
       mockSupabase.auth.getSession.mockResolvedValue({
         data: { session: mockSession },
         error: null,
-      });
+      } as any);
 
       // First call for getSession role lookup
       mockSupabase.single
@@ -380,7 +380,7 @@ describe('authService', () => {
       mockSupabase.auth.getSession.mockResolvedValue({
         data: { session: null },
         error: null,
-      });
+      } as any);
 
       const result = await authService.getCurrentUser();
 

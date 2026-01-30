@@ -7,7 +7,7 @@ import { Button } from './Button';
 export interface FormField {
   name: string;
   label: string;
-  type: 'text' | 'email' | 'number' | 'select' | 'textarea' | 'date' | 'datetime' | 'checkbox' | 'richtext';
+  type: 'text' | 'email' | 'number' | 'select' | 'textarea' | 'date' | 'datetime-local' | 'checkbox' | 'richtext';
   placeholder?: string;
   required?: boolean;
   options?: { label: string; value: string | number }[];
@@ -278,7 +278,7 @@ export function DynamicForm({
         );
 
       case 'date':
-      case 'datetime':
+      case 'datetime-local':
         return (
           <div key={field.name} className="mb-4">
             <label htmlFor={field.name} className={labelClasses}>
@@ -287,7 +287,7 @@ export function DynamicForm({
             <input
               id={field.name}
               name={field.name}
-              type={field.type === 'datetime' ? 'datetime-local' : 'date'}
+              type={field.type === 'datetime-local' ? 'datetime-local' : 'date'}
               value={value}
               onChange={(e) => handleChange(field.name, e.target.value)}
               onBlur={() => handleBlur(field.name)}

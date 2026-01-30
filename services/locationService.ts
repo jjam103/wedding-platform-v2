@@ -22,6 +22,14 @@ type Result<T> =
   | { success: false; error: { code: string; message: string; details?: any } };
 
 /**
+ * Module-level Supabase client (Pattern A)
+ */
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+);
+
+/**
  * Converts camelCase to snake_case for database columns.
  */
 function toSnakeCase(obj: any): any {
@@ -96,11 +104,6 @@ export async function create(data: CreateLocationDTO): Promise<Result<Location>>
     }
 
     // 4. Database operation
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
-    );
-
     const dbData = toSnakeCase(sanitized);
     const { data: result, error } = await supabase
       .from('locations')
@@ -135,11 +138,6 @@ export async function create(data: CreateLocationDTO): Promise<Result<Location>>
  */
 export async function get(id: string): Promise<Result<Location>> {
   try {
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
-    );
-
     const { data, error } = await supabase
       .from('locations')
       .select('*')
@@ -244,11 +242,6 @@ export async function update(id: string, data: UpdateLocationDTO): Promise<Resul
     }
 
     // 4. Database operation
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
-    );
-
     const dbData = toSnakeCase(sanitized);
     const { data: result, error } = await supabase
       .from('locations')
@@ -291,11 +284,6 @@ export async function update(id: string, data: UpdateLocationDTO): Promise<Resul
  */
 export async function deleteLocation(id: string): Promise<Result<void>> {
   try {
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
-    );
-
     const { error } = await supabase.from('locations').delete().eq('id', id);
 
     if (error) {
@@ -344,11 +332,6 @@ export async function list(filters: Partial<LocationFilterDTO> = { page: 1, page
     const to = from + pageSize - 1;
 
     // 2. Database operation
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
-    );
-
     let query = supabase.from('locations').select('*', { count: 'exact' });
 
     // Apply filters
@@ -426,11 +409,6 @@ export async function search(searchParams: LocationSearchDTO): Promise<Result<Pa
     const sanitizedQuery = sanitizeInput(query);
 
     // 3. Database operation
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
-    );
-
     const { data, error, count } = await supabase
       .from('locations')
       .select('*', { count: 'exact' })
@@ -477,11 +455,6 @@ export async function search(searchParams: LocationSearchDTO): Promise<Result<Pa
  */
 export async function getHierarchy(): Promise<Result<LocationWithChildren[]>> {
   try {
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
-    );
-
     // Get all locations
     const { data, error } = await supabase
       .from('locations')
@@ -548,11 +521,6 @@ export async function getWithChildren(parentId: string): Promise<Result<Location
       return parentResult as Result<LocationWithChildren>;
     }
 
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
-    );
-
     // Get all locations to build the tree
     const { data, error } = await supabase
       .from('locations')
@@ -614,11 +582,6 @@ export async function getWithChildren(parentId: string): Promise<Result<Location
  * @returns Promise<boolean> - True if circular reference would be created
  */
 async function checkCircularReference(locationId: string, newParentId: string): Promise<boolean> {
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-  );
-
   // Get all locations
   const { data, error } = await supabase.from('locations').select('id, parent_location_id');
 

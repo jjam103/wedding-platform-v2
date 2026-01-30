@@ -30,6 +30,55 @@ jest.mock('next/navigation', () => ({
   }),
 }));
 
+// Mock DataTable components
+jest.mock('@/components/ui/DataTable', () => ({
+  DataTable: ({ data, columns, loading }: any) => {
+    if (loading) return <div>Loading...</div>;
+    if (data.length === 0) return <div>No items found</div>;
+    return (
+      <div data-testid="data-table">
+        {data.map((item: any, index: number) => (
+          <div key={index} data-testid={`guest-row-${item.id}`}>
+            {columns.map((col: any) => {
+              const value = item[col.key];
+              const displayValue = col.render ? col.render(value, item) : value;
+              return (
+                <div key={col.key} data-testid={`${col.key}-${item.id}`}>
+                  {displayValue}
+                </div>
+              );
+            })}
+          </div>
+        ))}
+      </div>
+    );
+  },
+}));
+
+jest.mock('@/components/ui/DataTableWithSuspense', () => ({
+  DataTableWithSuspense: ({ data, columns, loading }: any) => {
+    if (loading) return <div>Loading...</div>;
+    if (data.length === 0) return <div>No items found</div>;
+    return (
+      <div data-testid="data-table">
+        {data.map((item: any, index: number) => (
+          <div key={index} data-testid={`guest-row-${item.id}`}>
+            {columns.map((col: any) => {
+              const value = item[col.key];
+              const displayValue = col.render ? col.render(value, item) : value;
+              return (
+                <div key={col.key} data-testid={`${col.key}-${item.id}`}>
+                  {displayValue}
+                </div>
+              );
+            })}
+          </div>
+        ))}
+      </div>
+    );
+  },
+}));
+
 // Mock fetch
 global.fetch = jest.fn();
 
@@ -238,12 +287,11 @@ describe('Guest Management Page - Advanced Filtering', () => {
     );
 
     await waitFor(() => {
-      expect(screen.getByLabelText(/Airport/i)).toBeInTheDocument();
+      // Use getAllByLabelText and find the select element
+      const airportLabels = screen.queryAllByLabelText(/Airport/i);
+      const airportFilter = airportLabels.find(el => el.tagName === 'SELECT');
+      expect(airportFilter).toBeInTheDocument();
     });
-
-    const airportFilter = screen.getByLabelText(/Airport/i) as HTMLSelectElement;
-    expect(airportFilter).toBeInTheDocument();
-    expect(airportFilter.tagName).toBe('SELECT');
   });
 
   it('should render grouping dropdown', async () => {
@@ -366,10 +414,13 @@ describe('Guest Management Page - Advanced Filtering', () => {
     );
 
     await waitFor(() => {
-      expect(screen.getByLabelText(/Airport/i)).toBeInTheDocument();
+      const airportLabels = screen.queryAllByLabelText(/Airport/i);
+      const airportFilter = airportLabels.find(el => el.tagName === 'SELECT');
+      expect(airportFilter).toBeInTheDocument();
     });
 
-    const airportFilter = screen.getByLabelText(/Airport/i) as HTMLSelectElement;
+    const airportLabels = screen.getAllByLabelText(/Airport/i);
+    const airportFilter = airportLabels.find(el => el.tagName === 'SELECT') as HTMLSelectElement;
     
     // Change filter value
     fireEvent.change(airportFilter, { target: { value: 'SJO' } });

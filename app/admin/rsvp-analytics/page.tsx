@@ -73,7 +73,7 @@ interface RSVPAnalytics {
  * 
  * Requirements: 37.1-37.12
  */
-export default function RSVPAnalyticsPage(): JSX.Element {
+export default function RSVPAnalyticsPage(): React.JSX.Element {
   const [analytics, setAnalytics] = useState<RSVPAnalytics | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

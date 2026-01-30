@@ -2,16 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { z } from 'zod';
-
-interface FormField {
-  name: string;
-  label: string;
-  type: 'text' | 'email' | 'number' | 'textarea' | 'select' | 'date' | 'datetime-local';
-  placeholder?: string;
-  required?: boolean;
-  options?: Array<{ value: string; label: string }>;
-  rows?: number;
-}
+import type { FormField } from '@/components/ui/DynamicForm';
 
 interface CollapsibleFormProps<T extends z.ZodTypeAny> {
   title: string;
@@ -24,6 +15,7 @@ interface CollapsibleFormProps<T extends z.ZodTypeAny> {
   onToggle: () => void;
   submitLabel?: string;
   cancelLabel?: string;
+  children?: React.ReactNode;
 }
 
 /**
@@ -47,6 +39,7 @@ export function CollapsibleForm<T extends z.ZodTypeAny>({
   onToggle,
   submitLabel = 'Create',
   cancelLabel = 'Cancel',
+  children,
 }: CollapsibleFormProps<T>) {
   const [formData, setFormData] = useState<Record<string, any>>(initialData || {});
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -58,8 +51,13 @@ export function CollapsibleForm<T extends z.ZodTypeAny>({
   // Reset form when initialData changes
   useEffect(() => {
     if (initialData) {
-      setFormData(initialData);
-      setIsDirty(false);
+      // Use a timeout to ensure this runs after the current render cycle
+      const timeoutId = setTimeout(() => {
+        setFormData(initialData);
+        setIsDirty(false);
+      }, 0);
+      
+      return () => clearTimeout(timeoutId);
     }
   }, [initialData]);
 
@@ -110,8 +108,24 @@ export function CollapsibleForm<T extends z.ZodTypeAny>({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    // Convert datetime-local values to ISO 8601 format before validation
+    const processedData = { ...formData };
+    fields.forEach(field => {
+      if (field.type === 'datetime-local' && processedData[field.name]) {
+        // Convert datetime-local format (YYYY-MM-DDTHH:mm) to ISO 8601 (YYYY-MM-DDTHH:mm:ss.sssZ)
+        const dateValue = processedData[field.name];
+        if (typeof dateValue === 'string' && dateValue.length > 0) {
+          try {
+            processedData[field.name] = new Date(dateValue).toISOString();
+          } catch (error) {
+            console.error(`Failed to convert datetime field ${field.name}:`, error);
+          }
+        }
+      }
+    });
+    
     // Validate with Zod
-    const validation = schema.safeParse(formData);
+    const validation = schema.safeParse(processedData);
     
     if (!validation.success) {
       // Extract field-level errors
@@ -280,6 +294,9 @@ export function CollapsibleForm<T extends z.ZodTypeAny>({
               return renderField(field);
             })}
           </div>
+
+          {/* Custom children fields */}
+          {children}
 
           {/* Actions */}
           <div className="flex gap-3 pt-2">

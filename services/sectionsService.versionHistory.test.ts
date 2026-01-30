@@ -108,7 +108,7 @@ describe('sectionsService - Version History', () => {
       const orderMock = jest.fn().mockResolvedValue({
         data: [],
         error: null,
-      });
+      } as any);
 
       supabase.from.mockReturnValue({
         select: jest.fn().mockReturnValue({

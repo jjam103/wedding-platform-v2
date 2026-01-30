@@ -12,14 +12,35 @@ import {
   type DriverSheetDTO,
 } from '@/schemas/transportationSchemas';
 
-// Lazy load supabase to avoid initialization issues in tests
+// Supabase client - can be overridden for testing
 let _supabase: any = null;
+
+/**
+ * Gets the Supabase client instance.
+ * Lazy loads the client to avoid initialization issues in tests.
+ */
 function getSupabase() {
   if (!_supabase) {
     const { supabase } = require('@/lib/supabase');
     _supabase = supabase;
   }
   return _supabase;
+}
+
+/**
+ * Sets the Supabase client instance (for testing).
+ * @internal
+ */
+export function _setSupabaseForTesting(client: any) {
+  _supabase = client;
+}
+
+/**
+ * Resets the Supabase client instance (for testing).
+ * @internal
+ */
+export function _resetSupabaseForTesting() {
+  _supabase = null;
 }
 
 /**
@@ -418,7 +439,7 @@ export async function generateDepartureManifest(
  * @param data - Manifest data
  * @returns Result containing created manifest or error details
  */
-async function createManifest(
+export async function createManifest(
   data: CreateTransportationManifestDTO
 ): Promise<Result<TransportationManifest>> {
   try {

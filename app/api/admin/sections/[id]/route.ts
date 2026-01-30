@@ -72,7 +72,8 @@ export async function DELETE(
       return errorResponse('UNAUTHORIZED', 'Authentication required', 401);
     }
 
-    // 2. Delete section
+    // 2. Resolve params and delete section
+    const resolvedParams = await params;
     const result = await deleteSection(resolvedParams.id);
 
     // 3. Return response

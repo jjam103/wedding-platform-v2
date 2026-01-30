@@ -77,18 +77,18 @@ describe('Feature: destination-wedding-platform, Property 1: Authentication Sess
           mockSupabase.auth.signInWithPassword.mockResolvedValue({
             data: { session: mockSession, user: mockUser },
             error: null,
-          });
+          } as any);
 
           mockSupabase.single.mockResolvedValue({
             data: { role },
             error: null,
-          });
+          } as any);
 
           // Execute login
           const result = await authService.loginWithPassword({
             email,
             password,
-          });
+          } as any);
 
           // Property: For any valid credentials, login should succeed
           expect(result.success).toBe(true);
@@ -143,12 +143,12 @@ describe('Feature: destination-wedding-platform, Property 1: Authentication Sess
               user: { id: userId, email } 
             },
             error: null,
-          });
+          } as any);
 
           mockSupabase.single.mockResolvedValue({
             data: { role },
             error: null,
-          });
+          } as any);
 
           const result = await authService.loginWithPassword({ email, password });
 
@@ -197,12 +197,12 @@ describe('Feature: destination-wedding-platform, Property 1: Authentication Sess
           mockSupabase.auth.getSession.mockResolvedValue({
             data: { session: mockSession },
             error: null,
-          });
+          } as any);
 
           mockSupabase.single.mockResolvedValue({
             data: { role },
             error: null,
-          });
+          } as any);
 
           // Get session multiple times
           const result1 = await authService.getSession();
@@ -279,17 +279,17 @@ describe('Feature: destination-wedding-platform, Property 1: Authentication Sess
                 user: { id: user.id, email: user.email } 
               },
               error: null,
-            });
+            } as any);
 
             mockSupabase.single.mockResolvedValue({
               data: { role: user.role },
               error: null,
-            });
+            } as any);
 
             const result = await authService.loginWithPassword({
               email: user.email,
               password: user.password,
-            });
+            } as any);
 
             if (result.success) {
               sessions.push(result.data);

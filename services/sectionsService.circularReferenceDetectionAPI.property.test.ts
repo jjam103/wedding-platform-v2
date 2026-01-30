@@ -2,7 +2,7 @@ import * as fc from 'fast-check';
 import { jest, describe, it, expect, beforeEach } from '@jest/globals';
 
 // Mock Supabase before importing services
-const mockFrom = jest.fn();
+const mockFrom = jest.fn() as jest.MockedFunction<any>;
 const mockSupabase = {
   from: mockFrom,
   auth: {
@@ -17,6 +17,22 @@ jest.mock('../lib/supabase', () => ({
 // Import after mocking
 import { detectCircularReferences } from './sectionsService';
 import type { Reference } from '../schemas/cmsSchemas';
+
+// Helper to create properly typed mock chain for sections query
+function createSectionsQueryChain(resolvedValue: { data: any; error: any }) {
+  const mockEq2 = (jest.fn() as any).mockResolvedValue(resolvedValue);
+  const mockEq1 = (jest.fn() as any).mockReturnValue({ eq: mockEq2 });
+  const mockSelect = (jest.fn() as any).mockReturnValue({ eq: mockEq1 });
+  return { select: mockSelect } as any;
+}
+
+// Helper to create properly typed mock chain for columns query
+function createColumnsQueryChain(resolvedValue: { data: any; error: any }) {
+  const mockEq = (jest.fn() as any).mockResolvedValue(resolvedValue);
+  const mockIn = (jest.fn() as any).mockReturnValue({ eq: mockEq });
+  const mockSelect = (jest.fn() as any).mockReturnValue({ in: mockIn });
+  return { select: mockSelect } as any;
+}
 
 /**
  * Feature: admin-backend-integration-cms, Property 16: Circular Reference Detection API
@@ -62,37 +78,25 @@ describe('Feature: admin-backend-integration-cms, Property 16: Circular Referenc
             // Test 2-node cycle: A → B → A
             
             // Mock for checking page B
-            mockFrom.mockReturnValueOnce({
-              select: jest.fn().mockReturnValue({
-                eq: jest.fn().mockReturnValue({
-                  eq: jest.fn().mockResolvedValue({
-                    data: [{ id: 'section-b' }],
-                    error: null,
-                  }),
-                }),
-              }),
-            });
+            mockFrom.mockReturnValueOnce(createSectionsQueryChain({
+              data: [{ id: 'section-b' }],
+              error: null,
+            }));
 
             // Page B references back to A (creating cycle)
-            mockFrom.mockReturnValueOnce({
-              select: jest.fn().mockReturnValue({
-                in: jest.fn().mockReturnValue({
-                  eq: jest.fn().mockResolvedValue({
-                    data: [{
-                      section_id: 'section-b',
-                      content_type: 'references',
-                      content_data: {
-                        references: [{
-                          type: testData.pageType,
-                          id: testData.pageAId, // References back to A!
-                        }],
-                      },
-                    }],
-                    error: null,
-                  }),
-                }),
-              }),
-            });
+            mockFrom.mockReturnValueOnce(createColumnsQueryChain({
+              data: [{
+                section_id: 'section-b',
+                content_type: 'references',
+                content_data: {
+                  references: [{
+                    type: testData.pageType,
+                    id: testData.pageAId, // References back to A!
+                  }],
+                },
+              }],
+              error: null,
+            }));
 
             const references: Reference[] = [{
               type: testData.pageType as any,
@@ -112,70 +116,46 @@ describe('Feature: admin-backend-integration-cms, Property 16: Circular Referenc
             // Test 3-node cycle: A → B → C → A
             
             // Mock for checking page B
-            mockFrom.mockReturnValueOnce({
-              select: jest.fn().mockReturnValue({
-                eq: jest.fn().mockReturnValue({
-                  eq: jest.fn().mockResolvedValue({
-                    data: [{ id: 'section-b' }],
-                    error: null,
-                  }),
-                }),
-              }),
-            });
+            mockFrom.mockReturnValueOnce(createSectionsQueryChain({
+              data: [{ id: 'section-b' }],
+              error: null,
+            }));
 
             // Page B references C
-            mockFrom.mockReturnValueOnce({
-              select: jest.fn().mockReturnValue({
-                in: jest.fn().mockReturnValue({
-                  eq: jest.fn().mockResolvedValue({
-                    data: [{
-                      section_id: 'section-b',
-                      content_type: 'references',
-                      content_data: {
-                        references: [{
-                          type: testData.pageType,
-                          id: testData.pageCId,
-                        }],
-                      },
-                    }],
-                    error: null,
-                  }),
-                }),
-              }),
-            });
+            mockFrom.mockReturnValueOnce(createColumnsQueryChain({
+              data: [{
+                section_id: 'section-b',
+                content_type: 'references',
+                content_data: {
+                  references: [{
+                    type: testData.pageType,
+                    id: testData.pageCId,
+                  }],
+                },
+              }],
+              error: null,
+            }));
 
             // Mock for checking page C
-            mockFrom.mockReturnValueOnce({
-              select: jest.fn().mockReturnValue({
-                eq: jest.fn().mockReturnValue({
-                  eq: jest.fn().mockResolvedValue({
-                    data: [{ id: 'section-c' }],
-                    error: null,
-                  }),
-                }),
-              }),
-            });
+            mockFrom.mockReturnValueOnce(createSectionsQueryChain({
+              data: [{ id: 'section-c' }],
+              error: null,
+            }));
 
             // Page C references back to A (creating cycle)
-            mockFrom.mockReturnValueOnce({
-              select: jest.fn().mockReturnValue({
-                in: jest.fn().mockReturnValue({
-                  eq: jest.fn().mockResolvedValue({
-                    data: [{
-                      section_id: 'section-c',
-                      content_type: 'references',
-                      content_data: {
-                        references: [{
-                          type: testData.pageType,
-                          id: testData.pageAId, // References back to A!
-                        }],
-                      },
-                    }],
-                    error: null,
-                  }),
-                }),
-              }),
-            });
+            mockFrom.mockReturnValueOnce(createColumnsQueryChain({
+              data: [{
+                section_id: 'section-c',
+                content_type: 'references',
+                content_data: {
+                  references: [{
+                    type: testData.pageType,
+                    id: testData.pageAId, // References back to A!
+                  }],
+                },
+              }],
+              error: null,
+            }));
 
             const references: Reference[] = [{
               type: testData.pageType as any,
@@ -251,61 +231,37 @@ describe('Feature: admin-backend-integration-cms, Property 16: Circular Referenc
           // Property: For acyclic graphs (A → B → C), the API should return false
           
           // Mock for checking page B
-          mockFrom.mockReturnValueOnce({
-            select: jest.fn().mockReturnValue({
-              eq: jest.fn().mockReturnValue({
-                eq: jest.fn().mockResolvedValue({
-                  data: [{ id: 'section-b' }],
-                  error: null,
-                }),
-              }),
-            }),
-          });
+          mockFrom.mockReturnValueOnce(createSectionsQueryChain({
+            data: [{ id: 'section-b' }],
+            error: null,
+          }));
 
           // Page B references C (no cycle)
-          mockFrom.mockReturnValueOnce({
-            select: jest.fn().mockReturnValue({
-              in: jest.fn().mockReturnValue({
-                eq: jest.fn().mockResolvedValue({
-                  data: [{
-                    section_id: 'section-b',
-                    content_type: 'references',
-                    content_data: {
-                      references: [{
-                        type: testData.pageType,
-                        id: testData.pageCId,
-                      }],
-                    },
-                  }],
-                  error: null,
-                }),
-              }),
-            }),
-          });
+          mockFrom.mockReturnValueOnce(createColumnsQueryChain({
+            data: [{
+              section_id: 'section-b',
+              content_type: 'references',
+              content_data: {
+                references: [{
+                  type: testData.pageType,
+                  id: testData.pageCId,
+                }],
+              },
+            }],
+            error: null,
+          }));
 
           // Mock for checking page C
-          mockFrom.mockReturnValueOnce({
-            select: jest.fn().mockReturnValue({
-              eq: jest.fn().mockReturnValue({
-                eq: jest.fn().mockResolvedValue({
-                  data: [{ id: 'section-c' }],
-                  error: null,
-                }),
-              }),
-            }),
-          });
+          mockFrom.mockReturnValueOnce(createSectionsQueryChain({
+            data: [{ id: 'section-c' }],
+            error: null,
+          }));
 
           // Page C has no references (terminates the chain)
-          mockFrom.mockReturnValueOnce({
-            select: jest.fn().mockReturnValue({
-              in: jest.fn().mockReturnValue({
-                eq: jest.fn().mockResolvedValue({
-                  data: [], // No references
-                  error: null,
-                }),
-              }),
-            }),
-          });
+          mockFrom.mockReturnValueOnce(createColumnsQueryChain({
+            data: [], // No references
+            error: null,
+          }));
 
           const references: Reference[] = [{
             type: testData.pageType as any,
@@ -355,37 +311,25 @@ describe('Feature: admin-backend-integration-cms, Property 16: Circular Referenc
             // First reference (B) creates cycle
             
             // Mock for checking page B (cyclic)
-            mockFrom.mockReturnValueOnce({
-              select: jest.fn().mockReturnValue({
-                eq: jest.fn().mockReturnValue({
-                  eq: jest.fn().mockResolvedValue({
-                    data: [{ id: 'section-b' }],
-                    error: null,
-                  }),
-                }),
-              }),
-            });
+            mockFrom.mockReturnValueOnce(createSectionsQueryChain({
+              data: [{ id: 'section-b' }],
+              error: null,
+            }));
 
             // Page B references back to A (cycle!)
-            mockFrom.mockReturnValueOnce({
-              select: jest.fn().mockReturnValue({
-                in: jest.fn().mockReturnValue({
-                  eq: jest.fn().mockResolvedValue({
-                    data: [{
-                      section_id: 'section-b',
-                      content_type: 'references',
-                      content_data: {
-                        references: [{
-                          type: testData.pageType,
-                          id: testData.pageAId,
-                        }],
-                      },
-                    }],
-                    error: null,
-                  }),
-                }),
-              }),
-            });
+            mockFrom.mockReturnValueOnce(createColumnsQueryChain({
+              data: [{
+                section_id: 'section-b',
+                content_type: 'references',
+                content_data: {
+                  references: [{
+                    type: testData.pageType,
+                    id: testData.pageAId,
+                  }],
+                },
+              }],
+              error: null,
+            }));
 
             const references: Reference[] = [
               {
@@ -411,61 +355,37 @@ describe('Feature: admin-backend-integration-cms, Property 16: Circular Referenc
             // Second reference (D) would create cycle, but we check first ref (C) first
             
             // Mock for checking page C (non-cyclic)
-            mockFrom.mockReturnValueOnce({
-              select: jest.fn().mockReturnValue({
-                eq: jest.fn().mockReturnValue({
-                  eq: jest.fn().mockResolvedValue({
-                    data: [{ id: 'section-c' }],
-                    error: null,
-                  }),
-                }),
-              }),
-            });
+            mockFrom.mockReturnValueOnce(createSectionsQueryChain({
+              data: [{ id: 'section-c' }],
+              error: null,
+            }));
 
             // Page C has no references
-            mockFrom.mockReturnValueOnce({
-              select: jest.fn().mockReturnValue({
-                in: jest.fn().mockReturnValue({
-                  eq: jest.fn().mockResolvedValue({
-                    data: [],
-                    error: null,
-                  }),
-                }),
-              }),
-            });
+            mockFrom.mockReturnValueOnce(createColumnsQueryChain({
+              data: [],
+              error: null,
+            }));
 
             // Mock for checking page D (cyclic)
-            mockFrom.mockReturnValueOnce({
-              select: jest.fn().mockReturnValue({
-                eq: jest.fn().mockReturnValue({
-                  eq: jest.fn().mockResolvedValue({
-                    data: [{ id: 'section-d' }],
-                    error: null,
-                  }),
-                }),
-              }),
-            });
+            mockFrom.mockReturnValueOnce(createSectionsQueryChain({
+              data: [{ id: 'section-d' }],
+              error: null,
+            }));
 
             // Page D references back to A (cycle!)
-            mockFrom.mockReturnValueOnce({
-              select: jest.fn().mockReturnValue({
-                in: jest.fn().mockReturnValue({
-                  eq: jest.fn().mockResolvedValue({
-                    data: [{
-                      section_id: 'section-d',
-                      content_type: 'references',
-                      content_data: {
-                        references: [{
-                          type: testData.pageType,
-                          id: testData.pageAId,
-                        }],
-                      },
-                    }],
-                    error: null,
-                  }),
-                }),
-              }),
-            });
+            mockFrom.mockReturnValueOnce(createColumnsQueryChain({
+              data: [{
+                section_id: 'section-d',
+                content_type: 'references',
+                content_data: {
+                  references: [{
+                    type: testData.pageType,
+                    id: testData.pageAId,
+                  }],
+                },
+              }],
+              error: null,
+            }));
 
             const references: Reference[] = [
               {

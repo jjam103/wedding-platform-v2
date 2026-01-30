@@ -1,33 +1,16 @@
-import { GET, POST } from '@/app/api/admin/locations/route';
-import {
-  GET as GET_BY_ID,
-  PUT,
-  DELETE,
-} from '@/app/api/admin/locations/[id]/route';
-import { POST as VALIDATE_PARENT } from '@/app/api/admin/locations/[id]/validate-parent/route';
+/**
+ * Integration Test: Locations API
+ * 
+ * Tests authenticated requests, validation errors, CRUD operations,
+ * circular reference detection, and error responses for locations API endpoints.
+ */
 
-// Mock Supabase auth
-jest.mock('@supabase/auth-helpers-nextjs', () => ({
-  createRouteHandlerClient: jest.fn(() => ({
-    auth: {
-      getSession: jest.fn().mockResolvedValue({
-        data: {
-          session: {
-            user: { id: 'user-1', email: 'admin@example.com' },
-          },
-        },
-        error: null,
-      }),
-    },
-  })),
-}));
+// Polyfill Web APIs for Next.js server components
+import { TextEncoder, TextDecoder } from 'util';
+global.TextEncoder = TextEncoder;
+global.TextDecoder = TextDecoder as any;
 
-// Mock cookies
-jest.mock('next/headers', () => ({
-  cookies: jest.fn(),
-}));
-
-// Mock location service
+// Mock location service BEFORE importing route handlers
 jest.mock('@/services/locationService', () => ({
   create: jest.fn(),
   get: jest.fn(),
@@ -37,11 +20,70 @@ jest.mock('@/services/locationService', () => ({
   list: jest.fn(),
 }));
 
+// Mock Next.js server module
+jest.mock('next/server', () => ({
+  NextResponse: {
+    json: (data: any, init?: any) => ({
+      json: async () => data,
+      status: init?.status || 200,
+    }),
+  },
+  NextRequest: jest.fn(),
+}));
+
+// Mock Next.js headers and cookies
+jest.mock('next/headers', () => ({
+  cookies: jest.fn(() => ({
+    get: jest.fn(),
+    getAll: jest.fn(() => []),
+    set: jest.fn(),
+    delete: jest.fn(),
+  })),
+}));
+
+// Mock Supabase SSR client
+const mockGetUser = jest.fn();
+const mockGetSession = jest.fn();
+const mockSupabaseClient = {
+  auth: {
+    getUser: mockGetUser,
+    getSession: mockGetSession,
+  },
+  from: jest.fn(),
+};
+
+jest.mock('@supabase/ssr', () => ({
+  createServerClient: jest.fn(() => mockSupabaseClient),
+}));
+
+import { GET, POST } from '@/app/api/admin/locations/route';
+import {
+  GET as GET_BY_ID,
+  PUT,
+  DELETE,
+} from '@/app/api/admin/locations/[id]/route';
+import { POST as VALIDATE_PARENT } from '@/app/api/admin/locations/[id]/validate-parent/route';
 import * as locationService from '@/services/locationService';
 
 describe('Locations API Integration Tests', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    
+    // Default: authenticated user
+    mockGetUser.mockResolvedValue({
+      data: {
+        user: { id: 'user-1', email: 'admin@example.com' },
+      },
+      error: null,
+    } as any);
+    
+    // Default: valid session
+    mockGetSession.mockResolvedValue({
+      data: {
+        session: { user: { id: 'user-1', email: 'admin@example.com' } },
+      },
+      error: null,
+    } as any);
   });
 
   describe('GET /api/admin/locations', () => {
@@ -62,9 +104,12 @@ describe('Locations API Integration Tests', () => {
       (locationService.getHierarchy as jest.Mock).mockResolvedValue({
         success: true,
         data: mockHierarchy,
-      });
+      } as any);
 
-      const request = new Request('http://localhost:3000/api/admin/locations');
+      const request = {
+        url: 'http://localhost:3000/api/admin/locations',
+      } as any;
+
       const response = await GET(request);
       const data = await response.json();
 
@@ -77,9 +122,12 @@ describe('Locations API Integration Tests', () => {
       (locationService.getHierarchy as jest.Mock).mockResolvedValue({
         success: false,
         error: { code: 'DATABASE_ERROR', message: 'Database error' },
-      });
+      } as any);
 
-      const request = new Request('http://localhost:3000/api/admin/locations');
+      const request = {
+        url: 'http://localhost:3000/api/admin/locations',
+      } as any;
+
       const response = await GET(request);
       const data = await response.json();
 
@@ -103,12 +151,12 @@ describe('Locations API Integration Tests', () => {
       (locationService.create as jest.Mock).mockResolvedValue({
         success: true,
         data: newLocation,
-      });
+      } as any);
 
-      const request = new Request('http://localhost:3000/api/admin/locations', {
-        method: 'POST',
-        body: JSON.stringify({ name: 'Costa Rica' }),
-      });
+      const request = {
+        json: async () => ({ name: 'Costa Rica' }),
+        url: 'http://localhost:3000/api/admin/locations',
+      } as any;
 
       const response = await POST(request);
       const data = await response.json();
@@ -119,10 +167,10 @@ describe('Locations API Integration Tests', () => {
     });
 
     it('should return 400 for validation errors', async () => {
-      const request = new Request('http://localhost:3000/api/admin/locations', {
-        method: 'POST',
-        body: JSON.stringify({ name: '' }), // Invalid: empty name
-      });
+      const request = {
+        json: async () => ({ name: '' }), // Invalid: empty name
+        url: 'http://localhost:3000/api/admin/locations',
+      } as any;
 
       const response = await POST(request);
       const data = await response.json();
@@ -132,44 +180,39 @@ describe('Locations API Integration Tests', () => {
       expect(data.error.code).toBe('VALIDATION_ERROR');
     });
 
-    it('should return 400 for invalid parent', async () => {
-      (locationService.create as jest.Mock).mockResolvedValue({
-        success: false,
-        error: { code: 'INVALID_PARENT', message: 'Parent location does not exist' },
-      });
-
-      const request = new Request('http://localhost:3000/api/admin/locations', {
-        method: 'POST',
-        body: JSON.stringify({
+    it('should return 400 for invalid parent location ID format', async () => {
+      const request = {
+        json: async () => ({
           name: 'New Location',
-          parentLocationId: 'invalid-id',
+          parentLocationId: 'invalid-id', // Invalid UUID format
         }),
-      });
+        url: 'http://localhost:3000/api/admin/locations',
+      } as any;
 
       const response = await POST(request);
       const data = await response.json();
 
       expect(response.status).toBe(400);
       expect(data.success).toBe(false);
-      expect(data.error.code).toBe('INVALID_PARENT');
+      expect(data.error.code).toBe('VALIDATION_ERROR');
     });
 
-    it('should return 409 for circular reference', async () => {
+    it('should return 409 for circular reference from service', async () => {
       (locationService.create as jest.Mock).mockResolvedValue({
         success: false,
         error: {
           code: 'CIRCULAR_REFERENCE',
           message: 'This would create a circular reference',
         },
-      });
+      } as any);
 
-      const request = new Request('http://localhost:3000/api/admin/locations', {
-        method: 'POST',
-        body: JSON.stringify({
+      const request = {
+        json: async () => ({
           name: 'New Location',
-          parentLocationId: 'loc-1',
+          parentLocationId: '123e4567-e89b-12d3-a456-426614174000', // Valid UUID
         }),
-      });
+        url: 'http://localhost:3000/api/admin/locations',
+      } as any;
 
       const response = await POST(request);
       const data = await response.json();
@@ -195,10 +238,13 @@ describe('Locations API Integration Tests', () => {
       (locationService.get as jest.Mock).mockResolvedValue({
         success: true,
         data: mockLocation,
-      });
+      } as any);
 
-      const request = new Request('http://localhost:3000/api/admin/locations/loc-1');
-      const response = await GET_BY_ID(request, { params: { id: 'loc-1' } });
+      const request = {
+        url: 'http://localhost:3000/api/admin/locations/loc-1',
+      } as any;
+
+      const response = await GET_BY_ID(request, { params: Promise.resolve({ id: 'loc-1' }) });
       const data = await response.json();
 
       expect(response.status).toBe(200);
@@ -210,10 +256,13 @@ describe('Locations API Integration Tests', () => {
       (locationService.get as jest.Mock).mockResolvedValue({
         success: false,
         error: { code: 'NOT_FOUND', message: 'Location not found' },
-      });
+      } as any);
 
-      const request = new Request('http://localhost:3000/api/admin/locations/invalid-id');
-      const response = await GET_BY_ID(request, { params: { id: 'invalid-id' } });
+      const request = {
+        url: 'http://localhost:3000/api/admin/locations/invalid-id',
+      } as any;
+
+      const response = await GET_BY_ID(request, { params: Promise.resolve({ id: 'invalid-id' }) });
       const data = await response.json();
 
       expect(response.status).toBe(404);
@@ -237,14 +286,14 @@ describe('Locations API Integration Tests', () => {
       (locationService.update as jest.Mock).mockResolvedValue({
         success: true,
         data: updatedLocation,
-      });
+      } as any);
 
-      const request = new Request('http://localhost:3000/api/admin/locations/loc-1', {
-        method: 'PUT',
-        body: JSON.stringify({ name: 'Updated Name', address: 'New Address' }),
-      });
+      const request = {
+        json: async () => ({ name: 'Updated Name', address: 'New Address' }),
+        url: 'http://localhost:3000/api/admin/locations/loc-1',
+      } as any;
 
-      const response = await PUT(request, { params: { id: 'loc-1' } });
+      const response = await PUT(request, { params: Promise.resolve({ id: 'loc-1' }) });
       const data = await response.json();
 
       expect(response.status).toBe(200);
@@ -256,14 +305,14 @@ describe('Locations API Integration Tests', () => {
       (locationService.update as jest.Mock).mockResolvedValue({
         success: false,
         error: { code: 'NOT_FOUND', message: 'Location not found' },
-      });
+      } as any);
 
-      const request = new Request('http://localhost:3000/api/admin/locations/invalid-id', {
-        method: 'PUT',
-        body: JSON.stringify({ name: 'Updated Name' }),
-      });
+      const request = {
+        json: async () => ({ name: 'Updated Name' }),
+        url: 'http://localhost:3000/api/admin/locations/invalid-id',
+      } as any;
 
-      const response = await PUT(request, { params: { id: 'invalid-id' } });
+      const response = await PUT(request, { params: Promise.resolve({ id: 'invalid-id' }) });
       const data = await response.json();
 
       expect(response.status).toBe(404);
@@ -271,21 +320,21 @@ describe('Locations API Integration Tests', () => {
       expect(data.error.code).toBe('NOT_FOUND');
     });
 
-    it('should return 409 for circular reference', async () => {
+    it('should return 409 for circular reference from service', async () => {
       (locationService.update as jest.Mock).mockResolvedValue({
         success: false,
         error: {
           code: 'CIRCULAR_REFERENCE',
           message: 'This would create a circular reference',
         },
-      });
+      } as any);
 
-      const request = new Request('http://localhost:3000/api/admin/locations/loc-1', {
-        method: 'PUT',
-        body: JSON.stringify({ parentLocationId: 'loc-2' }),
-      });
+      const request = {
+        json: async () => ({ parentLocationId: '123e4567-e89b-12d3-a456-426614174000' }), // Valid UUID
+        url: 'http://localhost:3000/api/admin/locations/loc-1',
+      } as any;
 
-      const response = await PUT(request, { params: { id: 'loc-1' } });
+      const response = await PUT(request, { params: Promise.resolve({ id: 'loc-1' }) });
       const data = await response.json();
 
       expect(response.status).toBe(409);
@@ -299,13 +348,13 @@ describe('Locations API Integration Tests', () => {
       (locationService.deleteLocation as jest.Mock).mockResolvedValue({
         success: true,
         data: undefined,
-      });
+      } as any);
 
-      const request = new Request('http://localhost:3000/api/admin/locations/loc-1', {
-        method: 'DELETE',
-      });
+      const request = {
+        url: 'http://localhost:3000/api/admin/locations/loc-1',
+      } as any;
 
-      const response = await DELETE(request, { params: { id: 'loc-1' } });
+      const response = await DELETE(request, { params: Promise.resolve({ id: 'loc-1' }) });
       const data = await response.json();
 
       expect(response.status).toBe(200);
@@ -316,13 +365,13 @@ describe('Locations API Integration Tests', () => {
       (locationService.deleteLocation as jest.Mock).mockResolvedValue({
         success: false,
         error: { code: 'DATABASE_ERROR', message: 'Failed to delete' },
-      });
+      } as any);
 
-      const request = new Request('http://localhost:3000/api/admin/locations/loc-1', {
-        method: 'DELETE',
-      });
+      const request = {
+        url: 'http://localhost:3000/api/admin/locations/loc-1',
+      } as any;
 
-      const response = await DELETE(request, { params: { id: 'loc-1' } });
+      const response = await DELETE(request, { params: Promise.resolve({ id: 'loc-1' }) });
       const data = await response.json();
 
       expect(response.status).toBe(500);
@@ -332,30 +381,12 @@ describe('Locations API Integration Tests', () => {
 
   describe('POST /api/admin/locations/:id/validate-parent', () => {
     it('should validate parent successfully when no circular reference', async () => {
-      // Mock Supabase client for circular reference check
-      jest.mock('@supabase/supabase-js', () => ({
-        createClient: jest.fn(() => ({
-          from: jest.fn(() => ({
-            select: jest.fn().mockResolvedValue({
-              data: [
-                { id: 'loc-1', parent_location_id: null },
-                { id: 'loc-2', parent_location_id: 'loc-1' },
-              ],
-              error: null,
-            }),
-          })),
-        })),
-      }));
+      const request = {
+        json: async () => ({ parentLocationId: 'loc-3' }),
+        url: 'http://localhost:3000/api/admin/locations/loc-1/validate-parent',
+      } as any;
 
-      const request = new Request(
-        'http://localhost:3000/api/admin/locations/loc-1/validate-parent',
-        {
-          method: 'POST',
-          body: JSON.stringify({ parentLocationId: 'loc-3' }),
-        }
-      );
-
-      const response = await VALIDATE_PARENT(request, { params: { id: 'loc-1' } });
+      const response = await VALIDATE_PARENT(request, { params: Promise.resolve({ id: 'loc-1' }) });
       const data = await response.json();
 
       expect(response.status).toBe(200);
@@ -364,15 +395,12 @@ describe('Locations API Integration Tests', () => {
     });
 
     it('should return 409 when circular reference detected', async () => {
-      const request = new Request(
-        'http://localhost:3000/api/admin/locations/loc-1/validate-parent',
-        {
-          method: 'POST',
-          body: JSON.stringify({ parentLocationId: 'loc-1' }), // Self as parent
-        }
-      );
+      const request = {
+        json: async () => ({ parentLocationId: 'loc-1' }), // Self as parent
+        url: 'http://localhost:3000/api/admin/locations/loc-1/validate-parent',
+      } as any;
 
-      const response = await VALIDATE_PARENT(request, { params: { id: 'loc-1' } });
+      const response = await VALIDATE_PARENT(request, { params: Promise.resolve({ id: 'loc-1' }) });
       const data = await response.json();
 
       expect(response.status).toBe(409);
@@ -381,15 +409,12 @@ describe('Locations API Integration Tests', () => {
     });
 
     it('should return 400 when parentLocationId missing', async () => {
-      const request = new Request(
-        'http://localhost:3000/api/admin/locations/loc-1/validate-parent',
-        {
-          method: 'POST',
-          body: JSON.stringify({}),
-        }
-      );
+      const request = {
+        json: async () => ({}),
+        url: 'http://localhost:3000/api/admin/locations/loc-1/validate-parent',
+      } as any;
 
-      const response = await VALIDATE_PARENT(request, { params: { id: 'loc-1' } });
+      const response = await VALIDATE_PARENT(request, { params: Promise.resolve({ id: 'loc-1' }) });
       const data = await response.json();
 
       expect(response.status).toBe(400);
@@ -427,9 +452,12 @@ describe('Locations API Integration Tests', () => {
       (locationService.getHierarchy as jest.Mock).mockResolvedValue({
         success: true,
         data: mockHierarchy,
-      });
+      } as any);
 
-      const request = new Request('http://localhost:3000/api/admin/locations');
+      const request = {
+        url: 'http://localhost:3000/api/admin/locations',
+      } as any;
+
       const response = await GET(request);
       const data = await response.json();
 
@@ -446,13 +474,13 @@ describe('Locations API Integration Tests', () => {
       (locationService.deleteLocation as jest.Mock).mockResolvedValue({
         success: true,
         data: undefined,
-      });
+      } as any);
 
-      const request = new Request('http://localhost:3000/api/admin/locations/loc-1', {
-        method: 'DELETE',
-      });
+      const request = {
+        url: 'http://localhost:3000/api/admin/locations/loc-1',
+      } as any;
 
-      const response = await DELETE(request, { params: { id: 'loc-1' } });
+      const response = await DELETE(request, { params: Promise.resolve({ id: 'loc-1' }) });
       const data = await response.json();
 
       expect(response.status).toBe(200);

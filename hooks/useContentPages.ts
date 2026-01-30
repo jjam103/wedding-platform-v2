@@ -1,13 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-
-interface ContentPage {
-  id: string;
-  slug: string;
-  title: string;
-  status: 'draft' | 'published';
-  createdAt: string;
-  updatedAt: string;
-}
+import type { ContentPage } from '@/schemas/cmsSchemas';
 
 interface UseContentPagesReturn {
   data: ContentPage[];

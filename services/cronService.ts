@@ -1,6 +1,6 @@
-import { createClient } from '@supabase/supabase-js';
 import type { Result } from '@/types';
 import { ERROR_CODES } from '@/types';
+import { supabase } from '@/lib/supabase';
 
 /**
  * Cron job status types.
@@ -44,12 +44,6 @@ export interface CronJobResult {
   durationMs: number;
   errors: string[];
 }
-
-// Initialize Supabase client for database operations
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
 
 /**
  * Creates a cron job log entry at the start of execution.

@@ -1,4 +1,4 @@
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
+import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
 
@@ -25,7 +25,22 @@ export async function GET(
   try {
     // 1. Authenticate
     const cookieStore = await cookies();
-    const supabase = createRouteHandlerClient({ cookies: () => cookieStore });
+    const supabase = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        cookies: {
+          getAll() {
+            return cookieStore.getAll();
+          },
+          setAll(cookiesToSet) {
+            cookiesToSet.forEach(({ name, value }) => {
+              cookieStore.set(name, value);
+            });
+          },
+        },
+      }
+    );
     const {
       data: { session },
       error: authError,
@@ -42,7 +57,8 @@ export async function GET(
     }
 
     // 2. Validate parameters
-    const { type, id } = params;
+    const resolvedParams = await params;
+    const { type, id } = resolvedParams;
     const validTypes = ['event', 'activity', 'accommodation', 'room_type', 'content_page'];
 
     if (!validTypes.includes(type)) {

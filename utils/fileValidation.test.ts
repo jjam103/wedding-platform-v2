@@ -43,7 +43,12 @@ class MockFile implements File {
     return '';
   }
 
-  stream(): ReadableStream<Uint8Array> {
+  async bytes(): Promise<Uint8Array<ArrayBuffer>> {
+    const buffer = await this.arrayBuffer();
+    return new Uint8Array(buffer);
+  }
+
+  stream(): ReadableStream<Uint8Array<ArrayBuffer>> {
     return new ReadableStream();
   }
 }

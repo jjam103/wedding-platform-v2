@@ -18,7 +18,7 @@ type Result<T> =
   | { success: true; data: T } 
   | { success: false; error: { code: string; message: string; details?: any } };
 
-// Initialize Supabase client
+// Initialize Supabase client - Pattern A (testable)
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!
@@ -39,18 +39,6 @@ interface Photo {
   created_at: string;
   moderated_at?: string;
   updated_at: string;
-}
-
-// Lazy load supabase to avoid initialization issues
-let _supabase: any = null;
-function getSupabase() {
-  if (!_supabase) {
-    _supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
-    );
-  }
-  return _supabase;
 }
 
 /**
@@ -193,7 +181,7 @@ async function uploadToSupabaseStorage(
     const timestamp = Date.now();
     const key = `photos/${timestamp}-${sanitizedFileName}`;
 
-    const { data, error } = await getSupabase().storage
+    const { data, error } = await supabase.storage
       .from('photos')
       .upload(key, file, {
         contentType,
@@ -212,7 +200,7 @@ async function uploadToSupabaseStorage(
     }
 
     // Get public URL
-    const { data: urlData } = getSupabase().storage
+    const { data: urlData } = supabase.storage
       .from('photos')
       .getPublicUrl(data.path);
 

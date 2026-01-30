@@ -1,69 +1,16 @@
+/**
+ * Integration Test: Room Types API
+ * 
+ * Tests authenticated requests, validation errors, CRUD operations,
+ * capacity validation, and error responses for room types API endpoints.
+ */
+
 // Polyfill Web APIs for Next.js server components
 import { TextEncoder, TextDecoder } from 'util';
 global.TextEncoder = TextEncoder;
 global.TextDecoder = TextDecoder as any;
 
-// Polyfill Request for Node.js environment
-if (typeof Request === 'undefined') {
-  global.Request = class Request {
-    url: string;
-    method: string;
-    headers: Map<string, string>;
-    body: string | null;
-
-    constructor(url: string, init?: any) {
-      this.url = url;
-      this.method = init?.method || 'GET';
-      this.headers = new Map();
-      this.body = init?.body || null;
-    }
-
-    async json() {
-      return this.body ? JSON.parse(this.body) : null;
-    }
-  } as any;
-}
-
-// Mock Next.js server module to avoid Request/Response issues
-jest.mock('next/server', () => ({
-  NextResponse: {
-    json: (data: any, init?: any) => ({
-      json: async () => data,
-      status: init?.status || 200,
-    }),
-  },
-}));
-
-import { GET as getRoomTypes } from '@/app/api/admin/accommodations/[id]/room-types/route';
-import { POST as createRoomType } from '@/app/api/admin/room-types/route';
-import { GET as getRoomType, PUT as updateRoomType, DELETE as deleteRoomType } from '@/app/api/admin/room-types/[id]/route';
-import { GET as getRoomTypeSections } from '@/app/api/admin/room-types/[id]/sections/route';
-
-// Mock Supabase auth
-jest.mock('@supabase/auth-helpers-nextjs', () => ({
-  createRouteHandlerClient: jest.fn(() => ({
-    auth: {
-      getSession: jest.fn(() =>
-        Promise.resolve({
-          data: {
-            session: {
-              user: { id: 'user-1', email: 'admin@example.com' },
-              access_token: 'mock-token',
-            },
-          },
-          error: null,
-        })
-      ),
-    },
-  })),
-}));
-
-// Mock Next.js cookies
-jest.mock('next/headers', () => ({
-  cookies: jest.fn(),
-}));
-
-// Mock accommodation service
+// Mock accommodation service BEFORE importing route handlers
 jest.mock('@/services/accommodationService', () => ({
   listRoomTypes: jest.fn(),
   createRoomType: jest.fn(),
@@ -77,8 +24,49 @@ jest.mock('@/services/sectionsService', () => ({
   listSections: jest.fn(),
 }));
 
-import * as accommodationService from '@/services/accommodationService';
-import * as sectionsService from '@/services/sectionsService';
+// Mock Next.js server module
+jest.mock('next/server', () => ({
+  NextResponse: {
+    json: (data: any, init?: any) => ({
+      json: async () => data,
+      status: init?.status || 200,
+    }),
+  },
+  NextRequest: jest.fn(),
+}));
+
+// Mock Next.js headers and cookies
+jest.mock('next/headers', () => ({
+  cookies: jest.fn(() => ({
+    get: jest.fn(),
+    getAll: jest.fn(() => []),
+    set: jest.fn(),
+    delete: jest.fn(),
+  })),
+}));
+
+// Mock Supabase SSR client
+const mockGetUser = jest.fn();
+const mockGetSession = jest.fn();
+const mockSupabaseClient = {
+  auth: {
+    getUser: mockGetUser,
+    getSession: mockGetSession,
+  },
+  from: jest.fn(),
+};
+
+jest.mock('@supabase/ssr', () => ({
+  createServerClient: jest.fn(() => mockSupabaseClient),
+}));
+
+import { GET as getRoomTypes } from '@/app/api/admin/accommodations/[id]/room-types/route';
+import { POST as createRoomType } from '@/app/api/admin/room-types/route';
+import { GET as getRoomType, PUT as updateRoomType, DELETE as deleteRoomType } from '@/app/api/admin/room-types/[id]/route';
+import { GET as getRoomTypeSections } from '@/app/api/admin/room-types/[id]/sections/route';
+// Get mock functions after imports
+const accommodationService = require('@/services/accommodationService');
+const sectionsService = require('@/services/sectionsService');
 
 /**
  * Integration tests for Room Types API
@@ -93,24 +81,36 @@ import * as sectionsService from '@/services/sectionsService';
 describe('Room Types API Integration Tests', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    
+    // Default: authenticated user
+    mockGetUser.mockResolvedValue({
+      data: {
+        user: { id: 'user-1', email: 'admin@example.com' },
+      },
+      error: null,
+    } as any);
+    
+    // Default: valid session
+    mockGetSession.mockResolvedValue({
+      data: {
+        session: { user: { id: 'user-1', email: 'admin@example.com' } },
+      },
+      error: null,
+    } as any);
   });
 
   describe('GET /api/admin/accommodations/:id/room-types', () => {
     it('should return 401 when not authenticated', async () => {
-      const { createRouteHandlerClient } = require('@supabase/auth-helpers-nextjs');
-      createRouteHandlerClient.mockReturnValueOnce({
-        auth: {
-          getSession: jest.fn(() =>
-            Promise.resolve({
-              data: { session: null },
-              error: { message: 'Not authenticated' },
-            })
-          ),
-        },
-      });
+      mockGetSession.mockResolvedValueOnce({
+        data: { session: null },
+        error: { message: 'Not authenticated' },
+      } as any);
 
-      const request = new Request('http://localhost:3000/api/admin/accommodations/accommodation-1/room-types');
-      const response = await getRoomTypes(request, { params: { id: 'accommodation-1' } });
+      const request = {
+        url: 'http://localhost:3000/api/admin/accommodations/accommodation-1/room-types',
+      } as any;
+      
+      const response = await getRoomTypes(request, { params: Promise.resolve({ id: 'accommodation-1' }) });
       const data = await response.json();
 
       expect(response.status).toBe(401);
@@ -138,13 +138,16 @@ describe('Room Types API Integration Tests', () => {
         },
       ];
 
-      (accommodationService.listRoomTypes as jest.Mock).mockResolvedValue({
+      accommodationService.listRoomTypes.mockResolvedValue({
         success: true,
         data: mockRoomTypes,
-      });
+      } as any);
 
-      const request = new Request('http://localhost:3000/api/admin/accommodations/accommodation-1/room-types');
-      const response = await getRoomTypes(request, { params: { id: 'accommodation-1' } });
+      const request = {
+        url: 'http://localhost:3000/api/admin/accommodations/accommodation-1/room-types',
+      } as any;
+      
+      const response = await getRoomTypes(request, { params: Promise.resolve({ id: 'accommodation-1' }) });
       const data = await response.json();
 
       expect(response.status).toBe(200);
@@ -154,13 +157,16 @@ describe('Room Types API Integration Tests', () => {
     });
 
     it('should handle service errors', async () => {
-      (accommodationService.listRoomTypes as jest.Mock).mockResolvedValue({
+      accommodationService.listRoomTypes.mockResolvedValue({
         success: false,
         error: { code: 'DATABASE_ERROR', message: 'Database connection failed' },
-      });
+      } as any);
 
-      const request = new Request('http://localhost:3000/api/admin/accommodations/accommodation-1/room-types');
-      const response = await getRoomTypes(request, { params: { id: 'accommodation-1' } });
+      const request = {
+        url: 'http://localhost:3000/api/admin/accommodations/accommodation-1/room-types',
+      } as any;
+      
+      const response = await getRoomTypes(request, { params: Promise.resolve({ id: 'accommodation-1' }) });
       const data = await response.json();
 
       expect(response.status).toBe(500);
@@ -171,28 +177,22 @@ describe('Room Types API Integration Tests', () => {
 
   describe('POST /api/admin/room-types', () => {
     it('should return 401 when not authenticated', async () => {
-      const { createRouteHandlerClient } = require('@supabase/auth-helpers-nextjs');
-      createRouteHandlerClient.mockReturnValueOnce({
-        auth: {
-          getSession: jest.fn(() =>
-            Promise.resolve({
-              data: { session: null },
-              error: { message: 'Not authenticated' },
-            })
-          ),
-        },
-      });
+      mockGetSession.mockResolvedValueOnce({
+        data: { session: null },
+        error: { message: 'Not authenticated' },
+      } as any);
 
-      const request = new Request('http://localhost:3000/api/admin/room-types', {
-        method: 'POST',
-        body: JSON.stringify({
+      const request = {
+        json: async () => ({
           accommodationId: 'accommodation-1',
           name: 'Deluxe Suite',
           capacity: 4,
           totalRooms: 5,
           pricePerNight: 350,
         }),
-      });
+        url: 'http://localhost:3000/api/admin/room-types',
+      } as any;
+      
       const response = await createRoomType(request);
       const data = await response.json();
 
@@ -212,14 +212,13 @@ describe('Room Types API Integration Tests', () => {
         hostSubsidyPerNight: 100,
       };
 
-      (accommodationService.createRoomType as jest.Mock).mockResolvedValue({
+      accommodationService.createRoomType.mockResolvedValue({
         success: true,
         data: newRoomType,
-      });
+      } as any);
 
-      const request = new Request('http://localhost:3000/api/admin/room-types', {
-        method: 'POST',
-        body: JSON.stringify({
+      const request = {
+        json: async () => ({
           accommodationId: 'accommodation-1',
           name: 'Deluxe Suite',
           capacity: 4,
@@ -227,7 +226,9 @@ describe('Room Types API Integration Tests', () => {
           pricePerNight: 350,
           hostSubsidyPerNight: 100,
         }),
-      });
+        url: 'http://localhost:3000/api/admin/room-types',
+      } as any;
+      
       const response = await createRoomType(request);
       const data = await response.json();
 
@@ -238,24 +239,25 @@ describe('Room Types API Integration Tests', () => {
     });
 
     it('should return 400 for validation errors', async () => {
-      (accommodationService.createRoomType as jest.Mock).mockResolvedValue({
+      accommodationService.createRoomType.mockResolvedValue({
         success: false,
         error: {
           code: 'VALIDATION_ERROR',
           message: 'Validation failed',
           details: [{ path: ['name'], message: 'Name is required' }],
         },
-      });
+      } as any);
 
-      const request = new Request('http://localhost:3000/api/admin/room-types', {
-        method: 'POST',
-        body: JSON.stringify({
+      const request = {
+        json: async () => ({
           accommodationId: 'accommodation-1',
           capacity: 2,
           totalRooms: 10,
           pricePerNight: 200,
         }),
-      });
+        url: 'http://localhost:3000/api/admin/room-types',
+      } as any;
+      
       const response = await createRoomType(request);
       const data = await response.json();
 
@@ -276,13 +278,16 @@ describe('Room Types API Integration Tests', () => {
         pricePerNight: 250,
       };
 
-      (accommodationService.getRoomType as jest.Mock).mockResolvedValue({
+      accommodationService.getRoomType.mockResolvedValue({
         success: true,
         data: mockRoomType,
-      });
+      } as any);
 
-      const request = new Request('http://localhost:3000/api/admin/room-types/room-type-1');
-      const response = await getRoomType(request, { params: { id: 'room-type-1' } });
+      const request = {
+        url: 'http://localhost:3000/api/admin/room-types/room-type-1',
+      } as any;
+      
+      const response = await getRoomType(request, { params: Promise.resolve({ id: 'room-type-1' }) });
       const data = await response.json();
 
       expect(response.status).toBe(200);
@@ -292,13 +297,16 @@ describe('Room Types API Integration Tests', () => {
     });
 
     it('should return 404 when room type not found', async () => {
-      (accommodationService.getRoomType as jest.Mock).mockResolvedValue({
+      accommodationService.getRoomType.mockResolvedValue({
         success: false,
         error: { code: 'NOT_FOUND', message: 'Room type not found' },
-      });
+      } as any);
 
-      const request = new Request('http://localhost:3000/api/admin/room-types/nonexistent');
-      const response = await getRoomType(request, { params: { id: 'nonexistent' } });
+      const request = {
+        url: 'http://localhost:3000/api/admin/room-types/nonexistent',
+      } as any;
+      
+      const response = await getRoomType(request, { params: Promise.resolve({ id: 'nonexistent' }) });
       const data = await response.json();
 
       expect(response.status).toBe(404);
@@ -318,19 +326,20 @@ describe('Room Types API Integration Tests', () => {
         pricePerNight: 300,
       };
 
-      (accommodationService.updateRoomType as jest.Mock).mockResolvedValue({
+      accommodationService.updateRoomType.mockResolvedValue({
         success: true,
         data: updatedRoomType,
-      });
+      } as any);
 
-      const request = new Request('http://localhost:3000/api/admin/room-types/room-type-1', {
-        method: 'PUT',
-        body: JSON.stringify({
+      const request = {
+        json: async () => ({
           name: 'Premium Ocean View Suite',
           pricePerNight: 300,
         }),
-      });
-      const response = await updateRoomType(request, { params: { id: 'room-type-1' } });
+        url: 'http://localhost:3000/api/admin/room-types/room-type-1',
+      } as any;
+      
+      const response = await updateRoomType(request, { params: Promise.resolve({ id: 'room-type-1' }) });
       const data = await response.json();
 
       expect(response.status).toBe(200);
@@ -340,16 +349,17 @@ describe('Room Types API Integration Tests', () => {
     });
 
     it('should return 404 when updating nonexistent room type', async () => {
-      (accommodationService.updateRoomType as jest.Mock).mockResolvedValue({
+      accommodationService.updateRoomType.mockResolvedValue({
         success: false,
         error: { code: 'NOT_FOUND', message: 'Room type not found' },
-      });
+      } as any);
 
-      const request = new Request('http://localhost:3000/api/admin/room-types/nonexistent', {
-        method: 'PUT',
-        body: JSON.stringify({ name: 'Updated Name' }),
-      });
-      const response = await updateRoomType(request, { params: { id: 'nonexistent' } });
+      const request = {
+        json: async () => ({ name: 'Updated Name' }),
+        url: 'http://localhost:3000/api/admin/room-types/nonexistent',
+      } as any;
+      
+      const response = await updateRoomType(request, { params: Promise.resolve({ id: 'nonexistent' }) });
       const data = await response.json();
 
       expect(response.status).toBe(404);
@@ -360,15 +370,16 @@ describe('Room Types API Integration Tests', () => {
 
   describe('DELETE /api/admin/room-types/:id', () => {
     it('should delete a room type', async () => {
-      (accommodationService.deleteRoomType as jest.Mock).mockResolvedValue({
+      accommodationService.deleteRoomType.mockResolvedValue({
         success: true,
         data: undefined,
-      });
+      } as any);
 
-      const request = new Request('http://localhost:3000/api/admin/room-types/room-type-1', {
-        method: 'DELETE',
-      });
-      const response = await deleteRoomType(request, { params: { id: 'room-type-1' } });
+      const request = {
+        url: 'http://localhost:3000/api/admin/room-types/room-type-1',
+      } as any;
+      
+      const response = await deleteRoomType(request, { params: Promise.resolve({ id: 'room-type-1' }) });
       const data = await response.json();
 
       expect(response.status).toBe(200);
@@ -376,15 +387,16 @@ describe('Room Types API Integration Tests', () => {
     });
 
     it('should handle deletion errors', async () => {
-      (accommodationService.deleteRoomType as jest.Mock).mockResolvedValue({
+      accommodationService.deleteRoomType.mockResolvedValue({
         success: false,
         error: { code: 'DATABASE_ERROR', message: 'Failed to delete room type' },
-      });
+      } as any);
 
-      const request = new Request('http://localhost:3000/api/admin/room-types/room-type-1', {
-        method: 'DELETE',
-      });
-      const response = await deleteRoomType(request, { params: { id: 'room-type-1' } });
+      const request = {
+        url: 'http://localhost:3000/api/admin/room-types/room-type-1',
+      } as any;
+      
+      const response = await deleteRoomType(request, { params: Promise.resolve({ id: 'room-type-1' }) });
       const data = await response.json();
 
       expect(response.status).toBe(500);
@@ -405,13 +417,16 @@ describe('Room Types API Integration Tests', () => {
         },
       ];
 
-      (sectionsService.listSections as jest.Mock).mockResolvedValue({
+      sectionsService.listSections.mockResolvedValue({
         success: true,
         data: mockSections,
-      });
+      } as any);
 
-      const request = new Request('http://localhost:3000/api/admin/room-types/room-type-1/sections');
-      const response = await getRoomTypeSections(request, { params: { id: 'room-type-1' } });
+      const request = {
+        url: 'http://localhost:3000/api/admin/room-types/room-type-1/sections',
+      } as any;
+      
+      const response = await getRoomTypeSections(request, { params: Promise.resolve({ id: 'room-type-1' }) });
       const data = await response.json();
 
       expect(response.status).toBe(200);
@@ -423,24 +438,25 @@ describe('Room Types API Integration Tests', () => {
 
   describe('Capacity validation', () => {
     it('should validate capacity is positive', async () => {
-      (accommodationService.createRoomType as jest.Mock).mockResolvedValue({
+      accommodationService.createRoomType.mockResolvedValue({
         success: false,
         error: {
           code: 'VALIDATION_ERROR',
           message: 'Capacity must be positive',
         },
-      });
+      } as any);
 
-      const request = new Request('http://localhost:3000/api/admin/room-types', {
-        method: 'POST',
-        body: JSON.stringify({
+      const request = {
+        json: async () => ({
           accommodationId: 'accommodation-1',
           name: 'Invalid Room',
           capacity: -1,
           totalRooms: 10,
           pricePerNight: 200,
         }),
-      });
+        url: 'http://localhost:3000/api/admin/room-types',
+      } as any;
+      
       const response = await createRoomType(request);
       const data = await response.json();
 
@@ -449,24 +465,25 @@ describe('Room Types API Integration Tests', () => {
     });
 
     it('should validate total rooms is positive', async () => {
-      (accommodationService.createRoomType as jest.Mock).mockResolvedValue({
+      accommodationService.createRoomType.mockResolvedValue({
         success: false,
         error: {
           code: 'VALIDATION_ERROR',
           message: 'Total rooms must be positive',
         },
-      });
+      } as any);
 
-      const request = new Request('http://localhost:3000/api/admin/room-types', {
-        method: 'POST',
-        body: JSON.stringify({
+      const request = {
+        json: async () => ({
           accommodationId: 'accommodation-1',
           name: 'Invalid Room',
           capacity: 2,
           totalRooms: 0,
           pricePerNight: 200,
         }),
-      });
+        url: 'http://localhost:3000/api/admin/room-types',
+      } as any;
+      
       const response = await createRoomType(request);
       const data = await response.json();
 

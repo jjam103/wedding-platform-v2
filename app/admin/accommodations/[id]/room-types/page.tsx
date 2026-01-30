@@ -29,10 +29,10 @@ import { useRouter } from 'next/navigation';
  * 
  * Requirements: 22.1-22.8
  */
-export default function RoomTypesPage({ params }: { params: { id: string } }) {
+export default function RoomTypesPage({ params }: { params: Promise<{ id: string }> }) {
   const { addToast } = useToast();
   const router = useRouter();
-  const accommodationId = params.id;
+  const [accommodationId, setAccommodationId] = useState<string>('');
   
   // State management
   const [roomTypes, setRoomTypes] = useState<RoomType[]>([]);
@@ -47,9 +47,19 @@ export default function RoomTypesPage({ params }: { params: { id: string } }) {
   const newRoomTypeRef = useRef<string | null>(null);
 
   /**
+   * Unwrap params Promise on mount
+   */
+  useEffect(() => {
+    params.then(({ id }) => {
+      setAccommodationId(id);
+    });
+  }, [params]);
+
+  /**
    * Fetch accommodation details
    */
   const fetchAccommodation = useCallback(async () => {
+    if (!accommodationId) return;
     try {
       const response = await fetch(`/api/admin/accommodations/${accommodationId}`);
       if (!response.ok) {
@@ -69,6 +79,8 @@ export default function RoomTypesPage({ params }: { params: { id: string } }) {
    * Fetch room types from API
    */
   const fetchRoomTypes = useCallback(async () => {
+    if (!accommodationId) return;
+    
     try {
       setLoading(true);
       
@@ -98,8 +110,10 @@ export default function RoomTypesPage({ params }: { params: { id: string } }) {
 
   // Load data on mount only
   useEffect(() => {
-    fetchAccommodation();
-    fetchRoomTypes();
+    if (accommodationId) {
+      fetchAccommodation();
+      fetchRoomTypes();
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [accommodationId]);
 

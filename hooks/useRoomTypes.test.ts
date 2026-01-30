@@ -260,16 +260,23 @@ describe('useRoomTypes', () => {
         expect(result.current.data).toEqual(existingData);
       });
 
-      const createResult = await result.current.create({
-        name: 'Suite',
-        capacity: 4,
-        pricePerNight: 250,
-        checkInDate: '2025-06-14',
-        checkOutDate: '2025-06-16',
+      let createResult;
+      await waitFor(async () => {
+        createResult = await result.current.create({
+          name: 'Suite',
+          capacity: 4,
+          pricePerNight: 250,
+          checkInDate: '2025-06-14',
+          checkOutDate: '2025-06-16',
+        });
       });
 
       expect(createResult.success).toBe(true);
-      expect(result.current.data).toHaveLength(2);
+      
+      await waitFor(() => {
+        expect(result.current.data).toHaveLength(2);
+      });
+      
       expect(result.current.data[1]).toEqual(newRoomType);
     });
 
@@ -363,12 +370,18 @@ describe('useRoomTypes', () => {
         expect(result.current.data[0].pricePerNight).toBe(150);
       });
 
-      const updateResult = await result.current.update('room-1', {
-        pricePerNight: 175,
+      let updateResult;
+      await waitFor(async () => {
+        updateResult = await result.current.update('room-1', {
+          pricePerNight: 175,
+        });
       });
 
       expect(updateResult.success).toBe(true);
-      expect(result.current.data[0].pricePerNight).toBe(175);
+      
+      await waitFor(() => {
+        expect(result.current.data[0].pricePerNight).toBe(175);
+      });
     });
 
     it('should optimistically remove room type on delete', async () => {
@@ -415,10 +428,17 @@ describe('useRoomTypes', () => {
         expect(result.current.data).toHaveLength(2);
       });
 
-      const deleteResult = await result.current.remove('room-1');
+      let deleteResult;
+      await waitFor(async () => {
+        deleteResult = await result.current.remove('room-1');
+      });
 
       expect(deleteResult.success).toBe(true);
-      expect(result.current.data).toHaveLength(1);
+      
+      await waitFor(() => {
+        expect(result.current.data).toHaveLength(1);
+      });
+      
       expect(result.current.data[0].id).toBe('room-2');
     });
 

@@ -306,24 +306,20 @@ export default function AccommodationsPage() {
       filterable: true,
       filterType: 'select',
       filterOptions: [
-        { label: 'Available', value: 'available' },
-        { label: 'Booked', value: 'booked' },
-        { label: 'Unavailable', value: 'unavailable' },
+        { label: 'Draft', value: 'draft' },
+        { label: 'Published', value: 'published' },
       ],
       render: (value) => {
         const labels: Record<string, string> = {
-          available: 'Available',
-          booked: 'Booked',
-          unavailable: 'Unavailable',
+          draft: 'Draft',
+          published: 'Published',
         };
         return (
           <span
             className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-              value === 'available'
-                ? 'bg-jungle-100 text-jungle-800'
-                : value === 'booked'
-                ? 'bg-sunset-100 text-sunset-800'
-                : 'bg-sage-100 text-sage-800'
+              value === 'draft'
+                ? 'bg-sage-100 text-sage-800'
+                : 'bg-jungle-100 text-jungle-800'
             }`}
           >
             {labels[value as string] || value}
@@ -416,9 +412,8 @@ export default function AccommodationsPage() {
       type: 'select',
       required: true,
       options: [
-        { label: 'Available', value: 'available' },
-        { label: 'Booked', value: 'booked' },
-        { label: 'Unavailable', value: 'unavailable' },
+        { label: 'Draft', value: 'draft' },
+        { label: 'Published', value: 'published' },
       ],
     },
   ];

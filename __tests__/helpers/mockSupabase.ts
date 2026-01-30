@@ -173,3 +173,158 @@ export function resetMockSupabaseClient(mock: MockSupabaseClient): void {
   mock.limit.mockReturnValue(mock);
   mock.storage.from.mockReturnValue(mock.storage);
 }
+
+/**
+ * Builder for common Supabase query patterns.
+ * Reduces boilerplate in property-based tests.
+ */
+export class SupabaseMockBuilder {
+  private mock: MockSupabaseClient;
+
+  constructor(mock: MockSupabaseClient) {
+    this.mock = mock;
+  }
+
+  /**
+   * Mock a successful SELECT query returning multiple rows.
+   * 
+   * @example
+   * builder.mockSelect('guests', [{ id: '1', name: 'John' }]);
+   * // Mocks: from('guests').select('*') -> { data: [...], error: null }
+   */
+  mockSelect(table: string, data: any[], error: any = null): this {
+    this.mock.from.mockReturnValue(this.mock);
+    this.mock.select.mockReturnValue(this.mock);
+    this.mock.eq.mockResolvedValue({ data, error, count: data.length });
+    return this;
+  }
+
+  /**
+   * Mock a successful SELECT query returning a single row.
+   * 
+   * @example
+   * builder.mockSelectSingle('guests', { id: '1', name: 'John' });
+   * // Mocks: from('guests').select('*').eq('id', '1').single() -> { data: {...}, error: null }
+   */
+  mockSelectSingle(table: string, data: any, error: any = null): this {
+    this.mock.from.mockReturnValue(this.mock);
+    this.mock.select.mockReturnValue(this.mock);
+    this.mock.eq.mockReturnValue(this.mock);
+    this.mock.single.mockResolvedValue({ data, error });
+    return this;
+  }
+
+  /**
+   * Mock a successful INSERT query.
+   * 
+   * @example
+   * builder.mockInsert('guests', { id: '1', name: 'John' });
+   * // Mocks: from('guests').insert({...}).select().single() -> { data: {...}, error: null }
+   */
+  mockInsert(table: string, data: any, error: any = null): this {
+    this.mock.from.mockReturnValue(this.mock);
+    this.mock.insert.mockReturnValue(this.mock);
+    this.mock.select.mockReturnValue(this.mock);
+    this.mock.single.mockResolvedValue({ data, error });
+    return this;
+  }
+
+  /**
+   * Mock a successful UPDATE query.
+   * 
+   * @example
+   * builder.mockUpdate('guests', { id: '1', name: 'Jane' });
+   * // Mocks: from('guests').update({...}).eq('id', '1').select().single() -> { data: {...}, error: null }
+   */
+  mockUpdate(table: string, data: any, error: any = null): this {
+    this.mock.from.mockReturnValue(this.mock);
+    this.mock.update.mockReturnValue(this.mock);
+    this.mock.eq.mockReturnValue(this.mock);
+    this.mock.select.mockReturnValue(this.mock);
+    this.mock.single.mockResolvedValue({ data, error });
+    return this;
+  }
+
+  /**
+   * Mock a successful DELETE query.
+   * 
+   * @example
+   * builder.mockDelete('guests');
+   * // Mocks: from('guests').delete().eq('id', '1') -> { data: null, error: null }
+   */
+  mockDelete(table: string, error: any = null): this {
+    this.mock.from.mockReturnValue(this.mock);
+    this.mock.delete.mockReturnValue(this.mock);
+    this.mock.eq.mockResolvedValue({ data: null, error });
+    return this;
+  }
+
+  /**
+   * Mock a database error for any query.
+   * 
+   * @example
+   * builder.mockDatabaseError('Connection failed');
+   * // All queries will return { data: null, error: { message: 'Connection failed' } }
+   */
+  mockDatabaseError(message: string): this {
+    const error = { message, code: 'DATABASE_ERROR' };
+    this.mock.single.mockResolvedValue({ data: null, error });
+    this.mock.eq.mockResolvedValue({ data: null, error });
+    this.mock.insert.mockReturnValue(this.mock);
+    this.mock.update.mockReturnValue(this.mock);
+    this.mock.delete.mockReturnValue(this.mock);
+    this.mock.select.mockReturnValue(this.mock);
+    return this;
+  }
+
+  /**
+   * Mock authentication session.
+   * 
+   * @example
+   * builder.mockAuthSession({ user: { id: 'user-1', email: 'test@example.com' } });
+   */
+  mockAuthSession(session: any, error: any = null): this {
+    this.mock.auth.getSession.mockResolvedValue({ data: { session }, error });
+    return this;
+  }
+
+  /**
+   * Mock storage upload.
+   * 
+   * @example
+   * builder.mockStorageUpload('photos', 'photo.jpg', 'https://cdn.example.com/photo.jpg');
+   */
+  mockStorageUpload(bucket: string, path: string, publicUrl: string, error: any = null): this {
+    this.mock.storage.from.mockReturnValue(this.mock.storage);
+    this.mock.storage.upload.mockResolvedValue({ data: { path }, error });
+    this.mock.storage.getPublicUrl.mockReturnValue({ data: { publicUrl } });
+    return this;
+  }
+
+  /**
+   * Reset all mocks and reconfigure chaining.
+   */
+  reset(): this {
+    resetMockSupabaseClient(this.mock);
+    return this;
+  }
+}
+
+/**
+ * Creates a builder for configuring Supabase mocks with less boilerplate.
+ * 
+ * @param mock - Mock Supabase client
+ * @returns Builder instance
+ * 
+ * @example
+ * const mockSupabase = createMockSupabaseClient();
+ * const builder = createMockBuilder(mockSupabase);
+ * 
+ * // Clean, readable mock setup
+ * builder
+ *   .mockSelectSingle('guests', { id: '1', name: 'John' })
+ *   .mockInsert('rsvps', { id: '1', guestId: '1', status: 'attending' });
+ */
+export function createMockBuilder(mock: MockSupabaseClient): SupabaseMockBuilder {
+  return new SupabaseMockBuilder(mock);
+}

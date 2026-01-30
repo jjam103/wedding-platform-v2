@@ -29,6 +29,55 @@ jest.mock('next/navigation', () => ({
   }),
 }));
 
+// Mock DataTable components
+jest.mock('@/components/ui/DataTable', () => ({
+  DataTable: ({ data, columns, loading }: any) => {
+    if (loading) return <div>Loading...</div>;
+    if (data.length === 0) return <div>No items found</div>;
+    return (
+      <div data-testid="data-table">
+        {data.map((item: any, index: number) => (
+          <div key={index} data-testid={`guest-row-${item.id}`}>
+            {columns.map((col: any) => {
+              const value = item[col.key];
+              const displayValue = col.render ? col.render(value, item) : value;
+              return (
+                <div key={col.key} data-testid={`${col.key}-${item.id}`}>
+                  {displayValue}
+                </div>
+              );
+            })}
+          </div>
+        ))}
+      </div>
+    );
+  },
+}));
+
+jest.mock('@/components/ui/DataTableWithSuspense', () => ({
+  DataTableWithSuspense: ({ data, columns, loading }: any) => {
+    if (loading) return <div>Loading...</div>;
+    if (data.length === 0) return <div>No items found</div>;
+    return (
+      <div data-testid="data-table">
+        {data.map((item: any, index: number) => (
+          <div key={index} data-testid={`guest-row-${item.id}`}>
+            {columns.map((col: any) => {
+              const value = item[col.key];
+              const displayValue = col.render ? col.render(value, item) : value;
+              return (
+                <div key={col.key} data-testid={`${col.key}-${item.id}`}>
+                  {displayValue}
+                </div>
+              );
+            })}
+          </div>
+        ))}
+      </div>
+    );
+  },
+}));
+
 // Mock fetch
 global.fetch = jest.fn();
 
@@ -144,16 +193,24 @@ describe('CollapsibleForm Migration - Guests Page', () => {
         expect(screen.getByText('Guest Management')).toBeInTheDocument();
       });
 
-      // Form should not be visible initially
-      expect(screen.queryByText('First Name')).not.toBeInTheDocument();
+      // Form should be collapsed initially
+      expect(screen.queryByLabelText(/first name/i)).not.toBeInTheDocument();
 
-      // Click Add Guest button
+      // Click Add Guest button to open form
       const addButton = screen.getByRole('button', { name: /add guest/i });
       fireEvent.click(addButton);
 
-      // Form should now be visible
+      // Form should be visible
       await waitFor(() => {
         expect(screen.getByLabelText(/first name/i)).toBeInTheDocument();
+      });
+
+      // Click again to close
+      fireEvent.click(addButton);
+      
+      // Wait for form to close
+      await waitFor(() => {
+        expect(screen.queryByLabelText(/first name/i)).not.toBeInTheDocument();
       });
     });
 
@@ -542,7 +599,9 @@ describe('CollapsibleForm Migration - Guests Page', () => {
         target: { value: 'Smith' },
       });
       
-      const groupSelect = screen.getByLabelText(/group/i);
+      // Get group select from form (not filter) - multiple elements with "Group" label
+      const groupLabels = screen.getAllByLabelText(/group/i);
+      const groupSelect = groupLabels.find(el => el.tagName === 'SELECT' && el.id.includes('field')) as HTMLSelectElement;
       fireEvent.change(groupSelect, {
         target: { value: mockGroup.id },
       });

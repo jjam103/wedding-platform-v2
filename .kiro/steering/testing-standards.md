@@ -203,6 +203,86 @@ describe('Feature: destination-wedding-platform, Property 24: CSV Round-Trip', (
 
 ## Integration Tests
 
+### CRITICAL: Integration Test Architecture
+
+**Integration tests MUST mock services to avoid worker crashes.**
+
+#### ✅ CORRECT Pattern - Mock Services, Test Route Handlers
+```typescript
+// Import route handler directly
+import { POST } from '@/app/api/admin/locations/route';
+
+// Mock the service layer
+jest.mock('@/services/locationService', () => ({
+  create: jest.fn(),
+  list: jest.fn(),
+  update: jest.fn(),
+  delete: jest.fn(),
+}));
+
+describe('POST /api/admin/locations', () => {
+  it('should create location when valid data provided', async () => {
+    // Get mocked function
+    const mockCreate = require('@/services/locationService').create;
+    mockCreate.mockResolvedValue({ 
+      success: true, 
+      data: { id: '1', name: 'Test Location', type: 'country' } 
+    });
+    
+    // Create request
+    const request = new Request('http://localhost:3000/api/admin/locations', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: 'Test Location', type: 'country' }),
+    });
+    
+    // Test route handler directly
+    const response = await POST(request);
+    const data = await response.json();
+    
+    expect(response.status).toBe(201);
+    expect(data.success).toBe(true);
+    expect(mockCreate).toHaveBeenCalledWith({ name: 'Test Location', type: 'country' });
+  });
+});
+```
+
+#### ❌ WRONG Pattern - Direct Service Imports (Causes Worker Crashes)
+```typescript
+// ❌ NEVER DO THIS - Causes circular dependencies and worker crashes
+import * as locationService from '@/services/locationService';
+
+describe('Location API', () => {
+  it('should create location', async () => {
+    // This will cause worker to crash with SIGTERM/SIGABRT
+    const result = await locationService.create({ name: 'Test' });
+    expect(result.success).toBe(true);
+  });
+});
+```
+
+#### Why This Pattern?
+
+**Problem with direct imports:**
+- Service imports Supabase client
+- Supabase client has circular dependencies in test environment
+- Jest worker process crashes with SIGTERM/SIGABRT
+- Tests fail unpredictably
+
+**Solution with mocked services:**
+- Mock service at module level
+- Test route handler logic directly
+- No circular dependencies
+- Fast, stable, reliable tests
+
+#### When to Use E2E Instead
+
+Move tests to `__tests__/e2e/` if they require:
+- Running Next.js development server
+- Full request/response cycle with middleware
+- Real authentication flow
+- Server-side rendering validation
+
 ### API Routes
 
 Test authentication, validation, and HTTP status codes:
@@ -293,6 +373,26 @@ describe('emailService', () => {
 
 ## E2E Tests (Playwright)
 
+**Use E2E tests for complete user flows and server-dependent scenarios.**
+
+### When to Use E2E vs Integration
+
+**Use E2E tests when:**
+- Testing complete user workflows (registration, RSVP, photo upload)
+- Requiring a running Next.js server
+- Testing middleware and authentication flows
+- Validating server-side rendering
+- Testing real API endpoints with full request cycle
+- Checking accessibility and keyboard navigation
+
+**Use Integration tests when:**
+- Testing API route handler logic in isolation
+- Testing with mocked services and dependencies
+- No server required (faster, more reliable)
+- Testing specific error paths and edge cases
+
+### E2E Test Patterns
+
 Test critical user flows and accessibility:
 
 ```typescript
@@ -322,6 +422,19 @@ test.describe('Guest Registration Flow', () => {
   });
 });
 
+// API Testing with E2E (when server required)
+test.describe('Guest API', () => {
+  test('should create guest via API', async ({ request }) => {
+    const response = await request.post('http://localhost:3000/api/admin/guests', {
+      data: { firstName: 'John', lastName: 'Doe', email: 'john@example.com' },
+    });
+    
+    expect(response.status()).toBe(201);
+    const data = await response.json();
+    expect(data.success).toBe(true);
+  });
+});
+
 // Accessibility
 test('should have no accessibility violations', async ({ page }) => {
   await page.goto('/');
@@ -335,6 +448,14 @@ test('should be keyboard navigable', async ({ page }) => {
   await expect(page.locator(':focus')).toBeVisible();
 });
 ```
+
+### E2E Prerequisites
+
+E2E tests require:
+1. **Running server**: `npm run dev` in separate terminal
+2. **Playwright browsers**: `npx playwright install`
+3. **Test environment**: `.env.test` configured
+4. **Test fixtures**: Images and files in `__tests__/fixtures/`
 
 
 ## Test Utilities
@@ -445,6 +566,61 @@ it('should reject expired sessions', async () => {
   expect(response.status).toBe(401);
 });
 ```
+
+
+## Troubleshooting Test Issues
+
+### Worker Crashes (SIGTERM/SIGABRT)
+
+**Symptom**: Tests terminate with "worker process has failed to exit gracefully"
+
+**Cause**: Direct service imports create circular dependencies with Supabase client
+
+**Solution**: Mock services at module level
+```typescript
+// ✅ CORRECT
+jest.mock('@/services/locationService', () => ({
+  create: jest.fn(),
+  list: jest.fn(),
+}));
+
+// ❌ WRONG
+import * as locationService from '@/services/locationService';
+```
+
+### "Request is not defined" Errors
+
+**Symptom**: `ReferenceError: Request is not defined`
+
+**Cause**: Test environment doesn't have Web API globals
+
+**Solution**: Use global Request object or move to E2E
+```typescript
+// ✅ CORRECT
+const request = new Request('http://localhost:3000/api/test', { method: 'POST' });
+
+// If this doesn't work, move test to __tests__/e2e/
+```
+
+### Tests Pass Locally But Fail in CI
+
+**Possible causes:**
+- Missing environment variables in CI
+- Different Node.js versions
+- Timing issues (increase timeouts)
+- Mock setup differences
+
+**Solution**: Check CI logs, verify environment variables, add explicit waits
+
+### Slow Integration Tests
+
+**Symptom**: Integration tests take too long
+
+**Solutions:**
+- Verify you're mocking services (not hitting real APIs)
+- Check for unnecessary `await` statements
+- Reduce test data size
+- Ensure parallel execution is enabled
 
 
 ## Preventing Flaky Tests

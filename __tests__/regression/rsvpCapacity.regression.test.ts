@@ -11,9 +11,9 @@
  * Requirements: 21.4
  */
 
-import { rsvpService } from '@/services/rsvpService';
-import { rsvpAnalyticsService } from '@/services/rsvpAnalyticsService';
-import { capacityReportService } from '@/services/capacityReportService';
+import * as rsvpService from '@/services/rsvpService';
+import * as rsvpAnalyticsService from '@/services/rsvpAnalyticsService';
+import * as capacityReportService from '@/services/capacityReportService';
 
 // Mock Supabase client
 const mockSupabase = {

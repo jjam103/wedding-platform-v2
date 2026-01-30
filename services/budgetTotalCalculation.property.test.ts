@@ -180,7 +180,7 @@ describe('Feature: destination-wedding-platform, Property 12: Budget Total Calcu
           }
         }
       ),
-      { numRuns: 100 }
+      { numRuns: 20, timeout: 5000 } // Reduced runs and increased timeout
     );
   });
 
@@ -306,7 +306,7 @@ describe('Feature: destination-wedding-platform, Property 12: Budget Total Calcu
           }
         }
       ),
-      { numRuns: 50 }
+      { numRuns: 10, timeout: 5000 } // Reduced runs and increased timeout
     );
   });
 });

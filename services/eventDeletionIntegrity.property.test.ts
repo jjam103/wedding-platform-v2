@@ -51,7 +51,7 @@ describe.skip('Feature: destination-wedding-platform, Property 10: Event Deletio
           mockDeleteEvent.mockResolvedValue({
             success: true,
             data: undefined,
-          });
+          } as any);
 
           // Mock activity retrieval after deletion (activities should still exist with eventId = null)
           const mockListActivities = jest.spyOn(activityService, 'list');
@@ -82,7 +82,7 @@ describe.skip('Feature: destination-wedding-platform, Property 10: Event Deletio
               pageSize: 50,
               totalPages: 1,
             },
-          });
+          } as any);
 
           // Delete the event
           const deleteResult = await eventService.deleteEvent(eventId);
@@ -145,7 +145,7 @@ describe.skip('Feature: destination-wedding-platform, Property 10: Event Deletio
           mockDeleteEvent.mockResolvedValue({
             success: true,
             data: undefined,
-          });
+          } as any);
 
           // Mock activity retrieval - activity should exist with same data except eventId
           const mockGetActivity = jest.spyOn(activityService, 'get');
@@ -165,7 +165,7 @@ describe.skip('Feature: destination-wedding-platform, Property 10: Event Deletio
               createdAt: new Date().toISOString(),
               updatedAt: new Date().toISOString(),
             },
-          });
+          } as any);
 
           // Delete the event
           const deleteResult = await eventService.deleteEvent(eventId);
@@ -218,7 +218,7 @@ describe.skip('Feature: destination-wedding-platform, Property 10: Event Deletio
           mockDeleteEvent.mockResolvedValue({
             success: true,
             data: undefined,
-          });
+          } as any);
 
           // Mock activity update to new event
           const mockUpdateActivity = jest.spyOn(activityService, 'update');
@@ -244,7 +244,7 @@ describe.skip('Feature: destination-wedding-platform, Property 10: Event Deletio
               createdAt: new Date().toISOString(),
               updatedAt: new Date().toISOString(),
             },
-          });
+          } as any);
 
           // Delete original event
           const deleteResult = await eventService.deleteEvent(originalEventId);
@@ -253,7 +253,7 @@ describe.skip('Feature: destination-wedding-platform, Property 10: Event Deletio
           // Reassign activity to new event
           const updateResult = await activityService.update(activityId, {
             eventId: newEventId,
-          });
+          } as any);
 
           // Property 1: Update should succeed
           expect(updateResult.success).toBe(true);
@@ -284,7 +284,7 @@ describe.skip('Feature: destination-wedding-platform, Property 10: Event Deletio
           mockDeleteEvent.mockResolvedValue({
             success: true,
             data: undefined,
-          });
+          } as any);
 
           // Delete the event
           const deleteResult = await eventService.deleteEvent(eventId);
@@ -332,7 +332,7 @@ describe.skip('Feature: destination-wedding-platform, Property 10: Event Deletio
           mockDeleteEvent.mockResolvedValue({
             success: true,
             data: undefined,
-          });
+          } as any);
 
           // Mock activity list - all activities should exist after deletion
           const mockListActivities = jest.spyOn(activityService, 'list');
@@ -365,7 +365,7 @@ describe.skip('Feature: destination-wedding-platform, Property 10: Event Deletio
               pageSize: 50,
               totalPages: 1,
             },
-          });
+          } as any);
 
           // Delete the event
           const deleteResult = await eventService.deleteEvent(eventId);
@@ -416,7 +416,7 @@ describe.skip('Feature: destination-wedding-platform, Property 10: Event Deletio
           mockDeleteEvent.mockResolvedValue({
             success: true,
             data: undefined,
-          });
+          } as any);
 
           // Mock activity get - should return activity with null eventId
           const mockGetActivity = jest.spyOn(activityService, 'get');
@@ -442,7 +442,7 @@ describe.skip('Feature: destination-wedding-platform, Property 10: Event Deletio
               createdAt: new Date().toISOString(),
               updatedAt: new Date().toISOString(),
             },
-          });
+          } as any);
 
           // Delete event
           const deleteResult = await eventService.deleteEvent(eventId);

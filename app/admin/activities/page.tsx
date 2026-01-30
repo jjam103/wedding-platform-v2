@@ -147,7 +147,7 @@ export default function ActivitiesPage() {
 
       const result = await response.json();
       if (result.success) {
-        setLocations(result.data.locations || []);
+        setLocations(result.data || []);
       }
     } catch (error) {
       // Silently fail for locations - not critical
@@ -160,7 +160,7 @@ export default function ActivitiesPage() {
     fetchActivities();
     fetchEvents();
     fetchLocations();
-  }, [fetchActivities, fetchEvents, fetchLocations]);
+  }, [fetchActivities, fetchLocations]); // Removed fetchEvents from dependencies
 
   /**
    * Handle row click - open edit form
@@ -468,13 +468,13 @@ export default function ActivitiesPage() {
     {
       name: 'startTime',
       label: 'Start Date & Time',
-      type: 'datetime',
+      type: 'datetime-local',
       required: true,
     },
     {
       name: 'endTime',
       label: 'End Date & Time',
-      type: 'datetime',
+      type: 'datetime-local',
       required: false,
       helpText: 'Optional end time for the activity',
     },

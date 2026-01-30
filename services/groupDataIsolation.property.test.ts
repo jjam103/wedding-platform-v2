@@ -93,13 +93,13 @@ describe('Feature: destination-wedding-platform, Property 3: Group Data Isolatio
               } 
             },
             error: null,
-          });
+          } as any);
 
           // Mock query that returns only guests from owned groups
           mockSupabase.single.mockResolvedValue({
             data: ownedGuests,
             error: null,
-          });
+          } as any);
 
           // Simulate querying for all guests (RLS should filter)
           const { data: accessibleGuests, error } = await mockSupabase
@@ -174,7 +174,7 @@ describe('Feature: destination-wedding-platform, Property 3: Group Data Isolatio
               } 
             },
             error: null,
-          });
+          } as any);
 
           // Mock RLS policy blocking the update
           // In real Supabase, this would return an error or 0 rows affected
@@ -185,7 +185,7 @@ describe('Feature: destination-wedding-platform, Property 3: Group Data Isolatio
               message: 'Row level security policy violation',
               details: 'Policy check failed',
             },
-          });
+          } as any);
 
           // Attempt to update guest in other group
           const { data, error } = await mockSupabase
@@ -244,13 +244,13 @@ describe('Feature: destination-wedding-platform, Property 3: Group Data Isolatio
               } 
             },
             error: null,
-          });
+          } as any);
 
           // Mock RLS allowing access to all guests in owned group
           mockSupabase.single.mockResolvedValue({
             data: guestsInOwnedGroup,
             error: null,
-          });
+          } as any);
 
           // Query for guests in owned group
           const { data: accessibleGuests, error } = await mockSupabase
@@ -326,13 +326,13 @@ describe('Feature: destination-wedding-platform, Property 3: Group Data Isolatio
                 } 
               },
               error: null,
-            });
+            } as any);
 
             // Mock RLS filtering
             mockSupabase.single.mockResolvedValue({
               data: ownedGuests,
               error: null,
-            });
+            } as any);
 
             const { data: accessibleGuests } = await mockSupabase
               .from('guests')
@@ -395,14 +395,14 @@ describe('Feature: destination-wedding-platform, Property 3: Group Data Isolatio
               } 
             },
             error: null,
-          });
+          } as any);
 
           // Test operation on owned group - should succeed
           const ownedGuestId = fc.sample(fc.uuid(), 1)[0];
           mockSupabase.single.mockResolvedValue({
             data: { id: ownedGuestId, ...guestData, group_id: ownedGroupId },
             error: null,
-          });
+          } as any);
 
           let ownedResult;
           switch (operation) {
@@ -447,7 +447,7 @@ describe('Feature: destination-wedding-platform, Property 3: Group Data Isolatio
               code: 'PGRST116',
               message: 'Row level security policy violation',
             },
-          });
+          } as any);
 
           let otherResult;
           switch (operation) {

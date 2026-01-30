@@ -14,6 +14,7 @@ export interface ToastData {
 
 interface ToastContextValue {
   addToast: (toast: Omit<ToastData, 'id'>) => void;
+  showToast: (toast: Omit<ToastData, 'id'>) => void; // Alias for addToast
   removeToast: (id: string) => void;
   toasts: ToastData[];
 }
@@ -43,7 +44,7 @@ export function ToastProvider({ children }: ToastProviderProps) {
   }, []);
 
   return (
-    <ToastContext.Provider value={{ addToast, removeToast, toasts }}>
+    <ToastContext.Provider value={{ addToast, showToast: addToast, removeToast, toasts }}>
       {children}
       <ToastContainer toasts={toasts} onRemove={removeToast} />
     </ToastContext.Provider>

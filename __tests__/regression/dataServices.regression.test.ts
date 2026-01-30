@@ -12,12 +12,12 @@
  * Requirements: 21.1, 21.2
  */
 
-import { guestService } from '@/services/guestService';
-import { eventService } from '@/services/eventService';
-import { activityService } from '@/services/activityService';
-import { rsvpService } from '@/services/rsvpService';
-import { vendorService } from '@/services/vendorService';
-import { accommodationService } from '@/services/accommodationService';
+import * as guestService from '@/services/guestService';
+import * as eventService from '@/services/eventService';
+import * as activityService from '@/services/activityService';
+import * as rsvpService from '@/services/rsvpService';
+import * as vendorService from '@/services/vendorService';
+import * as accommodationService from '@/services/accommodationService';
 
 // Mock Supabase client
 const mockSupabase = {

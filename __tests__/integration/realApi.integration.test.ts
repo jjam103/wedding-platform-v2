@@ -1,248 +1,136 @@
 /**
  * Real API Integration Tests
  * 
- * These tests hit actual API endpoints with a running Next.js server
- * to catch runtime issues that mocked tests miss.
+ * These tests start an actual Next.js server and test real API endpoints.
+ * Unlike unit tests that mock everything, these tests validate:
+ * - Real Next.js runtime behavior
+ * - Actual cookie handling
+ * - Real middleware execution
+ * - Complete request/response cycle
  * 
- * IMPORTANT: These tests require:
- * 1. A running Next.js dev server (npm run dev)
- * 2. Valid Supabase credentials in .env.local
- * 3. Test database with proper RLS policies
+ * This catches issues that mocked tests miss, such as:
+ * - Next.js 15 async params
+ * - Cookie parsing changes
+ * - Middleware behavior
+ * - Runtime-only errors
  */
 
-import { spawn, ChildProcess } from 'child_process';
-
-const API_BASE_URL = process.env.TEST_API_URL || 'http://localhost:3000';
-const SERVER_STARTUP_TIMEOUT = 30000; // 30 seconds
-const TEST_TIMEOUT = 10000; // 10 seconds per test
-
-/**
- * Wait for server to be ready
- */
-async function waitForServer(url: string, timeout: number = SERVER_STARTUP_TIMEOUT): Promise<void> {
-  const startTime = Date.now();
-  
-  while (Date.now() - startTime < timeout) {
-    try {
-      const response = await fetch(url);
-      if (response.ok || response.status === 404) {
-        console.log('✅ Server is ready');
-        return;
-      }
-    } catch (error) {
-      // Server not ready yet, wait and retry
-      await new Promise(resolve => setTimeout(resolve, 1000));
-    }
-  }
-  
-  throw new Error(`Server did not start within ${timeout}ms`);
-}
-
-/**
- * Check if server is already running
- */
-async function isServerRunning(url: string): Promise<boolean> {
-  try {
-    const response = await fetch(url);
-    return response.ok || response.status === 404;
-  } catch {
-    return false;
-  }
-}
+import { startTestServer, stopTestServer, getTestServerUrl } from '../helpers/testServer';
 
 describe('Real API Integration Tests', () => {
-  let serverProcess: ChildProcess | null = null;
-  let serverWasRunning = false;
-
+  let serverUrl: string;
+  
+  // Start server once for all tests
   beforeAll(async () => {
-    // Check if server is already running
-    serverWasRunning = await isServerRunning(API_BASE_URL);
-    
-    if (serverWasRunning) {
-      console.log('ℹ️  Using existing server at', API_BASE_URL);
-      return;
-    }
-    
-    console.log('🚀 Starting Next.js dev server...');
-    
-    // Start Next.js dev server
-    serverProcess = spawn('npm', ['run', 'dev'], {
-      stdio: 'pipe',
-      detached: false,
+    serverUrl = await startTestServer();
+  }, 60000); // 60 second timeout for server startup
+  
+  // Stop server after all tests
+  afterAll(async () => {
+    await stopTestServer();
+  }, 10000);
+  
+  describe('Health Check', () => {
+    it('should respond to health check endpoint', async () => {
+      const response = await fetch(`${serverUrl}/api/health`);
+      expect(response.ok).toBe(true);
     });
-    
-    // Log server output for debugging
-    serverProcess.stdout?.on('data', (data) => {
-      const output = data.toString();
-      if (output.includes('Ready') || output.includes('started')) {
-        console.log('📡', output.trim());
+  });
+  
+  describe('API Routes - Unauthenticated', () => {
+    it('should return 401 for protected routes without auth', async () => {
+      const routes = [
+        '/api/admin/locations',
+        '/api/admin/guests',
+        '/api/admin/events',
+        '/api/admin/activities',
+      ];
+      
+      for (const route of routes) {
+        const response = await fetch(`${serverUrl}${route}`);
+        expect(response.status).toBe(401);
       }
     });
-    
-    serverProcess.stderr?.on('data', (data) => {
-      console.error('❌ Server error:', data.toString());
+  });
+  
+  describe('API Routes - Response Format', () => {
+    it('should return JSON with success/error structure', async () => {
+      const response = await fetch(`${serverUrl}/api/admin/locations`);
+      const data = await response.json();
+      
+      expect(data).toHaveProperty('success');
+      if (!data.success) {
+        expect(data).toHaveProperty('error');
+        expect(data.error).toHaveProperty('code');
+        expect(data.error).toHaveProperty('message');
+      }
+    });
+  });
+  
+  describe('Next.js 15 Compatibility', () => {
+    it('should handle dynamic route params correctly', async () => {
+      // Test that params are properly awaited in Next.js 15
+      const response = await fetch(`${serverUrl}/api/admin/accommodations/test-id/room-types`);
+      
+      // Should not crash with params error
+      expect(response.status).not.toBe(500);
+      
+      // Should return 401 (auth required) or 404 (not found), not 500 (server error)
+      expect([401, 404]).toContain(response.status);
     });
     
-    // Wait for server to be ready
-    await waitForServer(API_BASE_URL);
-  }, SERVER_STARTUP_TIMEOUT + 5000);
-
-  afterAll(() => {
-    if (serverProcess && !serverWasRunning) {
-      console.log('🛑 Stopping Next.js dev server...');
-      serverProcess.kill('SIGTERM');
+    it('should handle cookies correctly', async () => {
+      // Test that cookie handling works in Next.js 15
+      const response = await fetch(`${serverUrl}/api/admin/locations`, {
+        headers: {
+          'Cookie': 'test=value',
+        },
+      });
       
-      // Force kill if not stopped after 5 seconds
-      setTimeout(() => {
-        if (serverProcess && !serverProcess.killed) {
-          serverProcess.kill('SIGKILL');
-        }
-      }, 5000);
-    }
+      // Should not crash with cookie parsing error
+      expect(response.status).not.toBe(500);
+    });
   });
-
-  describe('API Health Checks', () => {
-    test('should respond to health check', async () => {
-      const response = await fetch(`${API_BASE_URL}/api/health`);
-      
-      // Even if endpoint doesn't exist, server should respond
-      expect([200, 404, 405]).toContain(response.status);
-    }, TEST_TIMEOUT);
-  });
-
-  describe('Authentication Endpoints', () => {
-    test('logout endpoint should exist and respond', async () => {
-      const response = await fetch(`${API_BASE_URL}/api/auth/logout`, {
+  
+  describe('Error Handling', () => {
+    it('should return proper error responses for invalid requests', async () => {
+      const response = await fetch(`${serverUrl}/api/admin/locations`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
+        body: JSON.stringify({ invalid: 'data' }),
       });
       
-      // Should respond (even if unauthorized)
-      expect(response.status).toBeLessThan(500);
+      expect(response.status).toBeGreaterThanOrEqual(400);
       
       const data = await response.json();
-      expect(data).toHaveProperty('success');
-    }, TEST_TIMEOUT);
+      expect(data.success).toBe(false);
+      expect(data.error).toBeDefined();
+    });
   });
-
-  describe('Admin API Endpoints', () => {
-    test('locations endpoint should respond', async () => {
-      const response = await fetch(`${API_BASE_URL}/api/admin/locations`);
-      
-      // Should respond with 401 (unauthorized) or 200 (if somehow authenticated)
-      expect([200, 401]).toContain(response.status);
-      
-      const data = await response.json();
-      expect(data).toHaveProperty('success');
-      
-      if (!data.success) {
-        expect(data).toHaveProperty('error');
-        expect(data.error).toHaveProperty('code');
-      }
-    }, TEST_TIMEOUT);
-
-    test('content-pages endpoint should respond', async () => {
-      const response = await fetch(`${API_BASE_URL}/api/admin/content-pages`);
-      
-      // Should respond with 401 (unauthorized) or 200
-      expect([200, 401]).toContain(response.status);
-      
-      const data = await response.json();
-      expect(data).toHaveProperty('success');
-    }, TEST_TIMEOUT);
-
-    test('guests endpoint should respond', async () => {
-      const response = await fetch(`${API_BASE_URL}/api/admin/guests`);
-      
-      // Should respond with 401 (unauthorized) or 200
-      expect([200, 401]).toContain(response.status);
-      
-      const data = await response.json();
-      expect(data).toHaveProperty('success');
-    }, TEST_TIMEOUT);
-
-    test('activities endpoint should respond', async () => {
-      const response = await fetch(`${API_BASE_URL}/api/admin/activities`);
-      
-      // Should respond with 401 (unauthorized) or 200
-      expect([200, 401]).toContain(response.status);
-      
-      const data = await response.json();
-      expect(data).toHaveProperty('success');
-    }, TEST_TIMEOUT);
-  });
-
-  describe('API Response Format', () => {
-    test('all API responses should have consistent format', async () => {
-      const endpoints = [
-        '/api/admin/locations',
-        '/api/admin/content-pages',
-        '/api/admin/guests',
-      ];
-      
-      for (const endpoint of endpoints) {
-        const response = await fetch(`${API_BASE_URL}${endpoint}`);
-        const data = await response.json();
-        
-        // All responses should have success field
-        expect(data).toHaveProperty('success');
-        expect(typeof data.success).toBe('boolean');
-        
-        // If success is false, should have error object
-        if (!data.success) {
-          expect(data).toHaveProperty('error');
-          expect(data.error).toHaveProperty('code');
-          expect(data.error).toHaveProperty('message');
-        }
-        
-        // If success is true, should have data
-        if (data.success) {
-          expect(data).toHaveProperty('data');
-        }
-      }
-    }, TEST_TIMEOUT * 3);
-  });
-
-  describe('Error Handling', () => {
-    test('invalid endpoints should return 404', async () => {
-      const response = await fetch(`${API_BASE_URL}/api/admin/nonexistent-endpoint`);
-      expect(response.status).toBe(404);
-    }, TEST_TIMEOUT);
-
-    test('invalid methods should return 405', async () => {
-      const response = await fetch(`${API_BASE_URL}/api/admin/locations`, {
-        method: 'DELETE', // Assuming DELETE is not supported on collection
-      });
-      
-      // Should be 405 (Method Not Allowed) or 401 (Unauthorized)
-      expect([401, 405]).toContain(response.status);
-    }, TEST_TIMEOUT);
-  });
-
+  
   describe('CORS and Headers', () => {
-    test('API should set proper content-type headers', async () => {
-      const response = await fetch(`${API_BASE_URL}/api/admin/locations`);
+    it('should include proper CORS headers', async () => {
+      const response = await fetch(`${serverUrl}/api/admin/locations`);
       
-      const contentType = response.headers.get('content-type');
-      expect(contentType).toContain('application/json');
-    }, TEST_TIMEOUT);
+      // Check for security headers
+      expect(response.headers.get('content-type')).toContain('application/json');
+    });
   });
 });
 
 /**
- * Usage Instructions:
+ * NOTE: These tests are intentionally simple and focus on:
+ * 1. Server starts and responds
+ * 2. Routes exist and return proper status codes
+ * 3. Error handling works correctly
+ * 4. Next.js 15 compatibility (params, cookies)
  * 
- * 1. Run with existing server:
- *    npm run dev (in one terminal)
- *    npm run test:integration -- realApi (in another terminal)
+ * They do NOT test:
+ * - Business logic (covered by unit tests)
+ * - Database operations (covered by service tests)
+ * - Authentication flows (covered by E2E tests)
  * 
- * 2. Run with auto-start server:
- *    npm run test:integration -- realApi
- *    (will start and stop server automatically)
- * 
- * 3. Run in CI/CD:
- *    Set TEST_API_URL environment variable to deployed URL
- *    npm run test:integration -- realApi
+ * The goal is to catch runtime issues that mocked tests miss.
  */

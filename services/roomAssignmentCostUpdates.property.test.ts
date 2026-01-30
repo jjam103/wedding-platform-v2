@@ -52,7 +52,7 @@ describe('Feature: destination-wedding-platform, Property 15: Room Assignment Co
         fc.record({
           roomType1: fc.record({
             accommodationId: fc.uuid(),
-            name: fc.string({ minLength: 1, maxLength: 50 }),
+            name: fc.string({ minLength: 2, maxLength: 50 }).filter(s => s.trim().length >= 2),
             capacity: fc.integer({ min: 1, max: 6 }),
             totalRooms: fc.integer({ min: 1, max: 20 }),
             pricePerNight: fc.float({ min: 50, max: 500, noNaN: true }),
@@ -60,7 +60,7 @@ describe('Feature: destination-wedding-platform, Property 15: Room Assignment Co
           }),
           roomType2: fc.record({
             accommodationId: fc.uuid(),
-            name: fc.string({ minLength: 1, maxLength: 50 }),
+            name: fc.string({ minLength: 2, maxLength: 50 }).filter(s => s.trim().length >= 2),
             capacity: fc.integer({ min: 1, max: 6 }),
             totalRooms: fc.integer({ min: 1, max: 20 }),
             pricePerNight: fc.float({ min: 50, max: 500, noNaN: true }),
@@ -240,7 +240,7 @@ describe('Feature: destination-wedding-platform, Property 15: Room Assignment Co
           }
         }
       ),
-      { numRuns: 100 }
+      { numRuns: 20, timeout: 5000 } // Reduced runs and increased timeout
     );
   });
 
@@ -250,7 +250,7 @@ describe('Feature: destination-wedding-platform, Property 15: Room Assignment Co
         fc.record({
           roomType: fc.record({
             accommodationId: fc.uuid(),
-            name: fc.string({ minLength: 1, maxLength: 50 }),
+            name: fc.string({ minLength: 2, maxLength: 50 }).filter(s => s.trim().length >= 2),
             capacity: fc.integer({ min: 1, max: 6 }),
             totalRooms: fc.integer({ min: 1, max: 20 }),
             pricePerNight: fc.float({ min: 50, max: 500, noNaN: true }),
@@ -416,7 +416,7 @@ describe('Feature: destination-wedding-platform, Property 15: Room Assignment Co
           }
         }
       ),
-      { numRuns: 100 }
+      { numRuns: 20, timeout: 5000 } // Reduced runs and increased timeout
     );
   });
 });

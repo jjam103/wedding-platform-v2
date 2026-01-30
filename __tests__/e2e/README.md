@@ -59,6 +59,26 @@ Tests the complete email system:
 - Keyboard navigation
 - Accessibility compliance
 
+### 5. Guests API Flow (`guestsApi.spec.ts`)
+Tests the complete guest management API:
+- Guest creation via API
+- Guest retrieval and listing
+- Guest updates
+- Guest deletion
+- Search and filtering
+- Validation error handling
+- Authentication requirements
+- Database error handling
+- **Note**: Requires running development server
+
+### 6. API Health Check (`apiHealth.spec.ts`)
+Tests API endpoint availability and health:
+- All API endpoints respond correctly
+- Proper error format for unauthenticated requests
+- Content-Type headers are correct
+- Response structure validation
+- **Note**: Requires running development server
+
 ## Running E2E Tests
 
 ### Prerequisites
@@ -68,7 +88,13 @@ Tests the complete email system:
 npx playwright install
 ```
 
-2. Create test fixtures (see `__tests__/fixtures/README.md`):
+2. **Start the development server** (required for API tests):
+```bash
+npm run dev
+```
+The server must be running on `http://localhost:3000` for API-dependent tests (`guestsApi.spec.ts`, `apiHealth.spec.ts`).
+
+3. Create test fixtures (see `__tests__/fixtures/README.md`):
 ```bash
 cd __tests__/fixtures
 convert -size 800x600 xc:blue test-image.jpg
@@ -77,7 +103,7 @@ convert -size 800x600 xc:green test-image-2.jpg
 echo "This is a test file" > test-file.txt
 ```
 
-3. Ensure development server is running or configure `webServer` in `playwright.config.ts`
+4. Ensure test environment variables are configured in `.env.test`
 
 ### Run All E2E Tests
 ```bash
@@ -250,12 +276,47 @@ E2E tests cover:
 - ✅ Complete RSVP flow (event and activity level)
 - ✅ Complete photo upload and moderation flow
 - ✅ Complete email sending flow
+- ✅ Guest management API (create, read, update, delete)
+- ✅ API health and availability checks
 - ✅ XSS prevention across all forms
 - ✅ Input validation
 - ✅ Keyboard navigation
 - ✅ Accessibility compliance
 - ✅ Mobile responsiveness
 - ✅ Cross-browser compatibility
+
+## Server-Dependent Tests
+
+Some E2E tests require a running development server:
+
+### Tests Requiring Server
+- `guestsApi.spec.ts` - Tests guest management API endpoints
+- `apiHealth.spec.ts` - Tests API endpoint availability
+
+### Running Server-Dependent Tests
+
+1. **Start the development server in one terminal:**
+```bash
+npm run dev
+```
+
+2. **Run E2E tests in another terminal:**
+```bash
+npm run test:e2e
+```
+
+### Why These Tests Are E2E
+
+These tests were moved from integration tests because they:
+- Require a fully running Next.js server with middleware
+- Test the complete request/response cycle
+- Validate server-side rendering and API routes
+- Cannot be properly mocked in a Jest environment
+
+The integration test suite now focuses on:
+- Service layer testing with mocked dependencies
+- Database operations with mocked Supabase client
+- Unit-level API route handler testing
 
 ## Maintenance
 
@@ -293,6 +354,70 @@ E2E tests cover:
 - Use unique identifiers (timestamps)
 - Clean up test data after tests
 - Use isolated test databases
+
+### Server Not Running
+**Symptom**: Tests fail with connection errors
+
+**Solution**: Start the development server before running E2E tests:
+```bash
+# Terminal 1
+npm run dev
+
+# Terminal 2
+npm run test:e2e
+```
+
+Or configure `webServer` in `playwright.config.ts` to start automatically.
+
+## Migration from Integration Tests
+
+Some tests were moved from `__tests__/integration/` to E2E because they require a running server:
+
+### Why Move to E2E?
+
+**Integration tests** should:
+- Test route handlers directly
+- Mock all external dependencies
+- Run without a server
+- Be fast and isolated
+
+**E2E tests** should:
+- Test complete request/response cycles
+- Require a running server
+- Test middleware and server-side logic
+- Validate real API behavior
+
+### Moved Tests
+
+1. **`guestsApi.integration.test.ts` → `guestsApi.spec.ts`**
+   - Reason: Required running server for full request cycle
+   - Tests: Guest CRUD operations via real API calls
+
+2. **`realApi.integration.test.ts` → `apiHealth.spec.ts`**
+   - Reason: Required running server to check endpoint availability
+   - Tests: API health checks and response format validation
+
+### Pattern Differences
+
+**Integration Test Pattern** (old):
+```typescript
+describe('API Test', () => {
+  it('should work', async () => {
+    const response = await fetch('/api/endpoint');
+    expect(response.status).toBe(200);
+  });
+});
+```
+
+**E2E Test Pattern** (new):
+```typescript
+import { test, expect } from '@playwright/test';
+
+test('API Test', async ({ request }) => {
+  const response = await request.get('http://localhost:3000/api/endpoint');
+  expect(response.status()).toBe(200);
+});
+```
 
 ## Resources
 

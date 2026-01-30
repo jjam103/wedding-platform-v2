@@ -23,7 +23,8 @@ export async function GET(
 ) {
   return withAuth(async () => {
     try {
-      const { id } = params;
+      const resolvedParams = await params;
+      const { id } = resolvedParams;
 
       if (!id) {
         return errorResponse('INVALID_REQUEST', 'Content page ID is required', 400);
@@ -61,7 +62,8 @@ export async function PUT(
 ) {
   return withAuth(async () => {
     try {
-      const { id } = params;
+      const resolvedParams = await params;
+      const { id } = resolvedParams;
 
       if (!id) {
         return errorResponse('INVALID_REQUEST', 'Content page ID is required', 400);
@@ -119,7 +121,8 @@ export async function DELETE(
 ) {
   return withAuth(async () => {
     try {
-      const { id } = params;
+      const resolvedParams = await params;
+      const { id } = resolvedParams;
 
       if (!id) {
         return errorResponse('INVALID_REQUEST', 'Content page ID is required', 400);

@@ -73,7 +73,7 @@ describe('Email-to-SMS Fallback', () => {
         id: 'email-123',
       },
       error: null,
-    });
+    } as any);
 
     const result = await sendEmailWithSMSFallback(mockEmailData, mockPhone);
 
@@ -92,13 +92,13 @@ describe('Email-to-SMS Fallback', () => {
     mockEmailsSend.mockResolvedValue({
       data: null,
       error: { message: 'Email service unavailable' },
-    });
+    } as any);
 
     // Mock successful SMS send
     mockSendSMSFallback.mockResolvedValue({
       success: true,
       data: { id: 'sms-456' },
-    });
+    } as any);
 
     const result = await sendEmailWithSMSFallback(mockEmailData, mockPhone);
 
@@ -121,13 +121,13 @@ describe('Email-to-SMS Fallback', () => {
     mockEmailsSend.mockResolvedValue({
       data: null,
       error: { message: 'Email service unavailable' },
-    });
+    } as any);
 
     // Mock successful SMS send
     mockSendSMSFallback.mockResolvedValue({
       success: true,
       data: { id: 'sms-789' },
-    });
+    } as any);
 
     const emailDataWithHTML: SendEmailDTO = {
       to: 'guest@example.com',
@@ -150,7 +150,7 @@ describe('Email-to-SMS Fallback', () => {
     mockEmailsSend.mockResolvedValue({
       data: null,
       error: { message: 'Email service unavailable' },
-    });
+    } as any);
 
     const result = await sendEmailWithSMSFallback(mockEmailData);
 
@@ -168,7 +168,7 @@ describe('Email-to-SMS Fallback', () => {
     mockEmailsSend.mockResolvedValue({
       data: null,
       error: { message: 'Email service unavailable' },
-    });
+    } as any);
 
     // Mock failed SMS send
     mockSendSMSFallback.mockResolvedValue({
@@ -177,7 +177,7 @@ describe('Email-to-SMS Fallback', () => {
         code: 'EXTERNAL_SERVICE_ERROR',
         message: 'SMS service unavailable',
       },
-    });
+    } as any);
 
     const result = await sendEmailWithSMSFallback(mockEmailData, mockPhone);
 
@@ -194,13 +194,13 @@ describe('Email-to-SMS Fallback', () => {
     mockEmailsSend.mockResolvedValue({
       data: null,
       error: { message: 'Email service unavailable' },
-    });
+    } as any);
 
     // Mock successful SMS send
     mockSendSMSFallback.mockResolvedValue({
       success: true,
       data: { id: 'sms-999' },
-    });
+    } as any);
 
     const emailDataWithText: SendEmailDTO = {
       to: 'guest@example.com',
@@ -224,13 +224,13 @@ describe('Email-to-SMS Fallback', () => {
     mockEmailsSend.mockResolvedValue({
       data: null,
       error: { message: 'Email service unavailable' },
-    });
+    } as any);
 
     // Mock successful SMS send
     mockSendSMSFallback.mockResolvedValue({
       success: true,
       data: { id: 'sms-111' },
-    });
+    } as any);
 
     const emailDataWithTemplate: SendEmailDTO = {
       to: 'guest@example.com',
@@ -251,13 +251,13 @@ describe('Email-to-SMS Fallback', () => {
     mockEmailsSend.mockResolvedValue({
       data: null,
       error: { message: 'Email service unavailable' },
-    });
+    } as any);
 
     // Mock successful SMS send
     mockSendSMSFallback.mockResolvedValue({
       success: true,
       data: { id: 'sms-222' },
-    });
+    } as any);
 
     const longContent = 'A'.repeat(500);
     const emailDataWithLongContent: SendEmailDTO = {

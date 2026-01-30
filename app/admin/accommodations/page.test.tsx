@@ -17,6 +17,87 @@ jest.mock('@/components/ui/ToastContext', () => ({
   }),
 }));
 
+// Mock DataTable components
+jest.mock('@/components/ui/DataTable', () => ({
+  DataTable: ({ data, columns, loading, onRowClick, onDelete }: any) => {
+    if (loading) return <div>Loading...</div>;
+    if (data.length === 0) return <div>No items found</div>;
+    return (
+      <div data-testid="data-table">
+        {data.map((item: any, index: number) => (
+          <div 
+            key={index} 
+            data-testid={`accommodation-row-${item.id}`}
+            onClick={() => onRowClick && onRowClick(item)}
+            style={{ cursor: onRowClick ? 'pointer' : 'default' }}
+          >
+            {columns.map((col: any) => {
+              const value = item[col.key];
+              const displayValue = col.render ? col.render(value, item) : value;
+              return (
+                <div key={col.key} data-testid={`${col.key}-${item.id}`}>
+                  {displayValue}
+                </div>
+              );
+            })}
+            {onDelete && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onDelete(item);
+                }}
+                aria-label="Delete"
+              >
+                Delete
+              </button>
+            )}
+          </div>
+        ))}
+      </div>
+    );
+  },
+}));
+
+jest.mock('@/components/ui/DataTableWithSuspense', () => ({
+  DataTableWithSuspense: ({ data, columns, loading, onRowClick, onDelete }: any) => {
+    if (loading) return <div>Loading...</div>;
+    if (data.length === 0) return <div>No items found</div>;
+    return (
+      <div data-testid="data-table">
+        {data.map((item: any, index: number) => (
+          <div 
+            key={index} 
+            data-testid={`accommodation-row-${item.id}`}
+            onClick={() => onRowClick && onRowClick(item)}
+            style={{ cursor: onRowClick ? 'pointer' : 'default' }}
+          >
+            {columns.map((col: any) => {
+              const value = item[col.key];
+              const displayValue = col.render ? col.render(value, item) : value;
+              return (
+                <div key={col.key} data-testid={`${col.key}-${item.id}`}>
+                  {displayValue}
+                </div>
+              );
+            })}
+            {onDelete && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onDelete(item);
+                }}
+                aria-label="Delete"
+              >
+                Delete
+              </button>
+            )}
+          </div>
+        ))}
+      </div>
+    );
+  },
+}));
+
 // Mock fetch
 global.fetch = jest.fn();
 
@@ -413,8 +494,12 @@ describe('AccommodationsPage', () => {
     });
 
     it('should delete accommodation after confirmation', async () => {
+      let accommodationsList = [...mockAccommodations];
+
       (global.fetch as jest.Mock).mockImplementation((url: string, options?: any) => {
         if (url.includes('/api/admin/accommodations/accommodation-1') && options?.method === 'DELETE') {
+          // After delete, remove from list
+          accommodationsList = mockAccommodations.filter(a => a.id !== 'accommodation-1');
           return Promise.resolve({
             ok: true,
             json: () => Promise.resolve({ success: true, data: undefined }),
@@ -425,7 +510,7 @@ describe('AccommodationsPage', () => {
             ok: true,
             json: () => Promise.resolve({
               success: true,
-              data: { accommodations: mockAccommodations.filter(a => a.id !== 'accommodation-1') },
+              data: { accommodations: accommodationsList },
             }),
           });
         }
@@ -445,6 +530,26 @@ describe('AccommodationsPage', () => {
 
       await waitFor(() => {
         expect(screen.getByText('Tamarindo Diria Beach Resort')).toBeInTheDocument();
+      });
+
+      // Find and click delete button for first accommodation
+      const deleteButtons = screen.getAllByRole('button', { name: /delete/i });
+      fireEvent.click(deleteButtons[0]);
+
+      // Wait for confirmation dialog to appear
+      await waitFor(() => {
+        expect(screen.getByText(/are you sure you want to delete/i)).toBeInTheDocument();
+      });
+
+      // Click confirm button in dialog
+      const confirmButtons = screen.getAllByRole('button', { name: /delete/i });
+      // The confirm button in the dialog should be the last one (after the delete buttons in the table)
+      const confirmButton = confirmButtons[confirmButtons.length - 1];
+      fireEvent.click(confirmButton);
+
+      // Wait for accommodation to be removed from list
+      await waitFor(() => {
+        expect(screen.queryByText('Tamarindo Diria Beach Resort')).not.toBeInTheDocument();
       });
     });
   });
@@ -510,10 +615,18 @@ describe('AccommodationsPage', () => {
     it('should apply correct styling to status badges', async () => {
       render(<AccommodationsPage />);
 
+      // Wait for accommodations to load first
       await waitFor(() => {
-        const availableBadge = screen.getByText('Available');
-        expect(availableBadge).toHaveClass('bg-jungle-100', 'text-jungle-800');
+        expect(screen.getByText('Tamarindo Diria Beach Resort')).toBeInTheDocument();
       });
+
+      // Get all "Available" text elements and find the badge (not the filter option)
+      const availableElements = screen.getAllByText('Available');
+      // The badge should be a span with specific classes, filter options are in select/option
+      const availableBadge = availableElements.find(el => el.tagName === 'SPAN');
+      
+      expect(availableBadge).toBeDefined();
+      expect(availableBadge).toHaveClass('bg-jungle-100', 'text-jungle-800');
     });
   });
 });

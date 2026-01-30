@@ -12,9 +12,9 @@
  * Requirements: 21.4
  */
 
-import { budgetService } from '@/services/budgetService';
-import { vendorService } from '@/services/vendorService';
-import { accommodationService } from '@/services/accommodationService';
+import * as budgetService from '@/services/budgetService';
+import * as vendorService from '@/services/vendorService';
+import * as accommodationService from '@/services/accommodationService';
 
 // Mock Supabase client
 const mockSupabase = {

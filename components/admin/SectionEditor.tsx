@@ -619,7 +619,12 @@ export function SectionEditor({ pageType, pageId, onSave, onClose }: SectionEdit
                           onSelectionChange={photoIds =>
                             handleColumnContentChange(section.id, column.id, { photo_ids: photoIds })
                           }
-                          pageType={pageType === 'home' ? 'memory' : pageType}
+                          pageType={
+                            pageType === 'home' ? 'memory' :
+                            pageType === 'custom' ? 'memory' :
+                            pageType === 'room_type' ? 'accommodation' :
+                            pageType
+                          }
                           pageId={pageId}
                           disabled={saving}
                         />

@@ -35,6 +35,12 @@ type Result<T> =
   | { success: true; data: T }
   | { success: false; error: { code: string; message: string; details?: any } };
 
+// Initialize Supabase client - Pattern A (testable)
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+);
+
 /**
  * Converts camelCase to snake_case for database columns.
  */
@@ -87,10 +93,6 @@ export async function createAccommodation(data: CreateAccommodationDTO): Promise
       description: validation.data.description ? sanitizeRichText(validation.data.description) : null,
     };
 
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
-    );
 
     const dbData = toSnakeCase(sanitized);
     const { data: result, error } = await supabase
@@ -123,10 +125,6 @@ export async function createAccommodation(data: CreateAccommodationDTO): Promise
  */
 export async function getAccommodation(id: string): Promise<Result<Accommodation>> {
   try {
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
-    );
 
     const { data, error } = await supabase
       .from('accommodations')
@@ -187,10 +185,6 @@ export async function updateAccommodation(id: string, data: UpdateAccommodationD
       sanitized.description = sanitizeRichText(sanitized.description);
     }
 
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
-    );
 
     const dbData = toSnakeCase(sanitized);
     const { data: result, error } = await supabase
@@ -230,10 +224,6 @@ export async function updateAccommodation(id: string, data: UpdateAccommodationD
  */
 export async function deleteAccommodation(id: string): Promise<Result<void>> {
   try {
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
-    );
 
     const { error } = await supabase.from('accommodations').delete().eq('id', id);
 
@@ -278,10 +268,6 @@ export async function listAccommodations(filters: Partial<AccommodationFilterDTO
     const from = (page - 1) * pageSize;
     const to = from + pageSize - 1;
 
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
-    );
 
     let query = supabase.from('accommodations').select('*', { count: 'exact' });
 
@@ -355,10 +341,6 @@ export async function searchAccommodations(searchParams: AccommodationSearchDTO)
 
     const sanitizedQuery = sanitizeInput(query);
 
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
-    );
 
     const { data, error, count } = await supabase
       .from('accommodations')
@@ -426,10 +408,6 @@ export async function createRoomType(data: CreateRoomTypeDTO): Promise<Result<Ro
       description: validation.data.description ? sanitizeRichText(validation.data.description) : null,
     };
 
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
-    );
 
     const dbData = toSnakeCase(sanitized);
     const { data: result, error } = await supabase
@@ -462,10 +440,6 @@ export async function createRoomType(data: CreateRoomTypeDTO): Promise<Result<Ro
  */
 export async function getRoomType(id: string): Promise<Result<RoomType>> {
   try {
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
-    );
 
     const { data, error } = await supabase
       .from('room_types')
@@ -523,10 +497,6 @@ export async function updateRoomType(id: string, data: UpdateRoomTypeDTO): Promi
       sanitized.description = sanitizeRichText(sanitized.description);
     }
 
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
-    );
 
     const dbData = toSnakeCase(sanitized);
     const { data: result, error } = await supabase
@@ -566,10 +536,6 @@ export async function updateRoomType(id: string, data: UpdateRoomTypeDTO): Promi
  */
 export async function deleteRoomType(id: string): Promise<Result<void>> {
   try {
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
-    );
 
     const { error } = await supabase.from('room_types').delete().eq('id', id);
 
@@ -597,10 +563,6 @@ export async function deleteRoomType(id: string): Promise<Result<void>> {
  */
 export async function listRoomTypes(accommodationId: string): Promise<Result<RoomType[]>> {
   try {
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
-    );
 
     const { data, error } = await supabase
       .from('room_types')
@@ -687,10 +649,6 @@ export async function createRoomAssignment(data: CreateRoomAssignmentDTO): Promi
       notes: validation.data.notes ? sanitizeInput(validation.data.notes) : null,
     };
 
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
-    );
 
     const dbData = toSnakeCase(sanitized);
     const { data: result, error } = await supabase
@@ -732,10 +690,6 @@ export async function createRoomAssignment(data: CreateRoomAssignmentDTO): Promi
  */
 export async function getRoomAssignment(id: string): Promise<Result<RoomAssignment>> {
   try {
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
-    );
 
     const { data, error } = await supabase
       .from('room_assignments')
@@ -790,10 +744,6 @@ export async function updateRoomAssignment(id: string, data: UpdateRoomAssignmen
       sanitized.notes = sanitizeInput(sanitized.notes);
     }
 
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
-    );
 
     const dbData = toSnakeCase(sanitized);
     const { data: result, error } = await supabase
@@ -833,10 +783,6 @@ export async function updateRoomAssignment(id: string, data: UpdateRoomAssignmen
  */
 export async function deleteRoomAssignment(id: string): Promise<Result<void>> {
   try {
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
-    );
 
     const { error } = await supabase.from('room_assignments').delete().eq('id', id);
 
@@ -864,10 +810,6 @@ export async function deleteRoomAssignment(id: string): Promise<Result<void>> {
  */
 export async function listGuestRoomAssignments(guestId: string): Promise<Result<RoomAssignment[]>> {
   try {
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
-    );
 
     const { data, error } = await supabase
       .from('room_assignments')
@@ -900,10 +842,6 @@ export async function listGuestRoomAssignments(guestId: string): Promise<Result<
  */
 export async function listRoomTypeAssignments(roomTypeId: string): Promise<Result<RoomAssignment[]>> {
   try {
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
-    );
 
     const { data, error } = await supabase
       .from('room_assignments')
@@ -1012,10 +950,6 @@ export async function getRoomTypeWithAvailability(
 
     const roomType = roomTypeResult.data;
 
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
-    );
 
     // Count overlapping assignments
     const { data, error } = await supabase

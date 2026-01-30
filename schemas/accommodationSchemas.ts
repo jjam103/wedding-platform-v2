@@ -42,10 +42,10 @@ export const createRoomTypeSchema = z.object({
   accommodationId: z.string().uuid('Invalid accommodation ID'),
   name: z.string().min(1, 'Name is required').max(200, 'Name must be 200 characters or less'),
   description: z.string().max(2000, 'Description must be 2000 characters or less').nullable().optional(),
-  capacity: z.number().int().positive('Capacity must be positive'),
-  totalRooms: z.number().int().positive('Total rooms must be positive'),
-  pricePerNight: z.number().nonnegative('Price per night must be non-negative'),
-  hostSubsidyPerNight: z.number().nonnegative('Host subsidy must be non-negative').nullable().optional(),
+  capacity: z.coerce.number().int().positive('Capacity must be positive'),
+  totalRooms: z.coerce.number().int().positive('Total rooms must be positive'),
+  pricePerNight: z.coerce.number().nonnegative('Price per night must be non-negative'),
+  hostSubsidyPerNight: z.coerce.number().nonnegative('Host subsidy must be non-negative').nullable().optional(),
   status: z.enum(['draft', 'published']).optional().default('draft'),
 }).refine(
   (data) => {

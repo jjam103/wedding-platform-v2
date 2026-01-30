@@ -1,7 +1,9 @@
-// Polyfill Web APIs for Next.js server components
-import { TextEncoder, TextDecoder } from 'util';
-global.TextEncoder = TextEncoder;
-global.TextDecoder = TextDecoder as any;
+/**
+ * Reference Search API Integration Tests
+ * 
+ * Tests the reference search and preview API endpoints by testing
+ * the route handlers directly with mocked Supabase client.
+ */
 
 // Polyfill Request for Node.js environment
 if (typeof Request === 'undefined') {
@@ -29,7 +31,7 @@ if (typeof Request === 'undefined') {
   } as any;
 }
 
-// Mock Next.js server module to avoid Request/Response issues
+// Mock next/server to avoid Request/Response issues
 jest.mock('next/server', () => ({
   NextResponse: {
     json: (data: any, init?: any) => ({
@@ -39,7 +41,7 @@ jest.mock('next/server', () => ({
   },
 }));
 
-// Mock Supabase
+// Mock Supabase client
 const mockSupabaseClient = {
   auth: {
     getSession: jest.fn(),
@@ -47,12 +49,17 @@ const mockSupabaseClient = {
   from: jest.fn(),
 };
 
-jest.mock('@supabase/auth-helpers-nextjs', () => ({
-  createRouteHandlerClient: jest.fn(() => mockSupabaseClient),
+// Mock @supabase/ssr
+jest.mock('@supabase/ssr', () => ({
+  createServerClient: jest.fn(() => mockSupabaseClient),
 }));
 
+// Mock next/headers
 jest.mock('next/headers', () => ({
-  cookies: jest.fn(),
+  cookies: jest.fn(() => Promise.resolve({
+    getAll: () => [],
+    setAll: () => {},
+  })),
 }));
 
 import { GET as searchGET } from '@/app/api/admin/references/search/route';
@@ -416,7 +423,7 @@ describe('Reference Search API Integration Tests', () => {
         });
 
         const request = new Request('http://localhost:3000/api/admin/references/event/event-1');
-        const response = await previewGET(request, { params: { type: 'event', id: 'event-1' } });
+        const response = await previewGET(request, { params: Promise.resolve({ type: 'event', id: 'event-1' }) });
         const data = await response.json();
 
         expect(response.status).toBe(401);
@@ -435,7 +442,7 @@ describe('Reference Search API Integration Tests', () => {
 
       it('should return 400 for invalid entity type', async () => {
         const request = new Request('http://localhost:3000/api/admin/references/invalid/id-1');
-        const response = await previewGET(request, { params: { type: 'invalid', id: 'id-1' } });
+        const response = await previewGET(request, { params: Promise.resolve({ type: 'invalid', id: 'id-1' }) });
         const data = await response.json();
 
         expect(response.status).toBe(400);
@@ -474,7 +481,7 @@ describe('Reference Search API Integration Tests', () => {
         });
 
         const request = new Request('http://localhost:3000/api/admin/references/event/event-1');
-        const response = await previewGET(request, { params: { type: 'event', id: 'event-1' } });
+        const response = await previewGET(request, { params: Promise.resolve({ type: 'event', id: 'event-1' }) });
         const data = await response.json();
 
         expect(response.status).toBe(200);
@@ -532,7 +539,7 @@ describe('Reference Search API Integration Tests', () => {
         });
 
         const request = new Request('http://localhost:3000/api/admin/references/activity/activity-1');
-        const response = await previewGET(request, { params: { type: 'activity', id: 'activity-1' } });
+        const response = await previewGET(request, { params: Promise.resolve({ type: 'activity', id: 'activity-1' }) });
         const data = await response.json();
 
         expect(response.status).toBe(200);
@@ -554,7 +561,7 @@ describe('Reference Search API Integration Tests', () => {
         });
 
         const request = new Request('http://localhost:3000/api/admin/references/event/nonexistent');
-        const response = await previewGET(request, { params: { type: 'event', id: 'nonexistent' } });
+        const response = await previewGET(request, { params: Promise.resolve({ type: 'event', id: 'nonexistent' }) });
         const data = await response.json();
 
         expect(response.status).toBe(404);

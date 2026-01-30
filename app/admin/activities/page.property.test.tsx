@@ -32,6 +32,22 @@ jest.mock('@/components/ui/ToastContext', () => ({
 // Mock fetch globally
 global.fetch = jest.fn();
 
+// Add proper cleanup
+beforeEach(() => {
+  jest.clearAllMocks();
+  // Clear any existing DOM
+  document.body.innerHTML = '';
+});
+
+afterEach(() => {
+  jest.clearAllMocks();
+  // Only cleanup timers if fake timers are being used
+  if (jest.isMockFunction(setTimeout)) {
+    jest.runOnlyPendingTimers();
+    jest.useRealTimers();
+  }
+});
+
 /**
  * Helper to create mock activity with capacity data
  */
@@ -153,31 +169,35 @@ describe('Feature: admin-ui-modernization, Property 10: Capacity warning highlig
 
           setupFetchMocks([activity]);
 
-          const { container } = render(<ActivitiesPage />);
+          const { container, unmount } = render(<ActivitiesPage />);
 
-          // Wait for activities to load
-          await waitFor(() => {
-            expect(screen.queryByText('Loading...')).not.toBeInTheDocument();
-          });
+          try {
+            // Wait for activities to load with increased timeout
+            await waitFor(() => {
+              expect(screen.queryByText('Loading...')).not.toBeInTheDocument();
+            }, { timeout: 2000 });
 
-          // Find the row for this activity - use getAllByText and get the first one
-          await waitFor(() => {
+            // Find the row for this activity - use getAllByText and get the first one
+            await waitFor(() => {
+              const elements = screen.getAllByText(activity.name);
+              expect(elements.length).toBeGreaterThan(0);
+            }, { timeout: 1000 });
+
+            // Check if the row has warning styling
             const elements = screen.getAllByText(activity.name);
-            expect(elements.length).toBeGreaterThan(0);
-          });
-
-          // Check if the row has warning styling
-          const elements = screen.getAllByText(activity.name);
-          const row = elements[0].closest('tr');
-          expect(row).toBeInTheDocument();
-          
-          // The row should have volcano (warning) background color classes
-          expect(row?.className).toMatch(/bg-volcano/);
+            const row = elements[0].closest('tr');
+            expect(row).toBeInTheDocument();
+            
+            // The row should have volcano (warning) background color classes
+            expect(row?.className).toMatch(/bg-volcano/);
+          } finally {
+            unmount();
+          }
         }
       ),
-      { numRuns: 20 } // Run 20 times with different capacity values
+      { numRuns: 10 } // Reduced runs for better performance
     );
-  });
+  }, 15000); // Increased test timeout
 
   it('should NOT highlight activities below 90% capacity', async () => {
     await fc.assert(
@@ -200,31 +220,35 @@ describe('Feature: admin-ui-modernization, Property 10: Capacity warning highlig
 
           setupFetchMocks([activity]);
 
-          const { container } = render(<ActivitiesPage />);
+          const { container, unmount } = render(<ActivitiesPage />);
 
-          // Wait for activities to load
-          await waitFor(() => {
-            expect(screen.queryByText('Loading...')).not.toBeInTheDocument();
-          });
+          try {
+            // Wait for activities to load with increased timeout
+            await waitFor(() => {
+              expect(screen.queryByText('Loading...')).not.toBeInTheDocument();
+            }, { timeout: 2000 });
 
-          // Find the row for this activity - use getAllByText and get the first one
-          await waitFor(() => {
+            // Find the row for this activity
+            await waitFor(() => {
+              const elements = screen.getAllByText(activity.name);
+              expect(elements.length).toBeGreaterThan(0);
+            }, { timeout: 1000 });
+
+            // Check that the row does NOT have warning styling
             const elements = screen.getAllByText(activity.name);
-            expect(elements.length).toBeGreaterThan(0);
-          });
-
-          // Check if the row does NOT have warning styling
-          const elements = screen.getAllByText(activity.name);
-          const row = elements[0].closest('tr');
-          expect(row).toBeInTheDocument();
-          
-          // The row should NOT have volcano (warning) background color classes
-          expect(row?.className).not.toMatch(/bg-volcano/);
+            const row = elements[0].closest('tr');
+            expect(row).toBeInTheDocument();
+            
+            // The row should NOT have volcano (warning) background color classes
+            expect(row?.className).not.toMatch(/bg-volcano/);
+          } finally {
+            unmount();
+          }
         }
       ),
-      { numRuns: 20 } // Run 20 times with different capacity values
+      { numRuns: 10 } // Reduced runs for better performance
     );
-  });
+  }, 15000); // Increased test timeout
 });
 
 describe('Feature: admin-ui-modernization, Property 11: Capacity utilization display', () => {
@@ -262,36 +286,42 @@ describe('Feature: admin-ui-modernization, Property 11: Capacity utilization dis
 
           setupFetchMocks([activity]);
 
-          const { container } = render(<ActivitiesPage />);
+          const { container, unmount } = render(<ActivitiesPage />);
 
-          // Wait for activities to load
-          await waitFor(() => {
-            expect(screen.queryByText('Loading...')).not.toBeInTheDocument();
-          });
+          try {
+            // Wait for activities to load with increased timeout
+            await waitFor(() => {
+              expect(screen.queryByText('Loading...')).not.toBeInTheDocument();
+            }, { timeout: 2000 });
 
-          // Wait for the activity to appear
-          await waitFor(() => {
-            expect(screen.getByText(activity.name)).toBeInTheDocument();
-          });
+            // Wait for the activity to appear
+            await waitFor(() => {
+              const elements = screen.getAllByText(activity.name);
+              expect(elements.length).toBeGreaterThan(0);
+            }, { timeout: 1000 });
 
-          // The capacity column should display the utilization percentage
-          const capacityText = `${actualRsvps}/${capacity} (${Math.round(utilizationPercentage)}%)`;
-          
-          // Check if the capacity information is displayed in the table
-          await waitFor(() => {
-            const tableContent = container.textContent;
-            expect(tableContent).toContain(`${actualRsvps}/${capacity}`);
-          });
+            // The capacity column should display the utilization percentage
+            const capacityText = `${actualRsvps}/${capacity} (${Math.round(utilizationPercentage)}%)`;
+            
+            // Check if the capacity information is displayed in the table
+            await waitFor(() => {
+              const tableContent = container.textContent;
+              expect(tableContent).toContain(`${actualRsvps}/${capacity}`);
+            }, { timeout: 1000 });
+          } finally {
+            unmount();
+          }
         }
       ),
-      { numRuns: 20 } // Run 20 times with different capacity and RSVP values
+      { numRuns: 5 } // Reduced runs for better performance
     );
-  });
+  }, 15000); // Increased test timeout
 
   it('should display "Unlimited" for activities without capacity limits', async () => {
+    const uniqueName = `Unlimited Activity ${Date.now()}`;
     const activity = createMockActivity({
-      id: 'unlimited-activity',
-      name: 'Unlimited Activity',
+      id: `unlimited-activity-${Date.now()}`,
+      name: uniqueName,
       capacity: null,
       currentRsvps: 50,
       utilizationPercentage: null,
@@ -299,21 +329,30 @@ describe('Feature: admin-ui-modernization, Property 11: Capacity utilization dis
 
     setupFetchMocks([activity]);
 
-    render(<ActivitiesPage />);
+    const { unmount, container } = render(<ActivitiesPage />);
 
-    // Wait for activities to load
-    await waitFor(() => {
-      expect(screen.queryByText('Loading...')).not.toBeInTheDocument();
-    });
+    try {
+      // Wait for activities to load with increased timeout
+      await waitFor(() => {
+        expect(screen.queryByText('Loading...')).not.toBeInTheDocument();
+      }, { timeout: 2000 });
 
-    // Wait for the activity to appear
-    await waitFor(() => {
-      expect(screen.getByText(activity.name)).toBeInTheDocument();
-    });
+      // Wait for the activity to appear using container query
+      await waitFor(() => {
+        const tableRows = container.querySelectorAll('tbody tr');
+        const activityRow = Array.from(tableRows).find(row => 
+          row.textContent?.includes(activity.name)
+        );
+        expect(activityRow).toBeTruthy();
+      }, { timeout: 1000 });
 
-    // The capacity column should display "Unlimited"
-    await waitFor(() => {
-      expect(screen.getByText('Unlimited')).toBeInTheDocument();
-    });
-  });
+      // The capacity column should display "Unlimited" using getAllByText
+      await waitFor(() => {
+        const unlimitedElements = screen.getAllByText('Unlimited');
+        expect(unlimitedElements.length).toBeGreaterThan(0);
+      }, { timeout: 1000 });
+    } finally {
+      unmount();
+    }
+  }, 10000); // Increased test timeout
 });

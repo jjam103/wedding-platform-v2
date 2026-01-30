@@ -125,8 +125,8 @@ export function GroupedNavigation({
       label: 'Guest Management',
       icon: '👥',
       items: [
-        { id: 'guests', label: 'Guests', href: '/admin/guests' },
-        // Groups and RSVPs will be added in future tasks
+        { id: 'guests', label: 'Guests & Groups', href: '/admin/guests' },
+        // RSVPs will be added in future tasks
       ],
     },
     {

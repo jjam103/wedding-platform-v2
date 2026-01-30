@@ -1,8 +1,14 @@
-import { createClient } from '@supabase/supabase-js';
 import type { Result } from '@/types';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+// Lazy load supabase to avoid initialization issues in tests
+let _supabase: any = null;
+function getSupabase() {
+  if (!_supabase) {
+    const { supabase } = require('@/lib/supabase');
+    _supabase = supabase;
+  }
+  return _supabase;
+}
 
 interface ItineraryEvent {
   id: string;
@@ -57,7 +63,7 @@ interface Itinerary {
  */
 export async function generateItinerary(guestId: string): Promise<Result<Itinerary>> {
   try {
-    const supabase = createClient(supabaseUrl, supabaseKey);
+    const supabase = getSupabase();
     
     // Get guest information
     const { data: guest, error: guestError } = await supabase
@@ -134,7 +140,7 @@ export async function generateItinerary(guestId: string): Promise<Result<Itinera
     
     // Create RSVP lookup map
     const rsvpMap = new Map<string, string>();
-    rsvps?.forEach(rsvp => {
+    rsvps?.forEach((rsvp: any) => {
       if (rsvp.event_id) {
         rsvpMap.set(`event-${rsvp.event_id}`, rsvp.status);
       }
@@ -145,7 +151,7 @@ export async function generateItinerary(guestId: string): Promise<Result<Itinera
     
     // Combine events and activities
     const itineraryEvents: ItineraryEvent[] = [
-      ...(events || []).map(event => ({
+      ...(events || []).map((event: any) => ({
         id: event.id,
         name: event.name,
         type: 'event' as const,
@@ -155,7 +161,7 @@ export async function generateItinerary(guestId: string): Promise<Result<Itinera
         description: event.description,
         rsvp_status: rsvpMap.get(`event-${event.id}`),
       })),
-      ...(activities || []).map(activity => ({
+      ...(activities || []).map((activity: any) => ({
         id: activity.id,
         name: activity.name,
         type: 'activity' as const,
@@ -240,7 +246,7 @@ export async function cacheItinerary(
     // Store in localStorage for PWA offline access
     if (typeof window !== 'undefined' && window.localStorage) {
       const cacheKey = `itinerary-${guestId}`;
-      localStorage.setItem(cacheKey, JSON.stringify(itinerary));
+      window.localStorage.setItem(cacheKey, JSON.stringify(itinerary));
       
       return { success: true, data: undefined };
     }
@@ -278,7 +284,7 @@ export async function getCachedItinerary(
     // Retrieve from localStorage
     if (typeof window !== 'undefined' && window.localStorage) {
       const cacheKey = `itinerary-${guestId}`;
-      const cached = localStorage.getItem(cacheKey);
+      const cached = window.localStorage.getItem(cacheKey);
       
       if (cached) {
         const itinerary = JSON.parse(cached) as Itinerary;
@@ -316,7 +322,7 @@ export async function invalidateCache(guestId: string): Promise<Result<void>> {
   try {
     if (typeof window !== 'undefined' && window.localStorage) {
       const cacheKey = `itinerary-${guestId}`;
-      localStorage.removeItem(cacheKey);
+      window.localStorage.removeItem(cacheKey);
       
       return { success: true, data: undefined };
     }

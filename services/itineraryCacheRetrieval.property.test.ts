@@ -54,7 +54,7 @@ const guestIdArbitrary = fc.uuid();
 const itineraryEventArbitrary = fc.record({
   id: fc.uuid(),
   name: fc.string({ minLength: 1, maxLength: 100 }),
-  type: fc.constantFrom('event', 'activity'),
+  type: fc.constantFrom('event' as const, 'activity' as const),
   date: fc.date().map((d) => d.toISOString()),
   time: fc.date().map((d) => d.toISOString()),
   location: fc.option(fc.string({ minLength: 1, maxLength: 100 }), { nil: undefined }),
@@ -106,20 +106,23 @@ describe('Feature: destination-wedding-platform, Property 31: Itinerary Cache Re
 
         // Assert: Retrieval should succeed and match original data
         expect(retrieveResult.success).toBe(true);
-        expect(retrieveResult.data).not.toBeNull();
+        
+        if (retrieveResult.success) {
+          expect(retrieveResult.data).not.toBeNull();
 
-        if (retrieveResult.success && retrieveResult.data) {
-          expect(retrieveResult.data.guest_id).toBe(testItinerary.guest_id);
-          expect(retrieveResult.data.guest_name).toBe(testItinerary.guest_name);
-          expect(retrieveResult.data.events).toHaveLength(testItinerary.events.length);
-          expect(retrieveResult.data.generated_at).toBe(testItinerary.generated_at);
+          if (retrieveResult.data) {
+            expect(retrieveResult.data.guest_id).toBe(testItinerary.guest_id);
+            expect(retrieveResult.data.guest_name).toBe(testItinerary.guest_name);
+            expect(retrieveResult.data.events).toHaveLength(testItinerary.events.length);
+            expect(retrieveResult.data.generated_at).toBe(testItinerary.generated_at);
 
-          // Verify events match
-          testItinerary.events.forEach((event, index) => {
-            expect(retrieveResult.data!.events[index].id).toBe(event.id);
-            expect(retrieveResult.data!.events[index].name).toBe(event.name);
-            expect(retrieveResult.data!.events[index].type).toBe(event.type);
-          });
+            // Verify events match
+            testItinerary.events.forEach((event, index) => {
+              expect(retrieveResult.data!.events[index].id).toBe(event.id);
+              expect(retrieveResult.data!.events[index].name).toBe(event.name);
+              expect(retrieveResult.data!.events[index].type).toBe(event.type);
+            });
+          }
         }
       }),
       { numRuns: 100 }
@@ -134,7 +137,9 @@ describe('Feature: destination-wedding-platform, Property 31: Itinerary Cache Re
 
         // Assert: Should succeed but return null
         expect(result.success).toBe(true);
-        expect(result.data).toBeNull();
+        if (result.success) {
+          expect(result.data).toBeNull();
+        }
       }),
       { numRuns: 100 }
     );
@@ -151,48 +156,51 @@ describe('Feature: destination-wedding-platform, Property 31: Itinerary Cache Re
 
         // Assert: All fields should be preserved
         expect(retrieveResult.success).toBe(true);
-        expect(retrieveResult.data).not.toBeNull();
+        
+        if (retrieveResult.success) {
+          expect(retrieveResult.data).not.toBeNull();
 
-        if (retrieveResult.success && retrieveResult.data) {
-          const cached = retrieveResult.data;
+          if (retrieveResult.data) {
+            const cached = retrieveResult.data;
 
-          // Verify all top-level fields
-          expect(cached.guest_id).toBe(itinerary.guest_id);
-          expect(cached.guest_name).toBe(itinerary.guest_name);
-          expect(cached.generated_at).toBe(itinerary.generated_at);
+            // Verify all top-level fields
+            expect(cached.guest_id).toBe(itinerary.guest_id);
+            expect(cached.guest_name).toBe(itinerary.guest_name);
+            expect(cached.generated_at).toBe(itinerary.generated_at);
 
-          // Verify accommodation details if present
-          if (itinerary.accommodation) {
-            expect(cached.accommodation).toBeDefined();
-            expect(cached.accommodation?.accommodation_name).toBe(
-              itinerary.accommodation.accommodation_name
-            );
-            expect(cached.accommodation?.room_type).toBe(itinerary.accommodation.room_type);
+            // Verify accommodation details if present
+            if (itinerary.accommodation) {
+              expect(cached.accommodation).toBeDefined();
+              expect(cached.accommodation?.accommodation_name).toBe(
+                itinerary.accommodation.accommodation_name
+              );
+              expect(cached.accommodation?.room_type).toBe(itinerary.accommodation.room_type);
+            }
+
+            // Verify transportation details if present
+            if (itinerary.transportation) {
+              expect(cached.transportation).toBeDefined();
+              expect(cached.transportation?.airport_code).toBe(
+                itinerary.transportation.airport_code
+              );
+              expect(cached.transportation?.flight_number).toBe(
+                itinerary.transportation.flight_number
+              );
+            }
+
+            // Verify all events
+            expect(cached.events).toHaveLength(itinerary.events.length);
+            itinerary.events.forEach((event, index) => {
+              expect(cached.events[index].id).toBe(event.id);
+              expect(cached.events[index].name).toBe(event.name);
+              expect(cached.events[index].type).toBe(event.type);
+              expect(cached.events[index].date).toBe(event.date);
+              expect(cached.events[index].time).toBe(event.time);
+              expect(cached.events[index].location).toBe(event.location);
+              expect(cached.events[index].description).toBe(event.description);
+              expect(cached.events[index].rsvp_status).toBe(event.rsvp_status);
+            });
           }
-
-          // Verify transportation details if present
-          if (itinerary.transportation) {
-            expect(cached.transportation).toBeDefined();
-            expect(cached.transportation?.airport_code).toBe(
-              itinerary.transportation.airport_code
-            );
-            expect(cached.transportation?.flight_number).toBe(
-              itinerary.transportation.flight_number
-            );
-          }
-
-          // Verify all events
-          expect(cached.events).toHaveLength(itinerary.events.length);
-          itinerary.events.forEach((event, index) => {
-            expect(cached.events[index].id).toBe(event.id);
-            expect(cached.events[index].name).toBe(event.name);
-            expect(cached.events[index].type).toBe(event.type);
-            expect(cached.events[index].date).toBe(event.date);
-            expect(cached.events[index].time).toBe(event.time);
-            expect(cached.events[index].location).toBe(event.location);
-            expect(cached.events[index].description).toBe(event.description);
-            expect(cached.events[index].rsvp_status).toBe(event.rsvp_status);
-          });
         }
       }),
       { numRuns: 100 }
@@ -226,11 +234,14 @@ describe('Feature: destination-wedding-platform, Property 31: Itinerary Cache Re
           for (const { guestId, itinerary } of uniqueGuests) {
             const result = await getCachedItinerary(guestId);
             expect(result.success).toBe(true);
-            expect(result.data).not.toBeNull();
+            
+            if (result.success) {
+              expect(result.data).not.toBeNull();
 
-            if (result.success && result.data) {
-              expect(result.data.guest_id).toBe(guestId);
-              expect(result.data.guest_name).toBe(itinerary.guest_name);
+              if (result.data) {
+                expect(result.data.guest_id).toBe(guestId);
+                expect(result.data.guest_name).toBe(itinerary.guest_name);
+              }
             }
           }
         }
@@ -263,12 +274,15 @@ describe('Feature: destination-wedding-platform, Property 31: Itinerary Cache Re
 
           // Assert: Should retrieve the second (most recent) itinerary
           expect(retrieveResult.success).toBe(true);
-          expect(retrieveResult.data).not.toBeNull();
+          
+          if (retrieveResult.success) {
+            expect(retrieveResult.data).not.toBeNull();
 
-          if (retrieveResult.success && retrieveResult.data) {
-            expect(retrieveResult.data.guest_name).toBe(secondItinerary.guest_name);
-            expect(retrieveResult.data.generated_at).toBe(secondItinerary.generated_at);
-            expect(retrieveResult.data.events).toHaveLength(secondItinerary.events.length);
+            if (retrieveResult.data) {
+              expect(retrieveResult.data.guest_name).toBe(secondItinerary.guest_name);
+              expect(retrieveResult.data.generated_at).toBe(secondItinerary.generated_at);
+              expect(retrieveResult.data.events).toHaveLength(secondItinerary.events.length);
+            }
           }
         }
       ),

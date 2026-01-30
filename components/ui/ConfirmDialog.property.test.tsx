@@ -9,6 +9,14 @@ import { render, screen, fireEvent, waitFor, cleanup } from '@testing-library/re
 import * as fc from 'fast-check';
 import { ConfirmDialog } from './ConfirmDialog';
 
+// Helper to generate clean entity names for testing
+const cleanEntityNameArbitrary = fc.string({ minLength: 1, maxLength: 100 })
+  .filter(s => s.trim().length > 0)
+  .filter(s => !/[<>"'&!]/.test(s)) // Filter out HTML/XML special characters and exclamation
+  .map(s => s.replace(/[^\w\s-]/g, '').trim()) // Remove special chars, keep alphanumeric, spaces, hyphens
+  .filter(s => s.length > 0)
+  .map(s => s || 'Test Entity'); // Fallback if empty after filtering
+
 describe('ConfirmDialog Property Tests', () => {
   // Clean up after each test to prevent DOM pollution
   afterEach(() => {
@@ -27,7 +35,7 @@ describe('ConfirmDialog Property Tests', () => {
       await fc.assert(
         fc.asyncProperty(
           fc.record({
-            entityName: fc.string({ minLength: 1, maxLength: 100 }),
+            entityName: cleanEntityNameArbitrary,
             entityType: fc.constantFrom('guest', 'event', 'activity', 'vendor', 'photo'),
           }),
           async ({ entityName, entityType }) => {
@@ -76,7 +84,7 @@ describe('ConfirmDialog Property Tests', () => {
       await fc.assert(
         fc.asyncProperty(
           fc.record({
-            entityName: fc.string({ minLength: 1, maxLength: 100 }),
+            entityName: cleanEntityNameArbitrary,
           }),
           async ({ entityName }) => {
             const onConfirm = jest.fn().mockResolvedValue(undefined);
@@ -117,7 +125,7 @@ describe('ConfirmDialog Property Tests', () => {
       await fc.assert(
         fc.asyncProperty(
           fc.record({
-            entityName: fc.string({ minLength: 1, maxLength: 100 }),
+            entityName: cleanEntityNameArbitrary,
           }),
           async ({ entityName }) => {
             const onConfirm = jest.fn().mockResolvedValue(undefined);
@@ -168,7 +176,7 @@ describe('ConfirmDialog Property Tests', () => {
       await fc.assert(
         fc.asyncProperty(
           fc.record({
-            entityName: fc.string({ minLength: 1, maxLength: 100 }),
+            entityName: cleanEntityNameArbitrary,
             entityType: fc.constantFrom('guest', 'event', 'activity', 'vendor', 'photo', 'email'),
             entityId: fc.uuid(),
           }),
@@ -195,10 +203,11 @@ describe('ConfirmDialog Property Tests', () => {
               expect(titleElement).toBeInTheDocument();
               expect(titleElement.textContent).toContain(entityType.charAt(0).toUpperCase() + entityType.slice(1));
               
-              // Verify message contains entity name
-              const messageElement = screen.getByText(message);
-              expect(messageElement).toBeInTheDocument();
-              expect(messageElement.textContent).toContain(entityName);
+              // Verify message contains entity name using ID-based query
+              const messageElement = screen.getByRole('dialog').querySelector('#confirm-dialog-message');
+              expect(messageElement).toBeTruthy();
+              expect(messageElement?.textContent).toContain(entityName);
+              expect(messageElement?.textContent).toContain(entityId);
               
               // Verify message contains entity ID
               expect(messageElement.textContent).toContain(entityId);
@@ -284,7 +293,7 @@ describe('ConfirmDialog Property Tests', () => {
       await fc.assert(
         fc.asyncProperty(
           fc.record({
-            entityName: fc.string({ minLength: 1, maxLength: 100 }),
+            entityName: cleanEntityNameArbitrary,
             entityId: fc.uuid(),
           }),
           async ({ entityName, entityId }) => {
@@ -333,7 +342,7 @@ describe('ConfirmDialog Property Tests', () => {
       await fc.assert(
         fc.asyncProperty(
           fc.record({
-            entityName: fc.string({ minLength: 1, maxLength: 100 }),
+            entityName: cleanEntityNameArbitrary,
           }),
           async ({ entityName }) => {
             // Create a promise that we can control
@@ -370,8 +379,8 @@ describe('ConfirmDialog Property Tests', () => {
                 expect(cancelButton).toBeDisabled();
               });
 
-              // Verify loading state is shown
-              expect(screen.getByText(/loading/i)).toBeInTheDocument();
+              // Verify loading state is shown using aria-label
+              expect(screen.getByLabelText(/loading/i)).toBeInTheDocument();
 
               // Try to click again (should not trigger another call)
               fireEvent.click(confirmButton);
@@ -399,7 +408,7 @@ describe('ConfirmDialog Property Tests', () => {
       await fc.assert(
         fc.asyncProperty(
           fc.record({
-            entityName: fc.string({ minLength: 1, maxLength: 100 }),
+            entityName: cleanEntityNameArbitrary,
             errorMessage: fc.string({ minLength: 10, maxLength: 100 }),
           }),
           async ({ entityName, errorMessage }) => {

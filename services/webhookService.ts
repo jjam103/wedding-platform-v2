@@ -1,7 +1,16 @@
-import { createClient } from '@supabase/supabase-js';
 import { z } from 'zod';
 import crypto from 'crypto';
 import type { Result } from '../types';
+
+// Lazy load supabase to avoid initialization issues in tests
+let _supabase: any = null;
+function getSupabase() {
+  if (!_supabase) {
+    const { supabase } = require('../lib/supabase');
+    _supabase = supabase;
+  }
+  return _supabase;
+}
 
 /**
  * Webhook event types supported by the system.
@@ -224,10 +233,7 @@ export async function sendWebhookEvent(
   data: Record<string, unknown>
 ): Promise<Result<void>> {
   try {
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
-    );
+    const supabase = getSupabase();
 
     // 1. Get all enabled webhooks that subscribe to this event
     const { data: webhooks, error: fetchError } = await supabase
@@ -273,7 +279,7 @@ export async function sendWebhookEvent(
     }
 
     // 4. Queue webhook deliveries
-    const deliveryPromises = webhooks.map(async (webhook) => {
+    const deliveryPromises = webhooks.map(async (webhook: any) => {
       const config: WebhookConfig = {
         url: webhook.url,
         events: webhook.events,
@@ -357,10 +363,7 @@ export async function sendWebhookEvent(
  */
 export async function retryFailedWebhooks(): Promise<Result<{ retriedCount: number }>> {
   try {
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
-    );
+    const supabase = getSupabase();
 
     // 1. Get all webhook deliveries that need retry
     const { data: pendingDeliveries, error: fetchError } = await supabase

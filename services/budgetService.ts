@@ -7,7 +7,7 @@
  * Requirements: 7.2, 7.4, 7.5, 7.7, 7.8
  */
 
-import { supabase } from '@/lib/supabase';
+import { createClient } from '@supabase/supabase-js';
 import {
   budgetCalculationSchema,
   type BudgetCalculationDTO,
@@ -21,6 +21,12 @@ import {
 type Result<T> =
   | { success: true; data: T }
   | { success: false; error: { code: string; message: string; details?: unknown } };
+
+// Initialize Supabase client - Pattern A (testable)
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+);
 
 /**
  * Calculates total wedding budget including vendors, activities, and accommodations.

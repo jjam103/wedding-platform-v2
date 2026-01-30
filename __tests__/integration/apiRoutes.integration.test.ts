@@ -45,22 +45,31 @@ import {
 // Mock Supabase client
 const mockSupabaseClient = {
   auth: {
+    getUser: jest.fn(),
     getSession: jest.fn(),
   },
 };
 
 // Mock Next.js headers and cookies
+const mockCookieStore = {
+  getAll: jest.fn(() => []),
+  get: jest.fn(() => undefined),
+  set: jest.fn(),
+  delete: jest.fn(),
+  has: jest.fn(() => false),
+};
+
 jest.mock('next/headers', () => ({
-  cookies: jest.fn(() => ({
-    get: jest.fn(),
-    set: jest.fn(),
-    delete: jest.fn(),
+  cookies: jest.fn(() => Promise.resolve(mockCookieStore)),
+  headers: jest.fn(() => ({
+    get: jest.fn(() => null),
+    has: jest.fn(() => false),
   })),
 }));
 
-// Mock Supabase auth helper
-jest.mock('@supabase/auth-helpers-nextjs', () => ({
-  createRouteHandlerClient: jest.fn(() => mockSupabaseClient),
+// Mock Supabase SSR
+jest.mock('@supabase/ssr', () => ({
+  createServerClient: jest.fn(() => mockSupabaseClient),
 }));
 
 describe('Integration Test: API Routes', () => {
@@ -69,12 +78,12 @@ describe('Integration Test: API Routes', () => {
   });
 
   describe('Authentication Flow', () => {
-    it('should return error when no session exists', async () => {
-      // Mock no session
-      mockSupabaseClient.auth.getSession.mockResolvedValue({
-        data: { session: null },
+    it('should return error when no user exists', async () => {
+      // Mock no user
+      mockSupabaseClient.auth.getUser.mockResolvedValue({
+        data: { user: null },
         error: null,
-      });
+      } as any);
 
       const result = await verifyAuth();
 
@@ -83,12 +92,12 @@ describe('Integration Test: API Routes', () => {
       expect(result.error?.message).toBe('Authentication required');
     });
 
-    it('should return error when session retrieval fails', async () => {
-      // Mock session error
-      mockSupabaseClient.auth.getSession.mockResolvedValue({
-        data: { session: null },
+    it('should return error when user retrieval fails', async () => {
+      // Mock user error
+      mockSupabaseClient.auth.getUser.mockResolvedValue({
+        data: { user: null },
         error: { message: 'Session expired' },
-      });
+      } as any);
 
       const result = await verifyAuth();
 
@@ -96,28 +105,25 @@ describe('Integration Test: API Routes', () => {
       expect(result.error?.code).toBe('UNAUTHORIZED');
     });
 
-    it('should return userId with valid session', async () => {
-      // Mock valid session
-      mockSupabaseClient.auth.getSession.mockResolvedValue({
+    it('should return userId with valid user', async () => {
+      // Mock valid user
+      mockSupabaseClient.auth.getUser.mockResolvedValue({
         data: {
-          session: {
-            user: { id: 'user-123' },
-            access_token: 'token',
-          },
+          user: { id: 'user-123' },
         },
         error: null,
-      });
+      } as any);
 
       const result = await verifyAuth();
 
       expect(result.success).toBe(true);
       expect(result.userId).toBe('user-123');
-      expect(mockSupabaseClient.auth.getSession).toHaveBeenCalled();
+      expect(mockSupabaseClient.auth.getUser).toHaveBeenCalled();
     });
 
     it('should handle authentication exceptions', async () => {
       // Mock exception
-      mockSupabaseClient.auth.getSession.mockRejectedValue(
+      mockSupabaseClient.auth.getUser.mockRejectedValue(
         new Error('Network error')
       );
 
@@ -145,7 +151,9 @@ describe('Integration Test: API Routes', () => {
           expect(result.error.code).toBe('VALIDATION_ERROR');
           expect(result.error.message).toBe('Invalid request data');
           expect(result.error.details).toBeDefined();
-          expect(Array.isArray(result.error.details)).toBe(true);
+          expect(result.error.details.fields).toBeDefined();
+          expect(Array.isArray(result.error.details.fields)).toBe(true);
+          expect(result.error.details.fields.length).toBeGreaterThan(0);
         }
       });
 
@@ -163,7 +171,8 @@ describe('Integration Test: API Routes', () => {
         expect(result.success).toBe(false);
         if (!result.success) {
           expect(result.error.code).toBe('VALIDATION_ERROR');
-          expect(result.error.details.length).toBeGreaterThan(0);
+          expect(result.error.details.fields).toBeDefined();
+          expect(result.error.details.fields.length).toBeGreaterThan(0);
         }
       });
 

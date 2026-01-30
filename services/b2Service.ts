@@ -245,3 +245,15 @@ export async function isB2Healthy(): Promise<Result<boolean>> {
 
   return { success: true, data: healthStatus.healthy };
 }
+
+/**
+ * Resets the B2 client and health status.
+ * Used primarily for testing purposes.
+ */
+export function resetB2Client(): void {
+  s3Client = null;
+  healthStatus = {
+    healthy: false,
+    lastChecked: new Date(0),
+  };
+}

@@ -1,4 +1,4 @@
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
+import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
 import * as locationService from '@/services/locationService';
@@ -13,7 +13,22 @@ export async function GET(
 ) {
   // 1. Auth check
   const cookieStore = await cookies();
-    const supabase = createRouteHandlerClient({ cookies: () => cookieStore });
+    const supabase = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        cookies: {
+          getAll() {
+            return cookieStore.getAll();
+          },
+          setAll(cookiesToSet) {
+            cookiesToSet.forEach(({ name, value }) => {
+              cookieStore.set(name, value);
+            });
+          },
+        },
+      }
+    );
   const {
     data: { session },
     error: authError,
@@ -52,7 +67,22 @@ export async function PUT(
 ) {
   // 1. Auth check
   const cookieStore = await cookies();
-    const supabase = createRouteHandlerClient({ cookies: () => cookieStore });
+    const supabase = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        cookies: {
+          getAll() {
+            return cookieStore.getAll();
+          },
+          setAll(cookiesToSet) {
+            cookiesToSet.forEach(({ name, value }) => {
+              cookieStore.set(name, value);
+            });
+          },
+        },
+      }
+    );
   const {
     data: { session },
     error: authError,
@@ -69,6 +99,7 @@ export async function PUT(
   }
 
   // 2. Parse and validate
+  const resolvedParams = await params;
   const body = await request.json();
   const validation = updateLocationSchema.safeParse(body);
 
@@ -116,7 +147,22 @@ export async function DELETE(
 ) {
   // 1. Auth check
   const cookieStore = await cookies();
-    const supabase = createRouteHandlerClient({ cookies: () => cookieStore });
+    const supabase = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        cookies: {
+          getAll() {
+            return cookieStore.getAll();
+          },
+          setAll(cookiesToSet) {
+            cookiesToSet.forEach(({ name, value }) => {
+              cookieStore.set(name, value);
+            });
+          },
+        },
+      }
+    );
   const {
     data: { session },
     error: authError,
@@ -133,6 +179,7 @@ export async function DELETE(
   }
 
   // 2. Call service
+  const resolvedParams = await params;
   const result = await locationService.deleteLocation(resolvedParams.id);
 
   // 3. Return response

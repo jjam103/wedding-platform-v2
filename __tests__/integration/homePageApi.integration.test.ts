@@ -39,13 +39,9 @@ jest.mock('next/server', () => ({
   },
 }));
 
-import { GET as getHomePage, PUT as updateHomePage } from '@/app/api/admin/home-page/route';
-import { GET as getHomePageSections } from '@/app/api/admin/home-page/sections/route';
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
-
-// Mock Supabase
-jest.mock('@supabase/auth-helpers-nextjs', () => ({
-  createRouteHandlerClient: jest.fn(),
+// Mock Supabase SSR
+jest.mock('@supabase/ssr', () => ({
+  createServerClient: jest.fn(),
 }));
 
 // Mock next/headers
@@ -53,7 +49,7 @@ jest.mock('next/headers', () => ({
   cookies: jest.fn(),
 }));
 
-// Mock services
+// Mock services - MUST be before route imports
 jest.mock('@/services/settingsService', () => ({
   getSettings: jest.fn(),
   updateSettings: jest.fn(),
@@ -67,8 +63,18 @@ jest.mock('@/utils/sanitization', () => ({
   sanitizeRichText: jest.fn((html) => html),
 }));
 
-import { getSettings, updateSettings } from '@/services/settingsService';
-import { listSections } from '@/services/sectionsService';
+// Import API routes AFTER mocks
+import { GET as getHomePage, PUT as updateHomePage } from '@/app/api/admin/home-page/route';
+import { GET as getHomePageSections } from '@/app/api/admin/home-page/sections/route';
+import { createServerClient } from '@supabase/ssr';
+import { cookies } from 'next/headers';
+
+// Get mocked functions
+const mockGetSettings = jest.mocked(require('@/services/settingsService').getSettings);
+const mockUpdateSettings = jest.mocked(require('@/services/settingsService').updateSettings);
+const mockListSections = jest.mocked(require('@/services/sectionsService').listSections);
+const mockCreateServerClient = jest.mocked(createServerClient);
+const mockCookies = jest.mocked(cookies);
 
 describe('Home Page API Integration Tests', () => {
   const mockSupabase = {
@@ -77,9 +83,19 @@ describe('Home Page API Integration Tests', () => {
     },
   };
 
+  const mockCookieStore = {
+    getAll: jest.fn(() => []),
+    set: jest.fn(),
+  };
+
   beforeEach(() => {
     jest.clearAllMocks();
-    (createRouteHandlerClient as jest.Mock).mockReturnValue(mockSupabase);
+    
+    // Mock cookies() to return cookie store
+    mockCookies.mockResolvedValue(mockCookieStore as any);
+    
+    // Mock createServerClient to return mock Supabase client
+    mockCreateServerClient.mockReturnValue(mockSupabase as any);
   });
 
   describe('GET /api/admin/home-page', () => {
@@ -88,10 +104,10 @@ describe('Home Page API Integration Tests', () => {
       mockSupabase.auth.getSession.mockResolvedValue({
         data: { session: { user: { id: 'user-123' } } },
         error: null,
-      });
+      } as any);
 
       // Mock settings service
-      (getSettings as jest.Mock).mockResolvedValue({
+      mockGetSettings.mockResolvedValue({
         success: true,
         data: {
           id: 'settings-1',
@@ -102,7 +118,7 @@ describe('Home Page API Integration Tests', () => {
           created_at: '2025-01-01T00:00:00Z',
           updated_at: '2025-01-01T00:00:00Z',
         },
-      });
+      } as any);
 
       const response = await getHomePage();
       const data = await response.json();
@@ -122,7 +138,7 @@ describe('Home Page API Integration Tests', () => {
       mockSupabase.auth.getSession.mockResolvedValue({
         data: { session: null },
         error: null,
-      });
+      } as any);
 
       const response = await getHomePage();
       const data = await response.json();
@@ -137,16 +153,16 @@ describe('Home Page API Integration Tests', () => {
       mockSupabase.auth.getSession.mockResolvedValue({
         data: { session: { user: { id: 'user-123' } } },
         error: null,
-      });
+      } as any);
 
       // Mock settings service error
-      (getSettings as jest.Mock).mockResolvedValue({
+      mockGetSettings.mockResolvedValue({
         success: false,
         error: {
           code: 'DATABASE_ERROR',
           message: 'Failed to fetch settings',
         },
-      });
+      } as any);
 
       const response = await getHomePage();
       const data = await response.json();
@@ -163,10 +179,10 @@ describe('Home Page API Integration Tests', () => {
       mockSupabase.auth.getSession.mockResolvedValue({
         data: { session: { user: { id: 'user-123' } } },
         error: null,
-      });
+      } as any);
 
       // Mock settings service
-      (updateSettings as jest.Mock).mockResolvedValue({
+      mockUpdateSettings.mockResolvedValue({
         success: true,
         data: {
           id: 'settings-1',
@@ -177,7 +193,7 @@ describe('Home Page API Integration Tests', () => {
           created_at: '2025-01-01T00:00:00Z',
           updated_at: '2025-01-02T00:00:00Z',
         },
-      });
+      } as any);
 
       const request = new Request('http://localhost:3000/api/admin/home-page', {
         method: 'PUT',
@@ -202,7 +218,7 @@ describe('Home Page API Integration Tests', () => {
         heroImageUrl: 'https://example.com/new-hero.jpg',
       });
 
-      expect(updateSettings).toHaveBeenCalledWith({
+      expect(mockUpdateSettings).toHaveBeenCalledWith({
         home_page_title: 'Updated Wedding',
         home_page_subtitle: 'July 2025',
         home_page_welcome_message: '<p>Updated welcome!</p>',
@@ -215,7 +231,7 @@ describe('Home Page API Integration Tests', () => {
       mockSupabase.auth.getSession.mockResolvedValue({
         data: { session: null },
         error: null,
-      });
+      } as any);
 
       const request = new Request('http://localhost:3000/api/admin/home-page', {
         method: 'PUT',
@@ -238,17 +254,17 @@ describe('Home Page API Integration Tests', () => {
       mockSupabase.auth.getSession.mockResolvedValue({
         data: { session: { user: { id: 'user-123' } } },
         error: null,
-      });
+      } as any);
 
       // Mock validation error
-      (updateSettings as jest.Mock).mockResolvedValue({
+      mockUpdateSettings.mockResolvedValue({
         success: false,
         error: {
           code: 'VALIDATION_ERROR',
           message: 'Validation failed',
           details: [{ path: ['home_page_hero_image_url'], message: 'Invalid URL' }],
         },
-      });
+      } as any);
 
       const request = new Request('http://localhost:3000/api/admin/home-page', {
         method: 'PUT',
@@ -272,16 +288,16 @@ describe('Home Page API Integration Tests', () => {
       mockSupabase.auth.getSession.mockResolvedValue({
         data: { session: { user: { id: 'user-123' } } },
         error: null,
-      });
+      } as any);
 
       // Mock database error
-      (updateSettings as jest.Mock).mockResolvedValue({
+      mockUpdateSettings.mockResolvedValue({
         success: false,
         error: {
           code: 'DATABASE_ERROR',
           message: 'Failed to update settings',
         },
-      });
+      } as any);
 
       const request = new Request('http://localhost:3000/api/admin/home-page', {
         method: 'PUT',
@@ -304,10 +320,10 @@ describe('Home Page API Integration Tests', () => {
       mockSupabase.auth.getSession.mockResolvedValue({
         data: { session: { user: { id: 'user-123' } } },
         error: null,
-      });
+      } as any);
 
       // Mock settings service
-      (updateSettings as jest.Mock).mockResolvedValue({
+      mockUpdateSettings.mockResolvedValue({
         success: true,
         data: {
           id: 'settings-1',
@@ -318,7 +334,7 @@ describe('Home Page API Integration Tests', () => {
           created_at: '2025-01-01T00:00:00Z',
           updated_at: '2025-01-02T00:00:00Z',
         },
-      });
+      } as any);
 
       const request = new Request('http://localhost:3000/api/admin/home-page', {
         method: 'PUT',
@@ -345,10 +361,10 @@ describe('Home Page API Integration Tests', () => {
       mockSupabase.auth.getSession.mockResolvedValue({
         data: { session: { user: { id: 'user-123' } } },
         error: null,
-      });
+      } as any);
 
       // Mock sections service
-      (listSections as jest.Mock).mockResolvedValue({
+      mockListSections.mockResolvedValue({
         success: true,
         data: [
           {
@@ -368,7 +384,7 @@ describe('Home Page API Integration Tests', () => {
             columns: [],
           },
         ],
-      });
+      } as any);
 
       const response = await getHomePageSections();
       const data = await response.json();
@@ -379,7 +395,7 @@ describe('Home Page API Integration Tests', () => {
       expect(data.data[0].pageType).toBe('home');
       expect(data.data[0].pageId).toBe('home');
 
-      expect(listSections).toHaveBeenCalledWith('home', 'home');
+      expect(mockListSections).toHaveBeenCalledWith('home', 'home');
     });
 
     it('should return 401 when not authenticated', async () => {
@@ -387,7 +403,7 @@ describe('Home Page API Integration Tests', () => {
       mockSupabase.auth.getSession.mockResolvedValue({
         data: { session: null },
         error: null,
-      });
+      } as any);
 
       const response = await getHomePageSections();
       const data = await response.json();
@@ -402,16 +418,16 @@ describe('Home Page API Integration Tests', () => {
       mockSupabase.auth.getSession.mockResolvedValue({
         data: { session: { user: { id: 'user-123' } } },
         error: null,
-      });
+      } as any);
 
       // Mock sections service error
-      (listSections as jest.Mock).mockResolvedValue({
+      mockListSections.mockResolvedValue({
         success: false,
         error: {
           code: 'DATABASE_ERROR',
           message: 'Failed to fetch sections',
         },
-      });
+      } as any);
 
       const response = await getHomePageSections();
       const data = await response.json();

@@ -1,14 +1,18 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
-import type { LocationWithChildren } from '@/schemas/locationSchemas';
+import type { LocationWithChildren, Location } from '@/schemas/locationSchemas';
 
 interface LocationSelectorProps {
-  value: string | null;
-  onChange: (locationId: string | null) => void;
+  value?: string | null;
+  onChange?: (locationId: string | null) => void;
   placeholder?: string;
   excludeId?: string; // Exclude this location and its descendants (for circular reference prevention)
   required?: boolean;
+  // Alternative API for passing locations directly (flexible type to accept various location formats)
+  locations?: any[];
+  selectedLocationId?: string;
+  onSelect?: (locationId: string) => void;
 }
 
 export function LocationSelector({
@@ -17,14 +21,46 @@ export function LocationSelector({
   placeholder = 'Select a location',
   excludeId,
   required = false,
+  locations: externalLocations,
+  selectedLocationId,
+  onSelect,
 }: LocationSelectorProps) {
   const [locations, setLocations] = useState<LocationWithChildren[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(!externalLocations);
   const [searchQuery, setSearchQuery] = useState('');
   const [isOpen, setIsOpen] = useState(false);
 
-  // Load locations
+  // Convert external locations to LocationWithChildren format if needed
   useEffect(() => {
+    if (externalLocations) {
+      // Check if locations have children property (LocationWithChildren)
+      const hasChildren = externalLocations.length > 0 && 'children' in externalLocations[0];
+      
+      if (hasChildren) {
+        setLocations(externalLocations as LocationWithChildren[]);
+      } else {
+        // Convert simple location objects to LocationWithChildren[] format
+        const converted = externalLocations.map((loc: any) => ({
+          id: loc.id,
+          name: loc.name,
+          parentLocationId: loc.parentLocationId || loc.parent_location_id || null,
+          children: [],
+          address: loc.address || null,
+          coordinates: loc.coordinates || null,
+          description: loc.description || null,
+          createdAt: loc.createdAt || loc.created_at || new Date().toISOString(),
+          updatedAt: loc.updatedAt || loc.updated_at || new Date().toISOString(),
+        }));
+        setLocations(converted);
+      }
+      setLoading(false);
+    }
+  }, [externalLocations]);
+
+  // Load locations only if not provided externally
+  useEffect(() => {
+    if (externalLocations) return; // Skip if locations are provided
+    
     async function loadLocations() {
       try {
         const response = await fetch('/api/admin/locations');
@@ -87,8 +123,19 @@ export function LocationSelector({
     );
   }, [flatLocations, searchQuery]);
 
-  // Get selected location
-  const selectedLocation = flatLocations.find((loc) => loc.id === value);
+  // Get selected location - support both APIs
+  const currentValue = value !== undefined ? value : selectedLocationId;
+  const selectedLocation = flatLocations.find((loc) => loc.id === currentValue);
+
+  // Handle selection - support both APIs
+  const handleSelect = (locationId: string | null) => {
+    if (onChange) {
+      onChange(locationId);
+    }
+    if (onSelect && locationId) {
+      onSelect(locationId);
+    }
+  };
 
   return (
     <div className="relative">
@@ -128,7 +175,7 @@ export function LocationSelector({
               <button
                 type="button"
                 onClick={() => {
-                  onChange(null);
+                  handleSelect(null);
                   setIsOpen(false);
                   setSearchQuery('');
                 }}
@@ -148,12 +195,12 @@ export function LocationSelector({
                   key={loc.id}
                   type="button"
                   onClick={() => {
-                    onChange(loc.id);
+                    handleSelect(loc.id);
                     setIsOpen(false);
                     setSearchQuery('');
                   }}
                   className={`w-full px-4 py-2 text-left hover:bg-gray-50 ${
-                    value === loc.id ? 'bg-blue-50 text-blue-700' : 'text-gray-900'
+                    currentValue === loc.id ? 'bg-blue-50 text-blue-700' : 'text-gray-900'
                   }`}
                   style={{ paddingLeft: `${16 + loc.level * 16}px` }}
                 >

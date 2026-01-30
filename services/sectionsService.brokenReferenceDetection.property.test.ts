@@ -2,7 +2,7 @@ import * as fc from 'fast-check';
 import { jest, describe, it, expect, beforeEach } from '@jest/globals';
 
 // Mock Supabase before importing services
-const mockFrom = jest.fn();
+const mockFrom = jest.fn() as jest.MockedFunction<any>;
 const mockSupabase = {
   from: mockFrom,
 };
@@ -14,6 +14,14 @@ jest.mock('../lib/supabase', () => ({
 // Import after mocking
 import { validateReferences } from './sectionsService';
 import type { Reference } from '../schemas/cmsSchemas';
+
+// Helper to create properly typed mock chain
+function createMockQueryChain(resolvedValue: { data: any; error: any }) {
+  const mockSingle = (jest.fn() as any).mockResolvedValue(resolvedValue);
+  const mockEq = (jest.fn() as any).mockReturnValue({ single: mockSingle });
+  const mockSelect = (jest.fn() as any).mockReturnValue({ eq: mockEq });
+  return { select: mockSelect } as any;
+}
 
 /**
  * Property 6: Broken Reference Detection
@@ -49,16 +57,10 @@ describe('Feature: admin-backend-integration-cms, Property 6: Broken Reference D
         async (testReferences) => {
           // Mock database lookups - deleted entities return null
           for (const ref of testReferences) {
-            mockFrom.mockReturnValueOnce({
-              select: jest.fn().mockReturnValue({
-                eq: jest.fn().mockReturnValue({
-                  single: jest.fn().mockResolvedValue({
-                    data: ref.isDeleted ? null : { id: ref.id },
-                    error: ref.isDeleted ? { code: 'PGRST116', message: 'Not found' } : null,
-                  }),
-                }),
-              }),
-            });
+            mockFrom.mockReturnValueOnce(createMockQueryChain({
+              data: ref.isDeleted ? null : { id: ref.id },
+              error: ref.isDeleted ? { code: 'PGRST116', message: 'Not found' } : null,
+            }));
           }
 
           const references: Reference[] = testReferences.map(r => ({
@@ -122,30 +124,18 @@ describe('Feature: admin-backend-integration-cms, Property 6: Broken Reference D
         async (testData) => {
           // Mock existing references as still in database
           for (const ref of testData.existingRefs) {
-            mockFrom.mockReturnValueOnce({
-              select: jest.fn().mockReturnValue({
-                eq: jest.fn().mockReturnValue({
-                  single: jest.fn().mockResolvedValue({
-                    data: { id: ref.id },
-                    error: null,
-                  }),
-                }),
-              }),
-            });
+            mockFrom.mockReturnValueOnce(createMockQueryChain({
+              data: { id: ref.id },
+              error: null,
+            }));
           }
 
           // Mock deleted references as no longer in database
           for (const ref of testData.deletedRefs) {
-            mockFrom.mockReturnValueOnce({
-              select: jest.fn().mockReturnValue({
-                eq: jest.fn().mockReturnValue({
-                  single: jest.fn().mockResolvedValue({
-                    data: null,
-                    error: { code: 'PGRST116', message: 'Not found' },
-                  }),
-                }),
-              }),
-            });
+            mockFrom.mockReturnValueOnce(createMockQueryChain({
+              data: null,
+              error: { code: 'PGRST116', message: 'Not found' },
+            }));
           }
 
           const references: Reference[] = [
@@ -200,16 +190,10 @@ describe('Feature: admin-backend-integration-cms, Property 6: Broken Reference D
         fc.boolean(),
         async (type, id, label, isDeleted) => {
           // Mock database lookup
-          mockFrom.mockReturnValueOnce({
-            select: jest.fn().mockReturnValue({
-              eq: jest.fn().mockReturnValue({
-                single: jest.fn().mockResolvedValue({
-                  data: isDeleted ? null : { id },
-                  error: isDeleted ? { code: 'PGRST116', message: 'Not found' } : null,
-                }),
-              }),
-            }),
-          });
+          mockFrom.mockReturnValueOnce(createMockQueryChain({
+            data: isDeleted ? null : { id },
+            error: isDeleted ? { code: 'PGRST116', message: 'Not found' } : null,
+          }));
 
           const references: Reference[] = [{ type, id, label: label || undefined }];
           const result = await validateReferences(references);
@@ -253,16 +237,10 @@ describe('Feature: admin-backend-integration-cms, Property 6: Broken Reference D
         async (testReferences) => {
           // Mock all references as existing in database
           for (const ref of testReferences) {
-            mockFrom.mockReturnValueOnce({
-              select: jest.fn().mockReturnValue({
-                eq: jest.fn().mockReturnValue({
-                  single: jest.fn().mockResolvedValue({
-                    data: { id: ref.id },
-                    error: null,
-                  }),
-                }),
-              }),
-            });
+            mockFrom.mockReturnValueOnce(createMockQueryChain({
+              data: { id: ref.id },
+              error: null,
+            }));
           }
 
           const references: Reference[] = testReferences.map(r => ({
@@ -312,16 +290,10 @@ describe('Feature: admin-backend-integration-cms, Property 6: Broken Reference D
         }),
         async (testRef) => {
           // Mock as deleted entity
-          mockFrom.mockReturnValueOnce({
-            select: jest.fn().mockReturnValue({
-              eq: jest.fn().mockReturnValue({
-                single: jest.fn().mockResolvedValue({
-                  data: null,
-                  error: { code: 'PGRST116', message: 'Not found' },
-                }),
-              }),
-            }),
-          });
+          mockFrom.mockReturnValueOnce(createMockQueryChain({
+            data: null,
+            error: { code: 'PGRST116', message: 'Not found' },
+          }));
 
           const references: Reference[] = [{ 
             type: testRef.type, 
@@ -372,30 +344,18 @@ describe('Feature: admin-backend-integration-cms, Property 6: Broken Reference D
 
           // Mock valid references
           for (const ref of validRefs) {
-            mockFrom.mockReturnValueOnce({
-              select: jest.fn().mockReturnValue({
-                eq: jest.fn().mockReturnValue({
-                  single: jest.fn().mockResolvedValue({
-                    data: { id: ref.id },
-                    error: null,
-                  }),
-                }),
-              }),
-            });
+            mockFrom.mockReturnValueOnce(createMockQueryChain({
+              data: { id: ref.id },
+              error: null,
+            }));
           }
 
           // Mock broken references
           for (const ref of brokenRefs) {
-            mockFrom.mockReturnValueOnce({
-              select: jest.fn().mockReturnValue({
-                eq: jest.fn().mockReturnValue({
-                  single: jest.fn().mockResolvedValue({
-                    data: null,
-                    error: { code: 'PGRST116', message: 'Not found' },
-                  }),
-                }),
-              }),
-            });
+            mockFrom.mockReturnValueOnce(createMockQueryChain({
+              data: null,
+              error: { code: 'PGRST116', message: 'Not found' },
+            }));
           }
 
           const references: Reference[] = [...validRefs, ...brokenRefs];

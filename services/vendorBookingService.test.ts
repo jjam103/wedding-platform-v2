@@ -7,44 +7,61 @@
  * - Cost propagation when vendor costs change
  */
 
-import * as vendorBookingService from './vendorBookingService';
-import { createClient } from '@supabase/supabase-js';
-
 // Mock Supabase
-jest.mock('@supabase/supabase-js', () => ({
-  createClient: jest.fn(),
-}));
+jest.mock('@supabase/supabase-js', () => {
+  const mockFunctions = {
+    from: jest.fn().mockReturnThis(),
+    insert: jest.fn().mockReturnThis(),
+    select: jest.fn().mockReturnThis(),
+    single: jest.fn(),
+    eq: jest.fn().mockReturnThis(),
+    delete: jest.fn().mockReturnThis(),
+    update: jest.fn().mockReturnThis(),
+    order: jest.fn().mockReturnThis(),
+    range: jest.fn().mockReturnThis(),
+  };
+  
+  return {
+    createClient: jest.fn(() => mockFunctions),
+    __mockFunctions: mockFunctions, // Export for test access
+  };
+});
 
 // Mock sanitization
 jest.mock('../utils/sanitization', () => ({
   sanitizeInput: jest.fn((input) => input),
 }));
 
-describe('vendorBookingService.create', () => {
-  let mockSupabase: any;
+import * as vendorBookingService from './vendorBookingService';
+import { createClient } from '@supabase/supabase-js';
 
+// Get the mock functions from the mocked module
+const { __mockFunctions } = jest.requireMock('@supabase/supabase-js') as any;
+const mockFrom = __mockFunctions.from;
+const mockInsert = __mockFunctions.insert;
+const mockSelect = __mockFunctions.select;
+const mockSingle = __mockFunctions.single;
+const mockEq = __mockFunctions.eq;
+const mockDelete = __mockFunctions.delete;
+const mockUpdate = __mockFunctions.update;
+const mockOrder = __mockFunctions.order;
+const mockRange = __mockFunctions.range;
+
+describe('vendorBookingService.create', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    
-    mockSupabase = {
-      from: jest.fn().mockReturnThis(),
-      insert: jest.fn().mockReturnThis(),
-      select: jest.fn().mockReturnThis(),
-      single: jest.fn(),
-      eq: jest.fn().mockReturnThis(),
-      delete: jest.fn().mockReturnThis(),
-      update: jest.fn().mockReturnThis(),
-      order: jest.fn().mockReturnThis(),
-      range: jest.fn().mockReturnThis(),
-    };
-
-    (createClient as jest.Mock).mockReturnValue(mockSupabase);
+    // Reset mock implementations
+    mockFrom.mockReturnThis();
+    mockInsert.mockReturnThis();
+    mockSelect.mockReturnThis();
+    mockSingle.mockResolvedValue({ data: null, error: null });
   });
 
   it('should create a vendor booking successfully', async () => {
     const bookingData = {
-      vendorId: 'vendor-1',
-      activityId: 'activity-1',
+      vendorId: '123e4567-e89b-12d3-a456-426614174000',
+      activityId: '123e4567-e89b-12d3-a456-426614174001',
+      eventId: null,
       bookingDate: '2025-06-15',
     };
 
@@ -58,10 +75,10 @@ describe('vendorBookingService.create', () => {
       created_at: '2025-01-01T00:00:00Z',
     };
 
-    mockSupabase.single.mockResolvedValue({
+    mockSingle.mockResolvedValue({
       data: mockBooking,
       error: null,
-    });
+    } as any);
 
     const result = await vendorBookingService.create(bookingData);
 
@@ -75,7 +92,8 @@ describe('vendorBookingService.create', () => {
 
   it('should return VALIDATION_ERROR when vendor ID is missing', async () => {
     const invalidData = {
-      activityId: 'activity-1',
+      activityId: '123e4567-e89b-12d3-a456-426614174001',
+      eventId: null,
       bookingDate: '2025-06-15',
     } as any;
 
@@ -89,15 +107,16 @@ describe('vendorBookingService.create', () => {
 
   it('should return DATABASE_ERROR when insert fails', async () => {
     const bookingData = {
-      vendorId: 'vendor-1',
-      activityId: 'activity-1',
+      vendorId: '123e4567-e89b-12d3-a456-426614174000',
+      activityId: '123e4567-e89b-12d3-a456-426614174001',
+      eventId: null,
       bookingDate: '2025-06-15',
     };
 
-    mockSupabase.single.mockResolvedValue({
+    mockSingle.mockResolvedValue({
       data: null,
       error: { message: 'Database error', code: 'DB_ERROR' },
-    });
+    } as any);
 
     const result = await vendorBookingService.create(bookingData);
 
@@ -109,8 +128,9 @@ describe('vendorBookingService.create', () => {
 
   it('should sanitize notes input', async () => {
     const bookingData = {
-      vendorId: 'vendor-1',
-      activityId: 'activity-1',
+      vendorId: '123e4567-e89b-12d3-a456-426614174000',
+      activityId: '123e4567-e89b-12d3-a456-426614174001',
+      eventId: null,
       bookingDate: '2025-06-15',
       notes: '<script>alert("xss")</script>Important notes',
     };
@@ -125,10 +145,10 @@ describe('vendorBookingService.create', () => {
       created_at: '2025-01-01T00:00:00Z',
     };
 
-    mockSupabase.single.mockResolvedValue({
+    mockSingle.mockResolvedValue({
       data: mockBooking,
       error: null,
-    });
+    } as any);
 
     const result = await vendorBookingService.create(bookingData);
 
@@ -138,51 +158,45 @@ describe('vendorBookingService.create', () => {
 });
 
 describe('vendorBookingService.get', () => {
-  let mockSupabase: any;
-
   beforeEach(() => {
     jest.clearAllMocks();
-    
-    mockSupabase = {
-      from: jest.fn().mockReturnThis(),
-      select: jest.fn().mockReturnThis(),
-      eq: jest.fn().mockReturnThis(),
-      single: jest.fn(),
-    };
-
-    (createClient as jest.Mock).mockReturnValue(mockSupabase);
+    // Reset mock implementations
+    mockFrom.mockReturnThis();
+    mockSelect.mockReturnThis();
+    mockEq.mockReturnThis();
+    mockSingle.mockResolvedValue({ data: null, error: null });
   });
 
   it('should retrieve a vendor booking by ID', async () => {
     const mockBooking = {
       id: 'booking-1',
-      vendor_id: 'vendor-1',
-      activity_id: 'activity-1',
+      vendor_id: '123e4567-e89b-12d3-a456-426614174000',
+      activity_id: '123e4567-e89b-12d3-a456-426614174001',
       event_id: null,
       booking_date: '2025-06-15',
       notes: null,
       created_at: '2025-01-01T00:00:00Z',
     };
 
-    mockSupabase.single.mockResolvedValue({
+    mockSingle.mockResolvedValue({
       data: mockBooking,
       error: null,
-    });
+    } as any);
 
     const result = await vendorBookingService.get('booking-1');
 
     expect(result.success).toBe(true);
     if (result.success) {
       expect(result.data.id).toBe('booking-1');
-      expect(result.data.vendorId).toBe('vendor-1');
+      expect(result.data.vendorId).toBe('123e4567-e89b-12d3-a456-426614174000');
     }
   });
 
   it('should return NOT_FOUND when booking does not exist', async () => {
-    mockSupabase.single.mockResolvedValue({
+    mockSingle.mockResolvedValue({
       data: null,
       error: { code: 'PGRST116', message: 'Not found' },
-    });
+    } as any);
 
     const result = await vendorBookingService.get('nonexistent-id');
 
@@ -194,51 +208,42 @@ describe('vendorBookingService.get', () => {
 });
 
 describe('vendorBookingService.listWithDetails', () => {
-  let mockSupabase: any;
-
   beforeEach(() => {
     jest.clearAllMocks();
-    
-    mockSupabase = {
-      from: jest.fn().mockReturnThis(),
-      select: jest.fn().mockReturnThis(),
-      eq: jest.fn().mockReturnThis(),
-      order: jest.fn().mockResolvedValue({
-        data: [],
-        error: null,
-      }),
-    };
-
-    (createClient as jest.Mock).mockReturnValue(mockSupabase);
+    // Reset mock implementations
+    mockFrom.mockReturnThis();
+    mockSelect.mockReturnThis();
+    mockEq.mockReturnThis();
+    mockOrder.mockResolvedValue({ data: [], error: null });
   });
 
   it('should retrieve bookings with vendor and activity details', async () => {
     const mockBookings = [
       {
         id: 'booking-1',
-        vendor_id: 'vendor-1',
-        activity_id: 'activity-1',
+        vendor_id: '123e4567-e89b-12d3-a456-426614174000',
+        activity_id: '123e4567-e89b-12d3-a456-426614174001',
         event_id: null,
         booking_date: '2025-06-15',
         notes: null,
         created_at: '2025-01-01T00:00:00Z',
         vendors: {
-          id: 'vendor-1',
+          id: '123e4567-e89b-12d3-a456-426614174000',
           name: 'Test Photographer',
           category: 'photography',
         },
         activities: {
-          id: 'activity-1',
+          id: '123e4567-e89b-12d3-a456-426614174001',
           name: 'Beach Ceremony',
         },
         events: null,
       },
     ];
 
-    mockSupabase.order.mockResolvedValue({
+    mockOrder.mockResolvedValue({
       data: mockBookings,
       error: null,
-    });
+    } as any);
 
     const result = await vendorBookingService.listWithDetails({});
 
@@ -251,180 +256,162 @@ describe('vendorBookingService.listWithDetails', () => {
   });
 
   it('should filter bookings by vendor ID', async () => {
-    mockSupabase.order.mockResolvedValue({
+    mockOrder.mockResolvedValue({
       data: [],
       error: null,
-    });
+    } as any);
 
-    const result = await vendorBookingService.listWithDetails({ vendorId: 'vendor-1' });
+    const result = await vendorBookingService.listWithDetails({ vendorId: '123e4567-e89b-12d3-a456-426614174000' });
 
     expect(result.success).toBe(true);
-    expect(mockSupabase.eq).toHaveBeenCalledWith('vendor_id', 'vendor-1');
+    expect(mockEq).toHaveBeenCalledWith('vendor_id', '123e4567-e89b-12d3-a456-426614174000');
   });
 
   it('should filter bookings by activity ID', async () => {
-    mockSupabase.order.mockResolvedValue({
+    mockOrder.mockResolvedValue({
       data: [],
       error: null,
-    });
+    } as any);
 
-    const result = await vendorBookingService.listWithDetails({ activityId: 'activity-1' });
+    const result = await vendorBookingService.listWithDetails({ activityId: '123e4567-e89b-12d3-a456-426614174001' });
 
     expect(result.success).toBe(true);
-    expect(mockSupabase.eq).toHaveBeenCalledWith('activity_id', 'activity-1');
+    expect(mockEq).toHaveBeenCalledWith('activity_id', '123e4567-e89b-12d3-a456-426614174001');
   });
 });
 
 describe('vendorBookingService.getVendorBookings', () => {
-  let mockSupabase: any;
-
   beforeEach(() => {
     jest.clearAllMocks();
-    
-    mockSupabase = {
-      from: jest.fn().mockReturnThis(),
-      select: jest.fn().mockReturnThis(),
-      eq: jest.fn().mockReturnThis(),
-      order: jest.fn().mockResolvedValue({
-        data: [],
-        error: null,
-      }),
-    };
-
-    (createClient as jest.Mock).mockReturnValue(mockSupabase);
+    // Reset mock implementations
+    mockFrom.mockReturnThis();
+    mockSelect.mockReturnThis();
+    mockEq.mockReturnThis();
+    mockOrder.mockResolvedValue({ data: [], error: null });
   });
 
   it('should retrieve all bookings for a specific vendor', async () => {
     const mockBookings = [
       {
         id: 'booking-1',
-        vendor_id: 'vendor-1',
-        activity_id: 'activity-1',
+        vendor_id: '123e4567-e89b-12d3-a456-426614174000',
+        activity_id: '123e4567-e89b-12d3-a456-426614174001',
         event_id: null,
         booking_date: '2025-06-15',
         notes: null,
         created_at: '2025-01-01T00:00:00Z',
         vendors: {
-          id: 'vendor-1',
+          id: '123e4567-e89b-12d3-a456-426614174000',
           name: 'Test Photographer',
           category: 'photography',
         },
         activities: {
-          id: 'activity-1',
+          id: '123e4567-e89b-12d3-a456-426614174001',
           name: 'Beach Ceremony',
         },
         events: null,
       },
       {
         id: 'booking-2',
-        vendor_id: 'vendor-1',
-        activity_id: 'activity-2',
+        vendor_id: '123e4567-e89b-12d3-a456-426614174000',
+        activity_id: '123e4567-e89b-12d3-a456-426614174002',
         event_id: null,
         booking_date: '2025-06-16',
         notes: null,
         created_at: '2025-01-01T00:00:00Z',
         vendors: {
-          id: 'vendor-1',
+          id: '123e4567-e89b-12d3-a456-426614174000',
           name: 'Test Photographer',
           category: 'photography',
         },
         activities: {
-          id: 'activity-2',
+          id: '123e4567-e89b-12d3-a456-426614174002',
           name: 'Reception',
         },
         events: null,
       },
     ];
 
-    mockSupabase.order.mockResolvedValue({
+    mockOrder.mockResolvedValue({
       data: mockBookings,
       error: null,
-    });
+    } as any);
 
-    const result = await vendorBookingService.getVendorBookings('vendor-1');
+    const result = await vendorBookingService.getVendorBookings('123e4567-e89b-12d3-a456-426614174000');
 
     expect(result.success).toBe(true);
     if (result.success) {
       expect(result.data).toHaveLength(2);
-      expect(result.data[0].vendorId).toBe('vendor-1');
-      expect(result.data[1].vendorId).toBe('vendor-1');
+      expect(result.data[0].vendorId).toBe('123e4567-e89b-12d3-a456-426614174000');
+      expect(result.data[1].vendorId).toBe('123e4567-e89b-12d3-a456-426614174000');
     }
   });
 });
 
 describe('vendorBookingService.getActivityBookings', () => {
-  let mockSupabase: any;
-
   beforeEach(() => {
     jest.clearAllMocks();
-    
-    mockSupabase = {
-      from: jest.fn().mockReturnThis(),
-      select: jest.fn().mockReturnThis(),
-      eq: jest.fn().mockReturnThis(),
-      order: jest.fn().mockResolvedValue({
-        data: [],
-        error: null,
-      }),
-    };
-
-    (createClient as jest.Mock).mockReturnValue(mockSupabase);
+    // Reset mock implementations
+    mockFrom.mockReturnThis();
+    mockSelect.mockReturnThis();
+    mockEq.mockReturnThis();
+    mockOrder.mockResolvedValue({ data: [], error: null });
   });
 
   it('should retrieve all bookings for a specific activity', async () => {
     const mockBookings = [
       {
         id: 'booking-1',
-        vendor_id: 'vendor-1',
-        activity_id: 'activity-1',
+        vendor_id: '123e4567-e89b-12d3-a456-426614174000',
+        activity_id: '123e4567-e89b-12d3-a456-426614174001',
         event_id: null,
         booking_date: '2025-06-15',
         notes: null,
         created_at: '2025-01-01T00:00:00Z',
         vendors: {
-          id: 'vendor-1',
+          id: '123e4567-e89b-12d3-a456-426614174000',
           name: 'Test Photographer',
           category: 'photography',
         },
         activities: {
-          id: 'activity-1',
+          id: '123e4567-e89b-12d3-a456-426614174001',
           name: 'Beach Ceremony',
         },
         events: null,
       },
       {
         id: 'booking-2',
-        vendor_id: 'vendor-2',
-        activity_id: 'activity-1',
+        vendor_id: '123e4567-e89b-12d3-a456-426614174002',
+        activity_id: '123e4567-e89b-12d3-a456-426614174001',
         event_id: null,
         booking_date: '2025-06-15',
         notes: null,
         created_at: '2025-01-01T00:00:00Z',
         vendors: {
-          id: 'vendor-2',
+          id: '123e4567-e89b-12d3-a456-426614174002',
           name: 'Test Florist',
           category: 'flowers',
         },
         activities: {
-          id: 'activity-1',
+          id: '123e4567-e89b-12d3-a456-426614174001',
           name: 'Beach Ceremony',
         },
         events: null,
       },
     ];
 
-    mockSupabase.order.mockResolvedValue({
+    mockOrder.mockResolvedValue({
       data: mockBookings,
       error: null,
-    });
+    } as any);
 
-    const result = await vendorBookingService.getActivityBookings('activity-1');
+    const result = await vendorBookingService.getActivityBookings('123e4567-e89b-12d3-a456-426614174001');
 
     expect(result.success).toBe(true);
     if (result.success) {
       expect(result.data).toHaveLength(2);
-      expect(result.data[0].activityId).toBe('activity-1');
-      expect(result.data[1].activityId).toBe('activity-1');
+      expect(result.data[0].activityId).toBe('123e4567-e89b-12d3-a456-426614174001');
+      expect(result.data[1].activityId).toBe('123e4567-e89b-12d3-a456-426614174001');
       expect(result.data[0].vendorName).toBe('Test Photographer');
       expect(result.data[1].vendorName).toBe('Test Florist');
     }
@@ -432,35 +419,27 @@ describe('vendorBookingService.getActivityBookings', () => {
 });
 
 describe('vendorBookingService.deleteBooking', () => {
-  let mockSupabase: any;
-
   beforeEach(() => {
     jest.clearAllMocks();
-    
-    mockSupabase = {
-      from: jest.fn().mockReturnThis(),
-      delete: jest.fn().mockReturnThis(),
-      eq: jest.fn().mockResolvedValue({
-        error: null,
-      }),
-    };
-
-    (createClient as jest.Mock).mockReturnValue(mockSupabase);
+    // Reset mock implementations
+    mockFrom.mockReturnThis();
+    mockDelete.mockReturnThis();
+    mockEq.mockResolvedValue({ error: null });
   });
 
   it('should delete a vendor booking successfully', async () => {
     const result = await vendorBookingService.deleteBooking('booking-1');
 
     expect(result.success).toBe(true);
-    expect(mockSupabase.from).toHaveBeenCalledWith('vendor_bookings');
-    expect(mockSupabase.delete).toHaveBeenCalled();
-    expect(mockSupabase.eq).toHaveBeenCalledWith('id', 'booking-1');
+    expect(mockFrom).toHaveBeenCalledWith('vendor_bookings');
+    expect(mockDelete).toHaveBeenCalled();
+    expect(mockEq).toHaveBeenCalledWith('id', 'booking-1');
   });
 
   it('should return DATABASE_ERROR when delete fails', async () => {
-    mockSupabase.eq.mockResolvedValue({
+    mockEq.mockResolvedValue({
       error: { message: 'Delete failed', code: 'DB_ERROR' },
-    });
+    } as any);
 
     const result = await vendorBookingService.deleteBooking('booking-1');
 
@@ -472,53 +451,44 @@ describe('vendorBookingService.deleteBooking', () => {
 });
 
 describe('vendorBookingService.propagateVendorCostChange', () => {
-  let mockSupabase: any;
-
   beforeEach(() => {
     jest.clearAllMocks();
-    
-    mockSupabase = {
-      from: jest.fn().mockReturnThis(),
-      select: jest.fn().mockReturnThis(),
-      eq: jest.fn().mockReturnThis(),
-      order: jest.fn().mockResolvedValue({
-        data: [],
-        error: null,
-      }),
-    };
-
-    (createClient as jest.Mock).mockReturnValue(mockSupabase);
+    // Reset mock implementations
+    mockFrom.mockReturnThis();
+    mockSelect.mockReturnThis();
+    mockEq.mockReturnThis();
+    mockOrder.mockResolvedValue({ data: [], error: null });
   });
 
   it('should propagate vendor cost changes successfully', async () => {
     const mockBookings = [
       {
         id: 'booking-1',
-        vendor_id: 'vendor-1',
-        activity_id: 'activity-1',
+        vendor_id: '123e4567-e89b-12d3-a456-426614174000',
+        activity_id: '123e4567-e89b-12d3-a456-426614174001',
         event_id: null,
         booking_date: '2025-06-15',
         notes: null,
         created_at: '2025-01-01T00:00:00Z',
         vendors: {
-          id: 'vendor-1',
+          id: '123e4567-e89b-12d3-a456-426614174000',
           name: 'Test Photographer',
           category: 'photography',
         },
         activities: {
-          id: 'activity-1',
+          id: '123e4567-e89b-12d3-a456-426614174001',
           name: 'Beach Ceremony',
         },
         events: null,
       },
     ];
 
-    mockSupabase.order.mockResolvedValue({
+    mockOrder.mockResolvedValue({
       data: mockBookings,
       error: null,
-    });
+    } as any);
 
-    const result = await vendorBookingService.propagateVendorCostChange('vendor-1');
+    const result = await vendorBookingService.propagateVendorCostChange('123e4567-e89b-12d3-a456-426614174000');
 
     expect(result.success).toBe(true);
     // In real implementation, this would trigger budget recalculation

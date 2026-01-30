@@ -1,11 +1,7 @@
-import { findPendingRSVPs, sendRSVPReminder, processRSVPReminders } from './rsvpReminderService';
-import * as emailService from './emailService';
-import { createClient } from '@supabase/supabase-js';
-
-// Mock Supabase
-jest.mock('@supabase/supabase-js', () => ({
-  createClient: jest.fn(),
-}));
+// Set up environment variables for tests
+process.env.NEXT_PUBLIC_SUPABASE_URL = 'https://test.supabase.co';
+process.env.SUPABASE_SERVICE_ROLE_KEY = 'test-service-role-key';
+process.env.NEXT_PUBLIC_APP_URL = 'https://test.example.com';
 
 // Mock email service
 jest.mock('./emailService', () => ({
@@ -14,8 +10,12 @@ jest.mock('./emailService', () => ({
 
 // Mock cron service
 jest.mock('./cronService', () => ({
-  executeCronJob: jest.fn((jobType, jobFunction) => jobFunction()),
+  executeCronJob: jest.fn((jobType: string, jobFunction: () => any) => jobFunction()),
 }));
+
+// Import after mocks are set up
+import { findPendingRSVPs, sendRSVPReminder, __setSupabaseClient, __resetSupabaseClient } from './rsvpReminderService';
+import * as emailService from './emailService';
 
 /**
  * Unit test for automated RSVP reminders
@@ -24,16 +24,23 @@ jest.mock('./cronService', () => ({
  * Tests that deadline approaching triggers reminder
  */
 describe('rsvpReminderService - Automated RSVP Reminders', () => {
-  let mockSupabase: any;
-
+  let mockFromFn: jest.Mock;
+  
   beforeEach(() => {
     jest.clearAllMocks();
-
-    mockSupabase = {
-      from: jest.fn(),
+    
+    // Set up the mock Supabase client
+    mockFromFn = jest.fn();
+    const mockSupabaseClient = {
+      from: mockFromFn,
     };
-
-    (createClient as jest.Mock).mockReturnValue(mockSupabase);
+    
+    // Inject the mock client into the service
+    __setSupabaseClient(mockSupabaseClient as any);
+  });
+  
+  afterEach(() => {
+    __resetSupabaseClient();
   });
 
   describe('deadline approaching triggers reminder', () => {
@@ -43,25 +50,27 @@ describe('rsvpReminderService - Automated RSVP Reminders', () => {
       futureDate.setDate(futureDate.getDate() + 5);
       const deadlineStr = futureDate.toISOString().split('T')[0];
 
-      // Mock events query
+      // Mock events query - needs to chain: select().eq().not().gte().lte().eq()
       const mockEventsQuery = {
         select: jest.fn().mockReturnThis(),
         eq: jest.fn().mockReturnThis(),
         not: jest.fn().mockReturnThis(),
         gte: jest.fn().mockReturnThis(),
-        lte: jest.fn().mockResolvedValue({
-          data: [
-            {
-              id: 'event-1',
-              name: 'Wedding Ceremony',
-              rsvp_deadline: deadlineStr,
-            },
-          ],
-          error: null,
-        }),
+        lte: jest.fn().mockReturnThis(),
       };
+      // The second eq() call (after lte) should resolve with data
+      (mockEventsQuery.eq as jest.Mock).mockReturnValueOnce(mockEventsQuery).mockResolvedValueOnce({
+        data: [
+          {
+            id: 'event-1',
+            name: 'Wedding Ceremony',
+            rsvp_deadline: deadlineStr,
+          },
+        ],
+        error: null,
+      });
 
-      // Mock guests query
+      // Mock guests query - needs to chain: select().not().eq()
       const mockGuestsQuery = {
         select: jest.fn().mockReturnThis(),
         not: jest.fn().mockReturnThis(),
@@ -78,16 +87,18 @@ describe('rsvpReminderService - Automated RSVP Reminders', () => {
         }),
       };
 
-      // Mock RSVPs query (no existing RSVP)
+      // Mock RSVPs query (no existing RSVP) - needs to chain: select().eq().eq()
       const mockRsvpsQuery = {
         select: jest.fn().mockReturnThis(),
-        eq: jest.fn().mockResolvedValue({
-          data: [],
-          error: null,
-        }),
+        eq: jest.fn().mockReturnThis(),
       };
+      // The second eq() call should resolve with empty data
+      (mockRsvpsQuery.eq as jest.Mock).mockReturnValueOnce(mockRsvpsQuery).mockResolvedValueOnce({
+        data: [],
+        error: null,
+      });
 
-      // Mock activities query
+      // Mock activities query - needs to chain: select().eq()
       const mockActivitiesQuery = {
         select: jest.fn().mockReturnThis(),
         eq: jest.fn().mockResolvedValue({
@@ -96,11 +107,12 @@ describe('rsvpReminderService - Automated RSVP Reminders', () => {
         }),
       };
 
-      mockSupabase.from
-        .mockReturnValueOnce(mockEventsQuery)
-        .mockReturnValueOnce(mockGuestsQuery)
-        .mockReturnValueOnce(mockRsvpsQuery)
-        .mockReturnValueOnce(mockActivitiesQuery);
+      // Set up the from() mock to return the right query chain in order
+      mockFromFn
+        .mockReturnValueOnce(mockEventsQuery)  // First call: events query
+        .mockReturnValueOnce(mockGuestsQuery)  // Second call: guests query
+        .mockReturnValueOnce(mockRsvpsQuery)   // Third call: rsvps query
+        .mockReturnValueOnce(mockActivitiesQuery); // Fourth call: activities query
 
       // Act: Find pending RSVPs with 7-day threshold
       const result = await findPendingRSVPs(7);
@@ -129,11 +141,13 @@ describe('rsvpReminderService - Automated RSVP Reminders', () => {
         eq: jest.fn().mockReturnThis(),
         not: jest.fn().mockReturnThis(),
         gte: jest.fn().mockReturnThis(),
-        lte: jest.fn().mockResolvedValue({
-          data: [], // No events within threshold
-          error: null,
-        }),
+        lte: jest.fn().mockReturnThis(),
       };
+      // The second eq() call (after lte) should resolve with empty data
+      (mockEventsQuery.eq as jest.Mock).mockReturnValueOnce(mockEventsQuery).mockResolvedValueOnce({
+        data: [], // No events within threshold
+        error: null,
+      });
 
       // Mock activities query
       const mockActivitiesQuery = {
@@ -144,7 +158,7 @@ describe('rsvpReminderService - Automated RSVP Reminders', () => {
         }),
       };
 
-      mockSupabase.from
+      mockFromFn
         .mockReturnValueOnce(mockEventsQuery)
         .mockReturnValueOnce(mockActivitiesQuery);
 
@@ -170,17 +184,19 @@ describe('rsvpReminderService - Automated RSVP Reminders', () => {
         eq: jest.fn().mockReturnThis(),
         not: jest.fn().mockReturnThis(),
         gte: jest.fn().mockReturnThis(),
-        lte: jest.fn().mockResolvedValue({
-          data: [
-            {
-              id: 'event-1',
-              name: 'Wedding Ceremony',
-              rsvp_deadline: deadlineStr,
-            },
-          ],
-          error: null,
-        }),
+        lte: jest.fn().mockReturnThis(),
       };
+      // The second eq() call (after lte) should resolve with data
+      (mockEventsQuery.eq as jest.Mock).mockReturnValueOnce(mockEventsQuery).mockResolvedValueOnce({
+        data: [
+          {
+            id: 'event-1',
+            name: 'Wedding Ceremony',
+            rsvp_deadline: deadlineStr,
+          },
+        ],
+        error: null,
+      });
 
       // Mock guests query
       const mockGuestsQuery = {
@@ -202,11 +218,13 @@ describe('rsvpReminderService - Automated RSVP Reminders', () => {
       // Mock RSVPs query (guest already responded with 'attending')
       const mockRsvpsQuery = {
         select: jest.fn().mockReturnThis(),
-        eq: jest.fn().mockResolvedValue({
-          data: [{ status: 'attending' }],
-          error: null,
-        }),
+        eq: jest.fn().mockReturnThis(),
       };
+      // The second eq() call should resolve with attending status
+      (mockRsvpsQuery.eq as jest.Mock).mockReturnValueOnce(mockRsvpsQuery).mockResolvedValueOnce({
+        data: [{ status: 'attending' }],
+        error: null,
+      });
 
       // Mock activities query
       const mockActivitiesQuery = {
@@ -217,7 +235,7 @@ describe('rsvpReminderService - Automated RSVP Reminders', () => {
         }),
       };
 
-      mockSupabase.from
+      mockFromFn
         .mockReturnValueOnce(mockEventsQuery)
         .mockReturnValueOnce(mockGuestsQuery)
         .mockReturnValueOnce(mockRsvpsQuery)
@@ -250,7 +268,7 @@ describe('rsvpReminderService - Automated RSVP Reminders', () => {
         data: { id: 'email-123' },
       });
 
-      // Mock database insert for logging
+      // Mock database insert for logging - needs to chain: insert()
       const mockInsertQuery = {
         insert: jest.fn().mockResolvedValue({
           data: { id: 'reminder-1' },
@@ -258,7 +276,7 @@ describe('rsvpReminderService - Automated RSVP Reminders', () => {
         }),
       };
 
-      mockSupabase.from.mockReturnValue(mockInsertQuery);
+      mockFromFn.mockReturnValue(mockInsertQuery);
 
       // Act: Send reminder
       const result = await sendRSVPReminder(guest);

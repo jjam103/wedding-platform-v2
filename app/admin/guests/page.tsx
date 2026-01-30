@@ -2,7 +2,7 @@
 
 export const dynamic = 'force-dynamic';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { createClient } from '@supabase/supabase-js';
 import { DataTableWithSuspense as DataTable, type ColumnDef } from '@/components/ui/DataTableWithSuspense';
 import { CollapsibleForm } from '@/components/admin/CollapsibleForm';
@@ -12,11 +12,14 @@ import { useToast } from '@/components/ui/ToastContext';
 import { ComponentErrorBoundary } from '@/components/ui/ErrorBoundary';
 import type { Guest } from '@/schemas/guestSchemas';
 import { createGuestSchema, updateGuestSchema } from '@/schemas/guestSchemas';
+import { createGroupSchema, updateGroupSchema } from '@/schemas/groupSchemas';
 import { exportToCSV as exportGuestsToCSV, importFromCSV as importGuestsFromCSV } from '@/services/guestService';
 
 interface Group {
   id: string;
   name: string;
+  description?: string | null;
+  guestCount?: number;
 }
 
 interface Activity {
@@ -74,6 +77,12 @@ export default function GuestsPage() {
   const [selectedGuestIds, setSelectedGuestIds] = useState<string[]>([]);
   const [csvImportErrors, setCsvImportErrors] = useState<string[]>([]);
   const [isImportDialogOpen, setIsImportDialogOpen] = useState(false);
+  
+  // Group management state
+  const [isGroupFormOpen, setIsGroupFormOpen] = useState(false);
+  const [selectedGroup, setSelectedGroup] = useState<Group | null>(null);
+  const [groupToDelete, setGroupToDelete] = useState<Group | null>(null);
+  const [isGroupDeleteDialogOpen, setIsGroupDeleteDialogOpen] = useState(false);
   
   // Advanced filter state
   const [rsvpStatusFilter, setRsvpStatusFilter] = useState<string>('');
@@ -150,7 +159,7 @@ export default function GuestsPage() {
    */
   const fetchGroups = useCallback(async () => {
     try {
-      const response = await fetch('/api/admin/groups');
+      const response = await fetch('/api/admin/guest-groups');
       if (!response.ok) {
         return;
       }
@@ -563,6 +572,96 @@ export default function GuestsPage() {
     }
   }, [selectedGuestIds, addToast, fetchGuests]);
 
+  /**
+   * Handle group form submission (create or update)
+   */
+  const handleGroupSubmit = useCallback(async (data: any) => {
+    try {
+      const isEdit = !!selectedGroup;
+      const url = isEdit ? `/api/admin/guest-groups/${selectedGroup.id}` : '/api/admin/guest-groups';
+      const method = isEdit ? 'PUT' : 'POST';
+
+      const response = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+        credentials: 'include', // Important: Include cookies for authentication
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        addToast({
+          type: 'success',
+          message: isEdit ? 'Group updated successfully' : 'Group created successfully',
+        });
+        
+        // Refresh groups list
+        await fetchGroups();
+        
+        // Clear selected group (form will stay open for creating more)
+        setSelectedGroup(null);
+      } else {
+        addToast({
+          type: 'error',
+          message: result.error?.message || 'Operation failed',
+        });
+      }
+    } catch (error) {
+      addToast({
+        type: 'error',
+        message: error instanceof Error ? error.message : 'Operation failed',
+      });
+    }
+  }, [selectedGroup, addToast, fetchGroups]);
+
+  /**
+   * Handle group delete click
+   */
+  const handleGroupDeleteClick = useCallback((group: Group) => {
+    setGroupToDelete(group);
+    setIsGroupDeleteDialogOpen(true);
+  }, []);
+
+  /**
+   * Handle group delete confirmation
+   */
+  const handleGroupDeleteConfirm = useCallback(async () => {
+    if (!groupToDelete) return;
+
+    try {
+      const response = await fetch(`/api/admin/guest-groups/${groupToDelete.id}`, {
+        method: 'DELETE',
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        addToast({
+          type: 'success',
+          message: 'Group deleted successfully',
+        });
+        
+        // Refresh groups list
+        await fetchGroups();
+        
+        // Close dialog
+        setIsGroupDeleteDialogOpen(false);
+        setGroupToDelete(null);
+      } else {
+        addToast({
+          type: 'error',
+          message: result.error?.message || 'Failed to delete group',
+        });
+      }
+    } catch (error) {
+      addToast({
+        type: 'error',
+        message: error instanceof Error ? error.message : 'Failed to delete group',
+      });
+    }
+  }, [groupToDelete, addToast, fetchGroups]);
+
   // Define table columns
   const columns: ColumnDef<GuestWithRSVPs>[] = [
     {
@@ -659,8 +758,8 @@ export default function GuestsPage() {
     },
   ];
 
-  // Define form fields
-  const formFields: GuestFormField[] = [
+  // Define form fields - memoized to update when groups change
+  const formFields: GuestFormField[] = useMemo(() => [
     {
       name: 'groupId',
       label: 'Group',
@@ -774,7 +873,7 @@ export default function GuestsPage() {
       placeholder: 'Enter any additional notes',
       rows: 3,
     },
-  ];
+  ], [groups]); // Re-create formFields when groups change
 
   return (
     <div className="space-y-6">
@@ -782,7 +881,7 @@ export default function GuestsPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-sage-900">Guest Management</h1>
-          <p className="text-sage-600 mt-1">Manage your wedding guest list</p>
+          <p className="text-sage-600 mt-1">Manage your wedding guest list and groups</p>
         </div>
         <div className="flex gap-2">
           <label className="cursor-pointer">
@@ -808,15 +907,193 @@ export default function GuestsPage() {
           >
             Export CSV
           </Button>
-          <Button
-            variant="primary"
-            onClick={handleAddGuest}
-            aria-label="Add new guest"
-            data-action="add-new"
-          >
-            + Add Guest
-          </Button>
         </div>
+      </div>
+
+      {/* Manage Groups Section */}
+      <div className="bg-white rounded-lg shadow-sm border border-sage-200">
+        {/* Header */}
+        <button
+          onClick={() => setIsGroupFormOpen(!isGroupFormOpen)}
+          className="w-full flex items-center justify-between px-4 py-3 bg-sage-50 hover:bg-sage-100 transition-colors rounded-t-lg"
+          aria-expanded={isGroupFormOpen}
+        >
+          <div className="flex-1 text-left">
+            <h2 className="text-lg font-semibold text-sage-900">Manage Groups</h2>
+            <p className="text-sm text-sage-600 mt-1">
+              {groups.length} group{groups.length !== 1 ? 's' : ''} • Click to {isGroupFormOpen ? 'collapse' : 'expand'}
+            </p>
+          </div>
+          <span 
+            className={`text-sage-600 transition-transform duration-300 ${isGroupFormOpen ? 'rotate-180' : ''}`}
+            aria-hidden="true"
+          >
+            ▼
+          </span>
+        </button>
+
+        {/* Collapsible Content */}
+        {isGroupFormOpen && (
+          <div className="p-4 space-y-4 border-t border-sage-200">
+            {/* Add Group Form */}
+            <div className="bg-sage-50 p-4 rounded-lg border border-sage-200">
+              <h3 className="text-md font-semibold text-sage-900 mb-3">
+                {selectedGroup ? 'Edit Group' : 'Add New Group'}
+              </h3>
+              <form
+                onSubmit={async (e) => {
+                  e.preventDefault();
+                  const form = e.currentTarget;
+                  const formData = new FormData(form);
+                  const data = {
+                    name: formData.get('name') as string,
+                    description: formData.get('description') as string || null,
+                  };
+                  
+                  // Call submit handler
+                  await handleGroupSubmit(data);
+                  
+                  // Reset form only if not editing (editing closes the form)
+                  if (!selectedGroup && form) {
+                    form.reset();
+                  }
+                }}
+                className="space-y-3"
+              >
+                <div>
+                  <label htmlFor="group-name" className="block text-sm font-medium text-sage-700 mb-1">
+                    Group Name <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    id="group-name"
+                    name="name"
+                    type="text"
+                    required
+                    defaultValue={selectedGroup?.name || ''}
+                    placeholder="e.g., Smith Family, Bride's Friends"
+                    className="w-full px-3 py-2 border border-sage-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-jungle-500"
+                  />
+                </div>
+                <div>
+                  <label htmlFor="group-description" className="block text-sm font-medium text-sage-700 mb-1">
+                    Description
+                  </label>
+                  <textarea
+                    id="group-description"
+                    name="description"
+                    rows={2}
+                    defaultValue={selectedGroup?.description || ''}
+                    placeholder="Optional description of the group"
+                    className="w-full px-3 py-2 border border-sage-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-jungle-500"
+                  />
+                </div>
+                <div className="flex gap-2 pt-2">
+                  <button
+                    type="submit"
+                    className="px-4 py-2 bg-jungle-600 text-white rounded-lg hover:bg-jungle-700 transition-colors font-medium shadow-sm"
+                  >
+                    {selectedGroup ? 'Update Group' : 'Create Group'}
+                  </button>
+                  {selectedGroup && (
+                    <button
+                      type="button"
+                      onClick={() => setSelectedGroup(null)}
+                      className="px-4 py-2 bg-sage-200 text-sage-800 rounded-lg hover:bg-sage-300 transition-colors font-medium"
+                    >
+                      Cancel
+                    </button>
+                  )}
+                </div>
+              </form>
+            </div>
+
+            {/* Current Groups List */}
+            {groups.length > 0 && (
+              <div>
+                <h3 className="text-md font-semibold text-sage-900 mb-3">Current Groups</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                  {groups.map((group) => (
+                    <div
+                      key={group.id}
+                      className="flex items-center justify-between p-3 bg-white rounded-lg border border-sage-200 hover:border-jungle-300 transition-colors"
+                    >
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium text-sage-900 truncate">{group.name}</p>
+                        {group.description && (
+                          <p className="text-sm text-sage-600 truncate">{group.description}</p>
+                        )}
+                        {group.guestCount !== undefined && (
+                          <p className="text-xs text-sage-500 mt-1">
+                            {group.guestCount} guest{group.guestCount !== 1 ? 's' : ''}
+                          </p>
+                        )}
+                      </div>
+                      <div className="flex gap-2 ml-3">
+                        <button
+                          onClick={() => setSelectedGroup(group)}
+                          className="text-ocean-600 hover:text-ocean-800 text-sm font-medium"
+                          aria-label={`Edit ${group.name}`}
+                        >
+                          Edit
+                        </button>
+                        <button
+                          onClick={() => handleGroupDeleteClick(group)}
+                          className="text-volcano-600 hover:text-volcano-800 text-sm font-medium"
+                          aria-label={`Delete ${group.name}`}
+                        >
+                          Delete
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Add New Guest Section - Collapsible */}
+      <div className="bg-white rounded-lg shadow-sm border border-sage-200">
+        {/* Header */}
+        <button
+          onClick={() => setIsFormOpen(!isFormOpen)}
+          className="w-full flex items-center justify-between px-4 py-3 bg-sage-50 hover:bg-sage-100 transition-colors rounded-t-lg"
+          aria-expanded={isFormOpen}
+        >
+          <div className="flex-1 text-left">
+            <h2 className="text-lg font-semibold text-sage-900">Add New Guest</h2>
+            <p className="text-sm text-sage-600 mt-1">
+              Click to {isFormOpen ? 'collapse' : 'expand'}
+            </p>
+          </div>
+          <span 
+            className={`text-sage-600 transition-transform duration-300 ${isFormOpen ? 'rotate-180' : ''}`}
+            aria-hidden="true"
+          >
+            ▼
+          </span>
+        </button>
+
+        {/* Collapsible Form Content */}
+        {isFormOpen && (
+          <div className="p-4 border-t border-sage-200">
+            <CollapsibleForm
+              title={selectedGuest ? 'Edit Guest' : 'Add Guest'}
+              fields={formFields}
+              schema={selectedGuest ? updateGuestSchema : createGuestSchema}
+              onSubmit={handleSubmit}
+              onCancel={() => {
+                setIsFormOpen(false);
+                setSelectedGuest(null);
+              }}
+              initialData={selectedGuest || {}}
+              isOpen={true}
+              onToggle={() => {}}
+              submitLabel={selectedGuest ? 'Update' : 'Create'}
+            />
+          </div>
+        )}
       </div>
 
       {/* Advanced Filters */}
@@ -1008,29 +1285,6 @@ export default function GuestsPage() {
         ))}
       </ComponentErrorBoundary>
 
-      {/* Collapsible Add/Edit Form */}
-      <CollapsibleForm
-        title={selectedGuest ? 'Edit Guest' : 'Add Guest'}
-        fields={formFields}
-        schema={selectedGuest ? updateGuestSchema : createGuestSchema}
-        onSubmit={handleSubmit}
-        onCancel={() => {
-          setIsFormOpen(false);
-          setSelectedGuest(null);
-        }}
-        initialData={selectedGuest || {}}
-        isOpen={isFormOpen}
-        onToggle={() => {
-          if (isFormOpen) {
-            setIsFormOpen(false);
-            setSelectedGuest(null);
-          } else {
-            setIsFormOpen(true);
-          }
-        }}
-        submitLabel={selectedGuest ? 'Update' : 'Create'}
-      />
-
       {/* Delete Confirmation Dialog */}
       <ConfirmDialog
         isOpen={isDeleteDialogOpen}
@@ -1094,6 +1348,25 @@ export default function GuestsPage() {
           </div>
         </div>
       )}
+
+      {/* Group Delete Confirmation Dialog */}
+      <ConfirmDialog
+        isOpen={isGroupDeleteDialogOpen}
+        onClose={() => {
+          setIsGroupDeleteDialogOpen(false);
+          setGroupToDelete(null);
+        }}
+        onConfirm={handleGroupDeleteConfirm}
+        title="Delete Group"
+        message={
+          groupToDelete?.guestCount && groupToDelete.guestCount > 0
+            ? `Cannot delete "${groupToDelete?.name}" because it has ${groupToDelete.guestCount} guest${groupToDelete.guestCount > 1 ? 's' : ''}. Please reassign or delete the guests first.`
+            : `Are you sure you want to delete "${groupToDelete?.name}"? This action cannot be undone.`
+        }
+        confirmLabel="Delete"
+        cancelLabel="Cancel"
+        variant="danger"
+      />
     </div>
   );
 }

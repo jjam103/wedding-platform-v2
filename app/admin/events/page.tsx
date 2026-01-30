@@ -98,7 +98,7 @@ export default function EventsPage() {
 
       const result = await response.json();
       if (result.success) {
-        setLocations(result.data.locations || []);
+        setLocations(result.data || []);
       }
     } catch (error) {
       // Silently fail for locations - not critical
@@ -142,11 +142,12 @@ export default function EventsPage() {
 
   /**
    * Handle manage sections button click
+   * TODO: Implement sections management page
    */
-  const handleManageSections = useCallback((event: Event) => {
-    // Navigate to section editor for this event
-    router.push(`/admin/events/${event.id}/sections`);
-  }, [router]);
+  // const handleManageSections = useCallback((event: Event) => {
+  //   // Navigate to section editor for this event
+  //   router.push(`/admin/events/${event.id}/sections`);
+  // }, [router]);
 
   /**
    * Handle form submission (create or update)
@@ -375,6 +376,7 @@ export default function EventsPage() {
           >
             View
           </Button>
+          {/* TODO: Implement sections management page
           <Button
             variant="secondary"
             size="sm"
@@ -385,6 +387,7 @@ export default function EventsPage() {
           >
             Manage Sections
           </Button>
+          */}
         </div>
       ),
     },
@@ -422,13 +425,13 @@ export default function EventsPage() {
     {
       name: 'startDate',
       label: 'Start Date & Time',
-      type: 'datetime',
+      type: 'datetime-local',
       required: true,
     },
     {
       name: 'endDate',
       label: 'End Date & Time',
-      type: 'datetime',
+      type: 'datetime-local',
       required: false,
       helpText: 'Optional end date for multi-day events',
     },
@@ -451,7 +454,7 @@ export default function EventsPage() {
     {
       name: 'rsvpDeadline',
       label: 'RSVP Deadline',
-      type: 'datetime',
+      type: 'datetime-local',
       required: false,
       helpText: 'Deadline for guests to RSVP',
     },

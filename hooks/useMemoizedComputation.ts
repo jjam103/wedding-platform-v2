@@ -137,7 +137,7 @@ export function useAggregatedStats<T>(
     numericFields.forEach((field) => {
       const values = data
         .map((item) => item[field])
-        .filter((val): val is number => typeof val === 'number');
+        .filter((val) => typeof val === 'number') as number[];
 
       if (values.length === 0) {
         stats[String(field)] = { sum: 0, avg: 0, min: 0, max: 0 };

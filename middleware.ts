@@ -112,18 +112,36 @@ export async function middleware(request: NextRequest) {
 }
 
 /**
- * Redirects to login page with return URL.
+ * Redirects to login page with return URL (for page requests).
+ * Returns JSON error for API requests.
  */
 function redirectToLogin(request: NextRequest): NextResponse {
+  // For API routes, return JSON error instead of redirect
+  if (request.nextUrl.pathname.startsWith('/api/')) {
+    return NextResponse.json(
+      { success: false, error: { code: 'UNAUTHORIZED', message: 'Authentication required' } },
+      { status: 401 }
+    );
+  }
+  
   const loginUrl = new URL('/auth/login', request.url);
   loginUrl.searchParams.set('returnTo', request.nextUrl.pathname);
   return NextResponse.redirect(loginUrl);
 }
 
 /**
- * Redirects to unauthorized page.
+ * Redirects to unauthorized page (for page requests).
+ * Returns JSON error for API requests.
  */
 function redirectToUnauthorized(request: NextRequest): NextResponse {
+  // For API routes, return JSON error instead of redirect
+  if (request.nextUrl.pathname.startsWith('/api/')) {
+    return NextResponse.json(
+      { success: false, error: { code: 'FORBIDDEN', message: 'Insufficient permissions' } },
+      { status: 403 }
+    );
+  }
+  
   const unauthorizedUrl = new URL('/auth/unauthorized', request.url);
   return NextResponse.redirect(unauthorizedUrl);
 }

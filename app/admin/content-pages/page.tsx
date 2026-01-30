@@ -207,8 +207,6 @@ export default function ContentPagesPage() {
         <DataTable
           data={pages || []}
           columns={columns}
-          searchable
-          searchPlaceholder="Search pages..."
         />
       </div>
 
@@ -220,7 +218,7 @@ export default function ContentPagesPage() {
           confirmLabel="Delete"
           cancelLabel="Cancel"
           onConfirm={handleDelete}
-          onCancel={() => setDeleteConfirmPage(null)}
+          onClose={() => setDeleteConfirmPage(null)}
           variant="danger"
         />
       )}

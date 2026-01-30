@@ -154,7 +154,9 @@ describe('useSections', () => {
         expect(result.current.data).toEqual(initialData);
       });
 
-      await result.current.refetch();
+      await waitFor(async () => {
+        await result.current.refetch();
+      });
 
       await waitFor(() => {
         expect(result.current.data).toEqual(updatedData);
@@ -177,7 +179,9 @@ describe('useSections', () => {
         expect(result.current.error).toBeInstanceOf(Error);
       });
 
-      await result.current.refetch();
+      await waitFor(async () => {
+        await result.current.refetch();
+      });
 
       await waitFor(() => {
         expect(result.current.error).toBeNull();
@@ -225,13 +229,20 @@ describe('useSections', () => {
         expect(result.current.data).toEqual(existingData);
       });
 
-      const createResult = await result.current.create({
-        layout: 'two-column',
-        displayOrder: 2,
+      let createResult;
+      await waitFor(async () => {
+        createResult = await result.current.create({
+          layout: 'two-column',
+          displayOrder: 2,
+        });
       });
 
       expect(createResult.success).toBe(true);
-      expect(result.current.data).toHaveLength(2);
+      
+      await waitFor(() => {
+        expect(result.current.data).toHaveLength(2);
+      });
+      
       expect(result.current.data[1]).toEqual(newSection);
     });
 
@@ -274,12 +285,17 @@ describe('useSections', () => {
         expect(result.current.data).toEqual(existingData);
       });
 
-      await result.current.create({
-        layout: 'two-column',
-        displayOrder: 1,
+      await waitFor(async () => {
+        await result.current.create({
+          layout: 'two-column',
+          displayOrder: 1,
+        });
       });
 
-      expect(result.current.data[0].displayOrder).toBe(1);
+      await waitFor(() => {
+        expect(result.current.data[0].displayOrder).toBe(1);
+      });
+      
       expect(result.current.data[1].displayOrder).toBe(2);
     });
 
@@ -318,12 +334,18 @@ describe('useSections', () => {
         expect(result.current.data[0].layout).toBe('one-column');
       });
 
-      const updateResult = await result.current.update('section-1', {
-        layout: 'two-column',
+      let updateResult;
+      await waitFor(async () => {
+        updateResult = await result.current.update('section-1', {
+          layout: 'two-column',
+        });
       });
 
       expect(updateResult.success).toBe(true);
-      expect(result.current.data[0].layout).toBe('two-column');
+      
+      await waitFor(() => {
+        expect(result.current.data[0].layout).toBe('two-column');
+      });
     });
 
     it('should optimistically remove section on delete', async () => {
@@ -364,10 +386,17 @@ describe('useSections', () => {
         expect(result.current.data).toHaveLength(2);
       });
 
-      const deleteResult = await result.current.remove('section-1');
+      let deleteResult;
+      await waitFor(async () => {
+        deleteResult = await result.current.remove('section-1');
+      });
 
       expect(deleteResult.success).toBe(true);
-      expect(result.current.data).toHaveLength(1);
+      
+      await waitFor(() => {
+        expect(result.current.data).toHaveLength(1);
+      });
+      
       expect(result.current.data[0].id).toBe('section-2');
     });
 
@@ -417,14 +446,21 @@ describe('useSections', () => {
         expect(result.current.data).toEqual(initialData);
       });
 
-      const reorderResult = await result.current.reorder([
-        'section-3',
-        'section-1',
-        'section-2',
-      ]);
+      let reorderResult;
+      await waitFor(async () => {
+        reorderResult = await result.current.reorder([
+          'section-3',
+          'section-1',
+          'section-2',
+        ]);
+      });
 
       expect(reorderResult.success).toBe(true);
-      expect(result.current.data[0].id).toBe('section-3');
+      
+      await waitFor(() => {
+        expect(result.current.data[0].id).toBe('section-3');
+      });
+      
       expect(result.current.data[1].id).toBe('section-1');
       expect(result.current.data[2].id).toBe('section-2');
     });

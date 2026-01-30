@@ -2,7 +2,7 @@ import { describe, it, expect, jest, beforeEach } from '@jest/globals';
 import type { CreateGuestDTO, UpdateGuestDTO } from '@/schemas/guestSchemas';
 
 // Mock Supabase before importing guestService
-const mockFrom = jest.fn();
+const mockFrom = jest.fn() as jest.Mock;
 jest.mock('@/lib/supabase', () => ({
   supabase: {
     from: mockFrom,
@@ -11,6 +11,11 @@ jest.mock('@/lib/supabase', () => ({
 
 // Import after mocking
 import * as guestService from './guestService';
+
+// Helper to create properly typed mock chains
+function mockSupabaseChain(chain: any) {
+  return chain as any;
+}
 
 describe('guestService', () => {
   beforeEach(() => {
@@ -52,15 +57,18 @@ describe('guestService', () => {
         updated_at: '2024-01-01T00:00:00Z',
       };
 
-      mockFrom.mockReturnValue({
-        insert: jest.fn().mockReturnValue({
-          select: jest.fn().mockReturnValue({
-            single: jest.fn().mockResolvedValue({
-              data: mockGuest,
-              error: null,
-            }),
-          }),
-        }),
+      const mockSingle = (jest.fn() as any).mockResolvedValue({
+        data: mockGuest,
+        error: null,
+      } as any);
+      const mockSelect = (jest.fn() as any).mockReturnValue({
+        single: mockSingle,
+      });
+      const mockInsert = (jest.fn() as any).mockReturnValue({
+        select: mockSelect,
+      });
+      (mockFrom as any).mockReturnValue({
+        insert: mockInsert,
       });
 
       const result = await guestService.create(validData);
@@ -105,15 +113,18 @@ describe('guestService', () => {
     });
 
     it('should return DATABASE_ERROR when insert fails', async () => {
-      mockFrom.mockReturnValue({
-        insert: jest.fn().mockReturnValue({
-          select: jest.fn().mockReturnValue({
-            single: jest.fn().mockResolvedValue({
-              data: null,
-              error: { message: 'Connection failed', code: 'DB_ERROR' },
-            }),
-          }),
-        }),
+      const mockSingle = (jest.fn() as any).mockResolvedValue({
+        data: null,
+        error: { message: 'Connection failed', code: 'DB_ERROR' },
+      } as any);
+      const mockSelect = (jest.fn() as any).mockReturnValue({
+        single: mockSingle,
+      });
+      const mockInsert = (jest.fn() as any).mockReturnValue({
+        select: mockSelect,
+      });
+      (mockFrom as any).mockReturnValue({
+        insert: mockInsert,
       });
 
       const result = await guestService.create(validData);
@@ -155,15 +166,18 @@ describe('guestService', () => {
         updated_at: '2024-01-01T00:00:00Z',
       };
 
-      mockFrom.mockReturnValue({
-        insert: jest.fn().mockReturnValue({
-          select: jest.fn().mockReturnValue({
-            single: jest.fn().mockResolvedValue({
-              data: mockGuest,
-              error: null,
-            }),
-          }),
-        }),
+      const mockSingle = (jest.fn() as any).mockResolvedValue({
+        data: mockGuest,
+        error: null,
+      } as any);
+      const mockSelect = (jest.fn() as any).mockReturnValue({
+        single: mockSingle,
+      });
+      const mockInsert = (jest.fn() as any).mockReturnValue({
+        select: mockSelect,
+      });
+      (mockFrom as any).mockReturnValue({
+        insert: mockInsert,
       });
 
       const result = await guestService.create(maliciousData);
@@ -206,15 +220,18 @@ describe('guestService', () => {
         updated_at: '2024-01-01T00:00:00Z',
       };
 
-      mockFrom.mockReturnValue({
-        select: jest.fn().mockReturnValue({
-          eq: jest.fn().mockReturnValue({
-            single: jest.fn().mockResolvedValue({
-              data: mockGuest,
-              error: null,
-            }),
-          }),
-        }),
+      const mockSingle = (jest.fn() as any).mockResolvedValue({
+        data: mockGuest,
+        error: null,
+      } as any);
+      const mockEq = (jest.fn() as any).mockReturnValue({
+        single: mockSingle,
+      });
+      const mockSelect = (jest.fn() as any).mockReturnValue({
+        eq: mockEq,
+      });
+      (mockFrom as any).mockReturnValue({
+        select: mockSelect,
       });
 
       const result = await guestService.get(validId);
@@ -236,15 +253,18 @@ describe('guestService', () => {
     });
 
     it('should return NOT_FOUND when guest does not exist', async () => {
-      mockFrom.mockReturnValue({
-        select: jest.fn().mockReturnValue({
-          eq: jest.fn().mockReturnValue({
-            single: jest.fn().mockResolvedValue({
-              data: null,
-              error: { code: 'PGRST116', message: 'Not found' },
-            }),
-          }),
-        }),
+      const mockSingle = (jest.fn() as any).mockResolvedValue({
+        data: null,
+        error: { code: 'PGRST116', message: 'Not found' },
+      } as any);
+      const mockEq = (jest.fn() as any).mockReturnValue({
+        single: mockSingle,
+      });
+      const mockSelect = (jest.fn() as any).mockReturnValue({
+        eq: mockEq,
+      });
+      (mockFrom as any).mockReturnValue({
+        select: mockSelect,
       });
 
       const result = await guestService.get('123e4567-e89b-12d3-a456-426614174000');
@@ -288,17 +308,21 @@ describe('guestService', () => {
         updated_at: '2024-01-01T00:00:00Z',
       };
 
-      mockFrom.mockReturnValue({
-        update: jest.fn().mockReturnValue({
-          eq: jest.fn().mockReturnValue({
-            select: jest.fn().mockReturnValue({
-              single: jest.fn().mockResolvedValue({
-                data: mockGuest,
-                error: null,
-              }),
-            }),
-          }),
-        }),
+      const mockSingle = (jest.fn() as any).mockResolvedValue({
+        data: mockGuest,
+        error: null,
+      } as any);
+      const mockSelect = (jest.fn() as any).mockReturnValue({
+        single: mockSingle,
+      });
+      const mockEq = (jest.fn() as any).mockReturnValue({
+        select: mockSelect,
+      });
+      const mockUpdate = (jest.fn() as any).mockReturnValue({
+        eq: mockEq,
+      });
+      (mockFrom as any).mockReturnValue({
+        update: mockUpdate,
       });
 
       const result = await guestService.update(validId, updateData);
@@ -320,17 +344,21 @@ describe('guestService', () => {
     });
 
     it('should return NOT_FOUND when guest does not exist', async () => {
-      mockFrom.mockReturnValue({
-        update: jest.fn().mockReturnValue({
-          eq: jest.fn().mockReturnValue({
-            select: jest.fn().mockReturnValue({
-              single: jest.fn().mockResolvedValue({
-                data: null,
-                error: { code: 'PGRST116', message: 'Not found' },
-              }),
-            }),
-          }),
-        }),
+      const mockSingle = (jest.fn() as any).mockResolvedValue({
+        data: null,
+        error: { code: 'PGRST116', message: 'Not found' },
+      } as any);
+      const mockSelect = (jest.fn() as any).mockReturnValue({
+        single: mockSingle,
+      });
+      const mockEq = (jest.fn() as any).mockReturnValue({
+        select: mockSelect,
+      });
+      const mockUpdate = (jest.fn() as any).mockReturnValue({
+        eq: mockEq,
+      });
+      (mockFrom as any).mockReturnValue({
+        update: mockUpdate,
       });
 
       const result = await guestService.update(validId, updateData);
@@ -371,17 +399,21 @@ describe('guestService', () => {
         updated_at: '2024-01-01T00:00:00Z',
       };
 
-      mockFrom.mockReturnValue({
-        update: jest.fn().mockReturnValue({
-          eq: jest.fn().mockReturnValue({
-            select: jest.fn().mockReturnValue({
-              single: jest.fn().mockResolvedValue({
-                data: mockGuest,
-                error: null,
-              }),
-            }),
-          }),
-        }),
+      const mockSingle = (jest.fn() as any).mockResolvedValue({
+        data: mockGuest,
+        error: null,
+      } as any);
+      const mockSelect = (jest.fn() as any).mockReturnValue({
+        single: mockSingle,
+      });
+      const mockEq = (jest.fn() as any).mockReturnValue({
+        select: mockSelect,
+      });
+      const mockUpdate = (jest.fn() as any).mockReturnValue({
+        eq: mockEq,
+      });
+      (mockFrom as any).mockReturnValue({
+        update: mockUpdate,
       });
 
       const result = await guestService.update(validId, maliciousUpdate);
@@ -396,12 +428,14 @@ describe('guestService', () => {
 
   describe('deleteGuest', () => {
     it('should return success when guest is deleted', async () => {
-      mockFrom.mockReturnValue({
-        delete: jest.fn().mockReturnValue({
-          eq: jest.fn().mockResolvedValue({
-            error: null,
-          }),
-        }),
+      const mockEq = (jest.fn() as any).mockResolvedValue({
+        error: null,
+      } as any);
+      const mockDelete = (jest.fn() as any).mockReturnValue({
+        eq: mockEq,
+      });
+      (mockFrom as any).mockReturnValue({
+        delete: mockDelete,
       });
 
       const result = await guestService.deleteGuest('123e4567-e89b-12d3-a456-426614174000');
@@ -419,12 +453,14 @@ describe('guestService', () => {
     });
 
     it('should return DATABASE_ERROR when delete fails', async () => {
-      mockFrom.mockReturnValue({
-        delete: jest.fn().mockReturnValue({
-          eq: jest.fn().mockResolvedValue({
-            error: { message: 'Delete failed', code: 'DB_ERROR' },
-          }),
-        }),
+      const mockEq = (jest.fn() as any).mockResolvedValue({
+        error: { message: 'Delete failed', code: 'DB_ERROR' },
+      } as any);
+      const mockDelete = (jest.fn() as any).mockReturnValue({
+        eq: mockEq,
+      });
+      (mockFrom as any).mockReturnValue({
+        delete: mockDelete,
       });
 
       const result = await guestService.deleteGuest('123e4567-e89b-12d3-a456-426614174000');
@@ -487,18 +523,22 @@ describe('guestService', () => {
         },
       ];
 
-      mockFrom.mockReturnValue({
-        select: jest.fn().mockReturnValue({
-          range: jest.fn().mockReturnValue({
-            order: jest.fn().mockReturnValue({
-              order: jest.fn().mockResolvedValue({
-                data: mockGuests,
-                error: null,
-                count: 2,
-              }),
-            }),
-          }),
-        }),
+      const mockOrder2 = (jest.fn() as any).mockResolvedValue({
+        data: mockGuests,
+        error: null,
+        count: 2,
+      } as any);
+      const mockOrder1 = (jest.fn() as any).mockReturnValue({
+        order: mockOrder2,
+      });
+      const mockRange = (jest.fn() as any).mockReturnValue({
+        order: mockOrder1,
+      });
+      const mockSelect = (jest.fn() as any).mockReturnValue({
+        range: mockRange,
+      });
+      (mockFrom as any).mockReturnValue({
+        select: mockSelect,
       });
 
       const result = await guestService.list({});
@@ -513,20 +553,25 @@ describe('guestService', () => {
     });
 
     it('should filter by groupId', async () => {
-      mockFrom.mockReturnValue({
-        select: jest.fn().mockReturnValue({
-          eq: jest.fn().mockReturnValue({
-            range: jest.fn().mockReturnValue({
-              order: jest.fn().mockReturnValue({
-                order: jest.fn().mockResolvedValue({
-                  data: [],
-                  error: null,
-                  count: 0,
-                }),
-              }),
-            }),
-          }),
-        }),
+      const mockOrder2 = (jest.fn() as any).mockResolvedValue({
+        data: [],
+        error: null,
+        count: 0,
+      } as any);
+      const mockOrder1 = (jest.fn() as any).mockReturnValue({
+        order: mockOrder2,
+      });
+      const mockRange = (jest.fn() as any).mockReturnValue({
+        order: mockOrder1,
+      });
+      const mockEq = (jest.fn() as any).mockReturnValue({
+        range: mockRange,
+      });
+      const mockSelect = (jest.fn() as any).mockReturnValue({
+        eq: mockEq,
+      });
+      (mockFrom as any).mockReturnValue({
+        select: mockSelect,
       });
 
       const result = await guestService.list({ groupId: '123e4567-e89b-12d3-a456-426614174000' });
@@ -572,20 +617,25 @@ describe('guestService', () => {
         },
       ];
 
-      mockFrom.mockReturnValue({
-        select: jest.fn().mockReturnValue({
-          or: jest.fn().mockReturnValue({
-            range: jest.fn().mockReturnValue({
-              order: jest.fn().mockReturnValue({
-                order: jest.fn().mockResolvedValue({
-                  data: mockGuests,
-                  error: null,
-                  count: 1,
-                }),
-              }),
-            }),
-          }),
-        }),
+      const mockOrder2 = (jest.fn() as any).mockResolvedValue({
+        data: mockGuests,
+        error: null,
+        count: 1,
+      } as any);
+      const mockOrder1 = (jest.fn() as any).mockReturnValue({
+        order: mockOrder2,
+      });
+      const mockRange = (jest.fn() as any).mockReturnValue({
+        order: mockOrder1,
+      });
+      const mockOr = (jest.fn() as any).mockReturnValue({
+        range: mockRange,
+      });
+      const mockSelect = (jest.fn() as any).mockReturnValue({
+        or: mockOr,
+      });
+      (mockFrom as any).mockReturnValue({
+        select: mockSelect,
       });
 
       const result = await guestService.search({ query: 'John' });
@@ -609,20 +659,25 @@ describe('guestService', () => {
     it('should sanitize search query to prevent SQL injection', async () => {
       const maliciousQuery = "'; DROP TABLE guests; --";
 
-      mockFrom.mockReturnValue({
-        select: jest.fn().mockReturnValue({
-          or: jest.fn().mockReturnValue({
-            range: jest.fn().mockReturnValue({
-              order: jest.fn().mockReturnValue({
-                order: jest.fn().mockResolvedValue({
-                  data: [],
-                  error: null,
-                  count: 0,
-                }),
-              }),
-            }),
-          }),
-        }),
+      const mockOrder2 = (jest.fn() as any).mockResolvedValue({
+        data: [],
+        error: null,
+        count: 0,
+      } as any);
+      const mockOrder1 = (jest.fn() as any).mockReturnValue({
+        order: mockOrder2,
+      });
+      const mockRange = (jest.fn() as any).mockReturnValue({
+        order: mockOrder1,
+      });
+      const mockOr = (jest.fn() as any).mockReturnValue({
+        range: mockRange,
+      });
+      const mockSelect = (jest.fn() as any).mockReturnValue({
+        or: mockOr,
+      });
+      (mockFrom as any).mockReturnValue({
+        select: mockSelect,
       });
 
       const result = await guestService.search({ query: maliciousQuery });
@@ -669,15 +724,18 @@ describe('guestService', () => {
         updated_at: '2024-01-01T00:00:00Z',
       }));
 
-      mockFrom.mockReturnValue({
-        update: jest.fn().mockReturnValue({
-          in: jest.fn().mockReturnValue({
-            select: jest.fn().mockResolvedValue({
-              data: mockGuests,
-              error: null,
-            }),
-          }),
-        }),
+      const mockSelect = (jest.fn() as any).mockResolvedValue({
+        data: mockGuests,
+        error: null,
+      } as any);
+      const mockIn = (jest.fn() as any).mockReturnValue({
+        select: mockSelect,
+      });
+      const mockUpdate = (jest.fn() as any).mockReturnValue({
+        in: mockIn,
+      });
+      (mockFrom as any).mockReturnValue({
+        update: mockUpdate,
       });
 
       const result = await guestService.bulkUpdate(validIds, updateData);
@@ -752,15 +810,18 @@ describe('guestService', () => {
         updated_at: '2024-01-01T00:00:00Z',
       }));
 
-      mockFrom.mockReturnValue({
-        update: jest.fn().mockReturnValue({
-          in: jest.fn().mockReturnValue({
-            select: jest.fn().mockResolvedValue({
-              data: mockGuests,
-              error: null,
-            }),
-          }),
-        }),
+      const mockSelect = (jest.fn() as any).mockResolvedValue({
+        data: mockGuests,
+        error: null,
+      } as any);
+      const mockIn = (jest.fn() as any).mockReturnValue({
+        select: mockSelect,
+      });
+      const mockUpdate = (jest.fn() as any).mockReturnValue({
+        in: mockIn,
+      });
+      (mockFrom as any).mockReturnValue({
+        update: mockUpdate,
       });
 
       const result = await guestService.bulkUpdate(validIds, maliciousData);
@@ -800,15 +861,18 @@ describe('guestService', () => {
         updated_at: '2024-01-01T00:00:00Z',
       }));
 
-      mockFrom.mockReturnValue({
-        update: jest.fn().mockReturnValue({
-          in: jest.fn().mockReturnValue({
-            select: jest.fn().mockResolvedValue({
-              data: mockGuests,
-              error: null,
-            }),
-          }),
-        }),
+      const mockSelect = (jest.fn() as any).mockResolvedValue({
+        data: mockGuests,
+        error: null,
+      } as any);
+      const mockIn = (jest.fn() as any).mockReturnValue({
+        select: mockSelect,
+      });
+      const mockUpdate = (jest.fn() as any).mockReturnValue({
+        in: mockIn,
+      });
+      (mockFrom as any).mockReturnValue({
+        update: mockUpdate,
       });
 
       const result = await guestService.bulkUpdate(validIds, updateData);
@@ -821,15 +885,18 @@ describe('guestService', () => {
     });
 
     it('should return DATABASE_ERROR when update fails', async () => {
-      mockFrom.mockReturnValue({
-        update: jest.fn().mockReturnValue({
-          in: jest.fn().mockReturnValue({
-            select: jest.fn().mockResolvedValue({
-              data: null,
-              error: { message: 'Update failed', code: 'DB_ERROR' },
-            }),
-          }),
-        }),
+      const mockSelect = (jest.fn() as any).mockResolvedValue({
+        data: null,
+        error: { message: 'Update failed', code: 'DB_ERROR' },
+      } as any);
+      const mockIn = (jest.fn() as any).mockReturnValue({
+        select: mockSelect,
+      });
+      const mockUpdate = (jest.fn() as any).mockReturnValue({
+        in: mockIn,
+      });
+      (mockFrom as any).mockReturnValue({
+        update: mockUpdate,
       });
 
       const result = await guestService.bulkUpdate(validIds, updateData);
@@ -849,13 +916,15 @@ describe('guestService', () => {
     ];
 
     it('should return success when guests are deleted', async () => {
-      mockFrom.mockReturnValue({
-        delete: jest.fn().mockReturnValue({
-          in: jest.fn().mockResolvedValue({
-            error: null,
-            count: 3,
-          }),
-        }),
+      const mockIn = (jest.fn() as any).mockResolvedValue({
+        error: null,
+        count: 3,
+      } as any);
+      const mockDelete = (jest.fn() as any).mockReturnValue({
+        in: mockIn,
+      });
+      (mockFrom as any).mockReturnValue({
+        delete: mockDelete,
       });
 
       const result = await guestService.bulkDelete(validIds);
@@ -885,13 +954,15 @@ describe('guestService', () => {
     });
 
     it('should return DATABASE_ERROR when delete fails', async () => {
-      mockFrom.mockReturnValue({
-        delete: jest.fn().mockReturnValue({
-          in: jest.fn().mockResolvedValue({
-            error: { message: 'Delete failed', code: 'DB_ERROR' },
-            count: null,
-          }),
-        }),
+      const mockIn = (jest.fn() as any).mockResolvedValue({
+        error: { message: 'Delete failed', code: 'DB_ERROR' },
+        count: null,
+      } as any);
+      const mockDelete = (jest.fn() as any).mockReturnValue({
+        in: mockIn,
+      });
+      (mockFrom as any).mockReturnValue({
+        delete: mockDelete,
       });
 
       const result = await guestService.bulkDelete(validIds);
@@ -904,19 +975,510 @@ describe('guestService', () => {
 
     it('should succeed even if some IDs do not exist', async () => {
       // Supabase doesn't error if some IDs don't exist, it just deletes what exists
-      mockFrom.mockReturnValue({
-        delete: jest.fn().mockReturnValue({
-          in: jest.fn().mockResolvedValue({
-            error: null,
-            count: 2, // Only 2 out of 3 existed
-          }),
-        }),
+      const mockIn = (jest.fn() as any).mockResolvedValue({
+        error: null,
+        count: 2, // Only 2 out of 3 existed
+      } as any);
+      const mockDelete = (jest.fn() as any).mockReturnValue({
+        in: mockIn,
+      });
+      (mockFrom as any).mockReturnValue({
+        delete: mockDelete,
       });
 
       const result = await guestService.bulkDelete(validIds);
 
       expect(result.success).toBe(true);
       // This is acceptable behavior for bulk delete
+    });
+  });
+
+  describe('bulkCreate', () => {
+    const validGuestsData: CreateGuestDTO[] = [
+      {
+        firstName: 'John',
+        lastName: 'Doe',
+        email: 'john@example.com',
+        groupId: '123e4567-e89b-12d3-a456-426614174000',
+        ageType: 'adult',
+        guestType: 'wedding_guest',
+      },
+      {
+        firstName: 'Jane',
+        lastName: 'Smith',
+        email: 'jane@example.com',
+        groupId: '123e4567-e89b-12d3-a456-426614174000',
+        ageType: 'adult',
+        guestType: 'wedding_guest',
+      },
+    ];
+
+    it('should return success with created guests when valid data provided', async () => {
+      const mockGuests = validGuestsData.map((guest, index) => ({
+        id: `guest-${index + 1}`,
+        group_id: guest.groupId,
+        first_name: guest.firstName,
+        last_name: guest.lastName,
+        email: guest.email,
+        phone: null,
+        age_type: guest.ageType,
+        guest_type: guest.guestType,
+        dietary_restrictions: null,
+        plus_one_name: null,
+        plus_one_attending: false,
+        arrival_date: null,
+        departure_date: null,
+        airport_code: null,
+        flight_number: null,
+        invitation_sent: false,
+        invitation_sent_date: null,
+        rsvp_deadline: null,
+        notes: null,
+        created_at: '2024-01-01T00:00:00Z',
+        updated_at: '2024-01-01T00:00:00Z',
+      }));
+
+      const mockSelect = (jest.fn() as any).mockResolvedValue({
+        data: mockGuests,
+        error: null,
+      } as any);
+      const mockInsert = (jest.fn() as any).mockReturnValue({
+        select: mockSelect,
+      });
+      (mockFrom as any).mockReturnValue({
+        insert: mockInsert,
+      });
+
+      const result = await guestService.bulkCreate(validGuestsData);
+
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data).toHaveLength(2);
+        expect(result.data[0].firstName).toBe('John');
+        expect(result.data[1].firstName).toBe('Jane');
+      }
+    });
+
+    it('should return VALIDATION_ERROR when guests array is empty', async () => {
+      const result = await guestService.bulkCreate([]);
+
+      expect(result.success).toBe(false);
+      if (!result.success) {
+        expect(result.error.code).toBe('VALIDATION_ERROR');
+        expect(result.error.message).toContain('must not be empty');
+      }
+    });
+
+    it('should return VALIDATION_ERROR when any guest data is invalid', async () => {
+      const invalidGuestsData = [
+        ...validGuestsData,
+        {
+          firstName: '', // Invalid - empty
+          lastName: 'Invalid',
+          email: 'invalid@example.com',
+          groupId: '123e4567-e89b-12d3-a456-426614174000',
+          ageType: 'adult' as const,
+          guestType: 'wedding_guest' as const,
+        },
+      ];
+
+      const result = await guestService.bulkCreate(invalidGuestsData);
+
+      expect(result.success).toBe(false);
+      if (!result.success) {
+        expect(result.error.code).toBe('VALIDATION_ERROR');
+        expect(result.error.message).toContain('validation error');
+      }
+    });
+
+    it('should return DATABASE_ERROR when insert fails', async () => {
+      const mockSelect = (jest.fn() as any).mockResolvedValue({
+        data: null,
+        error: { message: 'Insert failed', code: 'DB_ERROR' },
+      } as any);
+      const mockInsert = (jest.fn() as any).mockReturnValue({
+        select: mockSelect,
+      });
+      (mockFrom as any).mockReturnValue({
+        insert: mockInsert,
+      });
+
+      const result = await guestService.bulkCreate(validGuestsData);
+
+      expect(result.success).toBe(false);
+      if (!result.success) {
+        expect(result.error.code).toBe('DATABASE_ERROR');
+      }
+    });
+
+    it('should sanitize input to prevent XSS attacks', async () => {
+      const maliciousGuestsData = [
+        {
+          firstName: '<script>alert("xss")</script>John',
+          lastName: 'Doe',
+          email: 'john@example.com',
+          groupId: '123e4567-e89b-12d3-a456-426614174000',
+          ageType: 'adult' as const,
+          guestType: 'wedding_guest' as const,
+          notes: '<img src=x onerror=alert(1)>',
+        },
+      ];
+
+      const mockGuests = [
+        {
+          id: 'guest-1',
+          group_id: maliciousGuestsData[0].groupId,
+          first_name: 'John',
+          last_name: 'Doe',
+          email: 'john@example.com',
+          phone: null,
+          age_type: 'adult',
+          guest_type: 'wedding_guest',
+          dietary_restrictions: null,
+          plus_one_name: null,
+          plus_one_attending: false,
+          arrival_date: null,
+          departure_date: null,
+          airport_code: null,
+          flight_number: null,
+          invitation_sent: false,
+          invitation_sent_date: null,
+          rsvp_deadline: null,
+          notes: '',
+          created_at: '2024-01-01T00:00:00Z',
+          updated_at: '2024-01-01T00:00:00Z',
+        },
+      ];
+
+      const mockSelect = (jest.fn() as any).mockResolvedValue({
+        data: mockGuests,
+        error: null,
+      } as any);
+      const mockInsert = (jest.fn() as any).mockReturnValue({
+        select: mockSelect,
+      });
+      (mockFrom as any).mockReturnValue({
+        insert: mockInsert,
+      });
+
+      const result = await guestService.bulkCreate(maliciousGuestsData);
+
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data[0].firstName).not.toContain('<script>');
+        expect(result.data[0].firstName).not.toContain('alert');
+        expect(result.data[0].notes).not.toContain('<img');
+        expect(result.data[0].notes).not.toContain('onerror');
+      }
+    });
+  });
+
+  describe('exportToCSV', () => {
+    const mockGuests = [
+      {
+        id: 'guest-1',
+        groupId: '123e4567-e89b-12d3-a456-426614174000',
+        firstName: 'John',
+        lastName: 'Doe',
+        email: 'john@example.com',
+        phone: null,
+        ageType: 'adult' as const,
+        guestType: 'wedding_guest' as const,
+        dietaryRestrictions: null,
+        plusOneName: null,
+        plusOneAttending: false,
+        arrivalDate: null,
+        departureDate: null,
+        airportCode: null,
+        flightNumber: null,
+        invitationSent: false,
+        invitationSentDate: null,
+        rsvpDeadline: null,
+        notes: null,
+        createdAt: '2024-01-01T00:00:00Z',
+        updatedAt: '2024-01-01T00:00:00Z',
+      },
+      {
+        id: 'guest-2',
+        groupId: '123e4567-e89b-12d3-a456-426614174000',
+        firstName: 'Jane',
+        lastName: 'Smith',
+        email: 'jane@example.com',
+        phone: '+1234567890',
+        ageType: 'adult' as const,
+        guestType: 'wedding_guest' as const,
+        dietaryRestrictions: 'Vegetarian',
+        plusOneName: 'Plus One',
+        plusOneAttending: true,
+        arrivalDate: '2024-06-01',
+        departureDate: '2024-06-05',
+        airportCode: 'SJO',
+        flightNumber: 'AA123',
+        invitationSent: true,
+        invitationSentDate: '2024-01-15',
+        rsvpDeadline: '2024-05-01',
+        notes: 'Special requirements',
+        createdAt: '2024-01-01T00:00:00Z',
+        updatedAt: '2024-01-01T00:00:00Z',
+      },
+    ];
+
+    it('should return success with CSV string when valid guests provided', async () => {
+      const result = await guestService.exportToCSV(mockGuests);
+
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(typeof result.data).toBe('string');
+        expect(result.data).toContain('groupId,firstName,lastName');
+        expect(result.data).toContain('John,Doe');
+        expect(result.data).toContain('Jane,Smith');
+      }
+    });
+
+    it('should return success with empty CSV when empty array provided', async () => {
+      const result = await guestService.exportToCSV([]);
+
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data).toContain('groupId,firstName,lastName');
+        // Should only contain header
+        expect(result.data.split('\n')).toHaveLength(1);
+      }
+    });
+
+    it('should return VALIDATION_ERROR when guests is not an array', async () => {
+      const result = await guestService.exportToCSV(null as any);
+
+      expect(result.success).toBe(false);
+      if (!result.success) {
+        expect(result.error.code).toBe('VALIDATION_ERROR');
+        expect(result.error.message).toContain('array');
+      }
+    });
+
+    it('should properly escape CSV fields with commas and quotes', async () => {
+      const guestWithSpecialChars = [
+        {
+          ...mockGuests[0],
+          firstName: 'John, Jr.',
+          notes: 'Has "special" requirements',
+        },
+      ];
+
+      const result = await guestService.exportToCSV(guestWithSpecialChars);
+
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data).toContain('"John, Jr."');
+        expect(result.data).toContain('"Has ""special"" requirements"');
+      }
+    });
+  });
+
+  describe('importFromCSV', () => {
+    const validCSV = `groupId,firstName,lastName,email,phone,ageType,guestType,dietaryRestrictions,plusOneName,plusOneAttending,arrivalDate,departureDate,airportCode,flightNumber,invitationSent,invitationSentDate,rsvpDeadline,notes
+123e4567-e89b-12d3-a456-426614174000,John,Doe,john@example.com,,adult,wedding_guest,,,false,,,,,false,,,
+123e4567-e89b-12d3-a456-426614174000,Jane,Smith,jane@example.com,+1234567890,adult,wedding_guest,Vegetarian,Plus One,true,2024-06-01,2024-06-05,SJO,AA123,true,2024-01-15,2024-05-01,Special requirements`;
+
+    it('should return success with created guests when valid CSV provided', async () => {
+      const mockGuests = [
+        {
+          id: 'guest-1',
+          group_id: '123e4567-e89b-12d3-a456-426614174000',
+          first_name: 'John',
+          last_name: 'Doe',
+          email: 'john@example.com',
+          phone: null,
+          age_type: 'adult',
+          guest_type: 'wedding_guest',
+          dietary_restrictions: null,
+          plus_one_name: null,
+          plus_one_attending: false,
+          arrival_date: null,
+          departure_date: null,
+          airport_code: null,
+          flight_number: null,
+          invitation_sent: false,
+          invitation_sent_date: null,
+          rsvp_deadline: null,
+          notes: null,
+          created_at: '2024-01-01T00:00:00Z',
+          updated_at: '2024-01-01T00:00:00Z',
+        },
+        {
+          id: 'guest-2',
+          group_id: '123e4567-e89b-12d3-a456-426614174000',
+          first_name: 'Jane',
+          last_name: 'Smith',
+          email: 'jane@example.com',
+          phone: '+1234567890',
+          age_type: 'adult',
+          guest_type: 'wedding_guest',
+          dietary_restrictions: 'Vegetarian',
+          plus_one_name: 'Plus One',
+          plus_one_attending: true,
+          arrival_date: '2024-06-01',
+          departure_date: '2024-06-05',
+          airport_code: 'SJO',
+          flight_number: 'AA123',
+          invitation_sent: true,
+          invitation_sent_date: '2024-01-15',
+          rsvp_deadline: '2024-05-01',
+          notes: 'Special requirements',
+          created_at: '2024-01-01T00:00:00Z',
+          updated_at: '2024-01-01T00:00:00Z',
+        },
+      ];
+
+      // Mock the create function calls
+      let callCount = 0;
+      const mockSingle = (jest.fn() as any).mockImplementation(() => {
+        const guest = mockGuests[callCount++];
+        return Promise.resolve({
+          data: guest,
+          error: null,
+        });
+      });
+      const mockSelect = (jest.fn() as any).mockReturnValue({
+        single: mockSingle,
+      });
+      const mockInsert = (jest.fn() as any).mockReturnValue({
+        select: mockSelect,
+      });
+      (mockFrom as any).mockReturnValue({
+        insert: mockInsert,
+      });
+
+      const result = await guestService.importFromCSV(validCSV);
+
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data).toHaveLength(2);
+        expect(result.data[0].firstName).toBe('John');
+        expect(result.data[1].firstName).toBe('Jane');
+      }
+    });
+
+    it('should return VALIDATION_ERROR when CSV content is empty', async () => {
+      const result = await guestService.importFromCSV('');
+
+      expect(result.success).toBe(false);
+      if (!result.success) {
+        expect(result.error.code).toBe('VALIDATION_ERROR');
+        expect(result.error.message).toContain('required');
+      }
+    });
+
+    it('should return VALIDATION_ERROR when CSV has no data rows', async () => {
+      const headerOnlyCSV = 'groupId,firstName,lastName,email,phone,ageType,guestType,dietaryRestrictions,plusOneName,plusOneAttending,arrivalDate,departureDate,airportCode,flightNumber,invitationSent,invitationSentDate,rsvpDeadline,notes';
+      
+      const result = await guestService.importFromCSV(headerOnlyCSV);
+
+      expect(result.success).toBe(false);
+      if (!result.success) {
+        expect(result.error.code).toBe('VALIDATION_ERROR');
+        expect(result.error.message).toContain('at least one data row');
+      }
+    });
+
+    it('should return VALIDATION_ERROR when CSV header is incorrect', async () => {
+      const invalidHeaderCSV = 'wrongHeader,firstName,lastName\nvalue1,John,Doe';
+      
+      const result = await guestService.importFromCSV(invalidHeaderCSV);
+
+      expect(result.success).toBe(false);
+      if (!result.success) {
+        expect(result.error.code).toBe('VALIDATION_ERROR');
+        expect(result.error.message).toContain('header mismatch');
+      }
+    });
+
+    it('should return VALIDATION_ERROR when CSV has invalid data', async () => {
+      const invalidDataCSV = `groupId,firstName,lastName,email,phone,ageType,guestType,dietaryRestrictions,plusOneName,plusOneAttending,arrivalDate,departureDate,airportCode,flightNumber,invitationSent,invitationSentDate,rsvpDeadline,notes
+invalid-uuid,,Doe,invalid-email,,adult,wedding_guest,,,false,,,,,false,,,`;
+
+      const result = await guestService.importFromCSV(invalidDataCSV);
+
+      expect(result.success).toBe(false);
+      if (!result.success) {
+        expect(result.error.code).toBe('VALIDATION_ERROR');
+        expect(result.error.message).toContain('import failed');
+      }
+    });
+
+    it('should return DATABASE_ERROR when guest creation fails', async () => {
+      const mockSingle = (jest.fn() as any).mockResolvedValue({
+        data: null,
+        error: { message: 'Creation failed', code: 'DB_ERROR' },
+      } as any);
+      const mockSelect = (jest.fn() as any).mockReturnValue({
+        single: mockSingle,
+      });
+      const mockInsert = (jest.fn() as any).mockReturnValue({
+        select: mockSelect,
+      });
+      (mockFrom as any).mockReturnValue({
+        insert: mockInsert,
+      });
+
+      const result = await guestService.importFromCSV(validCSV);
+
+      expect(result.success).toBe(false);
+      if (!result.success) {
+        expect(result.error.code).toBe('PARTIAL_IMPORT_FAILURE');
+        expect(result.error.message).toContain('failed');
+      }
+    });
+
+    it('should handle CSV fields with commas and quotes correctly', async () => {
+      const csvWithSpecialChars = `groupId,firstName,lastName,email,phone,ageType,guestType,dietaryRestrictions,plusOneName,plusOneAttending,arrivalDate,departureDate,airportCode,flightNumber,invitationSent,invitationSentDate,rsvpDeadline,notes
+123e4567-e89b-12d3-a456-426614174000,"John, Jr.",Doe,john@example.com,,adult,wedding_guest,,,false,,,,,false,,,"Has ""special"" requirements"`;
+
+      const mockGuest = {
+        id: 'guest-1',
+        group_id: '123e4567-e89b-12d3-a456-426614174000',
+        first_name: 'John, Jr.',
+        last_name: 'Doe',
+        email: 'john@example.com',
+        phone: null,
+        age_type: 'adult',
+        guest_type: 'wedding_guest',
+        dietary_restrictions: null,
+        plus_one_name: null,
+        plus_one_attending: false,
+        arrival_date: null,
+        departure_date: null,
+        airport_code: null,
+        flight_number: null,
+        invitation_sent: false,
+        invitation_sent_date: null,
+        rsvp_deadline: null,
+        notes: 'Has "special" requirements',
+        created_at: '2024-01-01T00:00:00Z',
+        updated_at: '2024-01-01T00:00:00Z',
+      };
+
+      const mockSingle = (jest.fn() as any).mockResolvedValue({
+        data: mockGuest,
+        error: null,
+      } as any);
+      const mockSelect = (jest.fn() as any).mockReturnValue({
+        single: mockSingle,
+      });
+      const mockInsert = (jest.fn() as any).mockReturnValue({
+        select: mockSelect,
+      });
+      (mockFrom as any).mockReturnValue({
+        insert: mockInsert,
+      });
+
+      const result = await guestService.importFromCSV(csvWithSpecialChars);
+
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data[0].firstName).toBe('John, Jr.');
+        expect(result.data[0].notes).toBe('Has "special" requirements');
+      }
     });
   });
 });

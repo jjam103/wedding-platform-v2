@@ -89,7 +89,7 @@ describe('Feature: destination-wedding-platform, Property 22: Audit Log Creation
           mockSupabase._mocks.single.mockResolvedValue({
             data: mockAuditLog,
             error: null,
-          });
+          } as any);
 
           const result = await auditLogService.create(mockSupabase, input);
 
@@ -144,7 +144,7 @@ describe('Feature: destination-wedding-platform, Property 22: Audit Log Creation
             mockSupabase._mocks.single.mockResolvedValue({
               data: mockAuditLog,
               error: null,
-            });
+            } as any);
 
             let result;
             if (operationType === 'create') {
@@ -210,13 +210,13 @@ describe('Feature: destination-wedding-platform, Property 22: Audit Log Creation
             mockSupabase._mocks.single.mockResolvedValue({
               data: mockAuditLog,
               error: null,
-            });
+            } as any);
 
             const result = await auditLogService.create(mockSupabase, {
               entity_type: entityType,
               entity_id: entityId,
               operation_type: operationType,
-            });
+            } as any);
 
             // Property: Entity information should be preserved exactly
             expect(result.success).toBe(true);
@@ -260,7 +260,7 @@ describe('Feature: destination-wedding-platform, Property 22: Audit Log Creation
             mockSupabase._mocks.single.mockResolvedValue({
               data: mockAuditLog,
               error: null,
-            });
+            } as any);
 
             const result = await auditLogService.create(mockSupabase, {
               user_id: userId,
@@ -268,7 +268,7 @@ describe('Feature: destination-wedding-platform, Property 22: Audit Log Creation
               entity_type: entityType,
               entity_id: entityId,
               operation_type: operationType,
-            });
+            } as any);
 
             // Property: User information should be captured when provided
             expect(result.success).toBe(true);
@@ -311,7 +311,7 @@ describe('Feature: destination-wedding-platform, Property 22: Audit Log Creation
             mockSupabase._mocks.single.mockResolvedValue({
               data: mockAuditLog,
               error: null,
-            });
+            } as any);
 
             const result = await auditLogService.logUpdate(
               mockSupabase,

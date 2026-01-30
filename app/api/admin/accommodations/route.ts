@@ -1,4 +1,4 @@
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
+import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
 import * as accommodationService from '@/services/accommodationService';
@@ -20,7 +20,22 @@ export async function GET(request: Request) {
   try {
     // 1. Auth check
     const cookieStore = await cookies();
-    const supabase = createRouteHandlerClient({ cookies: () => cookieStore });
+    const supabase = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        cookies: {
+          getAll() {
+            return cookieStore.getAll();
+          },
+          setAll(cookiesToSet) {
+            cookiesToSet.forEach(({ name, value }) => {
+              cookieStore.set(name, value);
+            });
+          },
+        },
+      }
+    );
     const { data: { session }, error: authError } = await supabase.auth.getSession();
     
     if (authError || !session) {
@@ -41,7 +56,7 @@ export async function GET(request: Request) {
       filters.locationId = searchParams.get('locationId')!;
     }
     if (searchParams.get('status')) {
-      filters.status = searchParams.get('status') as 'available' | 'booked' | 'unavailable';
+      filters.status = searchParams.get('status') as 'draft' | 'published';
     }
 
     // 3. Call service
@@ -75,7 +90,22 @@ export async function POST(request: Request) {
   try {
     // 1. Auth check
     const cookieStore = await cookies();
-    const supabase = createRouteHandlerClient({ cookies: () => cookieStore });
+    const supabase = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        cookies: {
+          getAll() {
+            return cookieStore.getAll();
+          },
+          setAll(cookiesToSet) {
+            cookiesToSet.forEach(({ name, value }) => {
+              cookieStore.set(name, value);
+            });
+          },
+        },
+      }
+    );
     const { data: { session }, error: authError } = await supabase.auth.getSession();
     
     if (authError || !session) {

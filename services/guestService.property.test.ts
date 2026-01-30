@@ -27,14 +27,23 @@ describe('Feature: destination-wedding-platform, Property 5: Guest Input Validat
     jest.clearAllMocks();
   });
 
-  // Generator for valid guest data
+  // Generator for valid guest data with unique identifiers
   const validGuestArbitrary = fc.record({
-    firstName: fc.string({ minLength: 1, maxLength: 50 }).filter(s => s.trim().length > 0),
-    lastName: fc.string({ minLength: 1, maxLength: 50 }).filter(s => s.trim().length > 0),
-    email: fc.option(fc.emailAddress(), { nil: null }),
+    firstName: fc.string({ minLength: 1, maxLength: 50 })
+      .filter(s => s.trim().length > 0)
+      .map(s => `${s} ${Date.now()} ${Math.random().toString(36).substr(2, 5)}`), // Add unique suffix
+    lastName: fc.string({ minLength: 1, maxLength: 50 })
+      .filter(s => s.trim().length > 0)
+      .map(s => `${s} ${Date.now()} ${Math.random().toString(36).substr(2, 5)}`), // Add unique suffix
+    email: fc.option(fc.emailAddress().map(email => {
+      const [local, domain] = email.split('@');
+      return `${local}-${Date.now()}-${Math.random().toString(36).substr(2, 5)}@${domain}`;
+    }), { nil: null }),
     groupId: fc.uuid(),
     ageType: fc.constantFrom('adult', 'child', 'senior') as fc.Arbitrary<'adult' | 'child' | 'senior'>,
-    guestType: fc.string({ minLength: 1, maxLength: 50 }).filter(s => s.trim().length > 0),
+    guestType: fc.string({ minLength: 1, maxLength: 50 })
+      .filter(s => s.trim().length > 0)
+      .map(s => `${s}-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`), // Add unique suffix
   });
 
   it('should reject guest creation when firstName is missing or empty', async () => {

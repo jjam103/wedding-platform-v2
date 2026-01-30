@@ -46,7 +46,7 @@ export function ReferenceLookup({
   onSelect,
   placeholder = 'Search for events, activities, pages...',
   excludeIds = [],
-}: ReferenceLookupProps): JSX.Element {
+}: ReferenceLookupProps): React.JSX.Element {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<SearchResult[]>([]);
   const [loading, setLoading] = useState(false);

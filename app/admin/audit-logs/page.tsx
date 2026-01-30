@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { DataTable } from '@/components/ui/DataTable';
+import { DataTableWithSuspense as DataTable } from '@/components/ui/DataTableWithSuspense';
 import type { AuditLog } from '@/services/auditLogService';
 
 interface AuditLogFilters {
@@ -49,7 +49,7 @@ export default function AuditLogsPage() {
       const result = await response.json();
 
       if (!result.success) {
-        setError(result.error.message);
+        setError(result.error?.message || 'Failed to fetch audit logs');
         return;
       }
 
@@ -122,6 +122,10 @@ export default function AuditLogsPage() {
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
+    // Handle invalid dates
+    if (isNaN(date.getTime())) {
+      return 'Invalid Date';
+    }
     return new Intl.DateTimeFormat('en-US', {
       month: 'short',
       day: 'numeric',
@@ -153,12 +157,16 @@ export default function AuditLogsPage() {
     {
       key: 'created_at',
       label: 'Timestamp',
-      render: (log: AuditLog) => (
-        <div className="text-sm">
-          <div className="font-medium">{formatDate(log.created_at).split(',')[0]}</div>
-          <div className="text-gray-500">{formatDate(log.created_at).split(',')[1]}</div>
-        </div>
-      ),
+      render: (log: AuditLog) => {
+        const formatted = formatDate(log.created_at);
+        const parts = formatted.split(',');
+        return (
+          <div className="text-sm">
+            <div className="font-medium">{parts[0]}</div>
+            <div className="text-gray-500">{parts[1] || ''}</div>
+          </div>
+        );
+      },
     },
     {
       key: 'user_email',
@@ -185,7 +193,7 @@ export default function AuditLogsPage() {
       key: 'entity_type',
       label: 'Entity Type',
       render: (log: AuditLog) => (
-        <span className="text-sm font-medium capitalize">{log.entity_type.replace('_', ' ')}</span>
+        <span className="text-sm font-medium capitalize">{log.entity_type?.replace('_', ' ') || 'N/A'}</span>
       ),
     },
     {
@@ -194,10 +202,10 @@ export default function AuditLogsPage() {
       render: (log: AuditLog) => (
         <div className="text-sm">
           <div className="text-gray-900">
-            {log.operation_type.charAt(0).toUpperCase() + log.operation_type.slice(1)}{' '}
-            {log.entity_type.replace('_', ' ')}
+            {log.operation_type?.charAt(0).toUpperCase() + log.operation_type?.slice(1) || 'Unknown'}{' '}
+            {log.entity_type?.replace('_', ' ') || 'entity'}
           </div>
-          <div className="text-gray-500 text-xs">ID: {log.entity_id.slice(0, 8)}...</div>
+          <div className="text-gray-500 text-xs">ID: {log.entity_id?.slice(0, 8) || 'N/A'}...</div>
           {isCriticalAction(log.operation_type) && (
             <div className="mt-1">
               <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800">
@@ -334,7 +342,6 @@ export default function AuditLogsPage() {
           data={logs}
           columns={columns}
           loading={loading}
-          emptyMessage="No audit logs found"
         />
 
         {/* Pagination */}

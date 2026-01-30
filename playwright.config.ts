@@ -4,6 +4,7 @@ import { defineConfig, devices } from '@playwright/test';
  * Playwright E2E Test Configuration
  * 
  * Configures end-to-end testing with multiple browsers and devices.
+ * Uses global authentication setup to avoid repeated logins.
  */
 export default defineConfig({
   testDir: './__tests__/e2e',
@@ -54,9 +55,24 @@ export default defineConfig({
   // Run only Chromium by default to speed up tests
   // Use --project flag to run specific browsers
   projects: [
+    // Setup project - runs first to authenticate (no storageState)
+    {
+      name: 'setup',
+      testMatch: /auth\.setup\.ts/,
+      use: {
+        // Don't use storageState for setup - we're creating it
+        storageState: undefined,
+      },
+    },
+    
+    // Test projects - depend on setup and use saved auth
     {
       name: 'chromium',
-      use: { ...devices['Desktop Chrome'] },
+      use: { 
+        ...devices['Desktop Chrome'],
+        storageState: '.auth/user.json',
+      },
+      dependencies: ['setup'],
     },
 
     // Uncomment to test other browsers

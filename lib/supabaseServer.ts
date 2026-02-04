@@ -50,3 +50,52 @@ export async function createAuthenticatedClient() {
     }
   );
 }
+
+/**
+ * Creates a Supabase client with service role privileges.
+ * 
+ * IMPORTANT: This client bypasses Row Level Security (RLS) and should only be used
+ * in server-side code after proper authentication and authorization checks.
+ * 
+ * Use this for:
+ * - Admin operations that need to bypass RLS
+ * - Background jobs and cron tasks
+ * - Operations where RLS policies would cause circular dependencies
+ * 
+ * @returns Supabase client with service role privileges
+ * 
+ * @example
+ * ```typescript
+ * export async function GET(request: Request) {
+ *   // First verify user is authenticated and authorized
+ *   const authClient = await createAuthenticatedClient();
+ *   const { data: { session } } = await supabase.auth.getSession();
+ *   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+ *   
+ *   // Then use service role for operations that need to bypass RLS
+ *   const serviceClient = createServiceRoleClient();
+ *   const { data } = await serviceClient.from('guests').select('*');
+ * }
+ * ```
+ */
+export function createServiceRoleClient() {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+  if (!supabaseUrl || !supabaseServiceKey) {
+    throw new Error(
+      'Missing Supabase environment variables. Please set NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY'
+    );
+  }
+
+  return createServerClient(supabaseUrl, supabaseServiceKey, {
+    cookies: {
+      getAll() {
+        return [];
+      },
+      setAll() {
+        // Service role client doesn't need cookies
+      },
+    },
+  });
+}

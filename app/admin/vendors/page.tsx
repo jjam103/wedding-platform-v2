@@ -11,6 +11,8 @@ import { StatusBadge } from '@/components/ui/StatusBadge';
 import { useToast } from '@/components/ui/ToastContext';
 import type { Vendor } from '@/schemas/vendorSchemas';
 import { createVendorSchema, updateVendorSchema } from '@/schemas/vendorSchemas';
+import type { VendorBooking } from '@/schemas/vendorBookingSchemas';
+import { createVendorBookingSchema, updateVendorBookingSchema } from '@/schemas/vendorBookingSchemas';
 
 // Define form field type for CollapsibleForm
 interface VendorFormField {
@@ -21,6 +23,16 @@ interface VendorFormField {
   required?: boolean;
   options?: Array<{ value: string; label: string }>;
   rows?: number;
+}
+
+interface Activity {
+  id: string;
+  name: string;
+}
+
+interface Event {
+  id: string;
+  name: string;
 }
 
 /**
@@ -46,6 +58,16 @@ export default function VendorsPage() {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [selectedVendor, setSelectedVendor] = useState<Vendor | null>(null);
   const [vendorToDelete, setVendorToDelete] = useState<Vendor | null>(null);
+  
+  // Vendor bookings state
+  const [vendorBookings, setVendorBookings] = useState<VendorBooking[]>([]);
+  const [activities, setActivities] = useState<Activity[]>([]);
+  const [events, setEvents] = useState<Event[]>([]);
+  const [isBookingsOpen, setIsBookingsOpen] = useState(false);
+  const [isBookingFormOpen, setIsBookingFormOpen] = useState(false);
+  const [selectedBooking, setSelectedBooking] = useState<VendorBooking | null>(null);
+  const [bookingToDelete, setBookingToDelete] = useState<VendorBooking | null>(null);
+  const [isBookingDeleteDialogOpen, setIsBookingDeleteDialogOpen] = useState(false);
 
   /**
    * Fetch vendors from API
@@ -81,7 +103,84 @@ export default function VendorsPage() {
   // Load data on mount
   useEffect(() => {
     fetchVendors();
+    fetchVendorBookings();
+    fetchActivities();
+    fetchEvents();
   }, [fetchVendors]);
+
+  /**
+   * Fetch vendor bookings from API
+   */
+  const fetchVendorBookings = useCallback(async () => {
+    try {
+      const response = await fetch('/api/admin/vendor-bookings');
+      if (!response.ok) {
+        throw new Error('Failed to fetch vendor bookings');
+      }
+
+      const result = await response.json();
+      if (result.success) {
+        setVendorBookings(result.data.bookings || []);
+      }
+    } catch (error) {
+      console.error('Failed to fetch vendor bookings:', error);
+    }
+  }, []);
+
+  /**
+   * Fetch activities for booking dropdown
+   */
+  const fetchActivities = useCallback(async () => {
+    try {
+      const response = await fetch('/api/admin/activities?pageSize=100');
+      if (!response.ok) {
+        console.error('Failed to fetch activities:', response.status, response.statusText);
+        return;
+      }
+
+      const result = await response.json();
+      console.log('Activities API response:', result);
+      
+      if (result.success && result.data) {
+        // The API returns { success: true, data: { activities: [...], total, page, ... } }
+        const activitiesData = result.data.activities || result.data;
+        setActivities(Array.isArray(activitiesData) ? activitiesData : []);
+        console.log('Activities loaded:', activitiesData.length);
+      } else {
+        console.error('Activities API returned error:', result.error);
+      }
+    } catch (error) {
+      console.error('Failed to fetch activities:', error);
+    }
+  }, []);
+
+  /**
+   * Fetch events for booking dropdown
+   */
+  const fetchEvents = useCallback(async () => {
+    try {
+      // Max pageSize is 100 per schema validation
+      const response = await fetch('/api/admin/events?pageSize=100');
+      if (!response.ok) {
+        console.error('Failed to fetch events:', response.status, response.statusText);
+        return;
+      }
+
+      const result = await response.json();
+      console.log('Events API response:', result);
+      
+      if (result.success && result.data) {
+        // The API returns { success: true, data: { events: [...], total, page, ... } }
+        const eventsData = result.data.events || result.data;
+        setEvents(Array.isArray(eventsData) ? eventsData : []);
+        console.log('Events loaded:', eventsData.length);
+      } else {
+        console.error('Events API returned error:', result.error);
+      }
+    } catch (error) {
+      console.error('Failed to fetch events:', error);
+    }
+  }, []);
 
   /**
    * Handle row click - open edit form
@@ -199,6 +298,98 @@ export default function VendorsPage() {
       });
     }
   }, [vendorToDelete, addToast, fetchVendors]);
+
+  /**
+   * Handle booking form submission (create or update)
+   */
+  const handleBookingSubmit = useCallback(async (data: any) => {
+    try {
+      const isEdit = !!selectedBooking;
+      const url = isEdit ? `/api/admin/vendor-bookings/${selectedBooking.id}` : '/api/admin/vendor-bookings';
+      const method = isEdit ? 'PUT' : 'POST';
+
+      // Convert empty strings to null for optional fields
+      const cleanedData = {
+        ...data,
+        activityId: data.activityId === '' ? null : data.activityId,
+        eventId: data.eventId === '' ? null : data.eventId,
+        guestCount: data.guestCount === '' ? null : data.guestCount,
+        hostSubsidy: data.hostSubsidy === '' ? 0 : data.hostSubsidy,
+        notes: data.notes === '' ? null : data.notes,
+      };
+
+      const response = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(cleanedData),
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        addToast({
+          type: 'success',
+          message: isEdit ? 'Booking updated successfully' : 'Booking created successfully',
+        });
+        
+        // Refresh bookings list
+        await fetchVendorBookings();
+        
+        // Close form
+        setIsBookingFormOpen(false);
+        setSelectedBooking(null);
+      } else {
+        addToast({
+          type: 'error',
+          message: result.error?.message || 'Operation failed',
+        });
+      }
+    } catch (error) {
+      addToast({
+        type: 'error',
+        message: error instanceof Error ? error.message : 'Operation failed',
+      });
+    }
+  }, [selectedBooking, addToast, fetchVendorBookings]);
+
+  /**
+   * Handle booking delete confirmation
+   */
+  const handleBookingDeleteConfirm = useCallback(async () => {
+    if (!bookingToDelete) return;
+
+    try {
+      const response = await fetch(`/api/admin/vendor-bookings/${bookingToDelete.id}`, {
+        method: 'DELETE',
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        addToast({
+          type: 'success',
+          message: 'Booking deleted successfully',
+        });
+        
+        // Refresh bookings list
+        await fetchVendorBookings();
+        
+        // Close dialog
+        setIsBookingDeleteDialogOpen(false);
+        setBookingToDelete(null);
+      } else {
+        addToast({
+          type: 'error',
+          message: result.error?.message || 'Failed to delete booking',
+        });
+      }
+    } catch (error) {
+      addToast({
+        type: 'error',
+        message: error instanceof Error ? error.message : 'Failed to delete booking',
+      });
+    }
+  }, [bookingToDelete, addToast, fetchVendorBookings]);
 
   // Define table columns
   const columns: ColumnDef<Vendor>[] = [
@@ -368,6 +559,151 @@ export default function VendorsPage() {
     },
   ];
 
+  // Define booking table columns
+  const bookingColumns: ColumnDef<VendorBooking>[] = [
+    {
+      key: 'vendorId',
+      label: 'Vendor',
+      sortable: true,
+      render: (value) => {
+        const vendor = vendors.find(v => v.id === value);
+        return vendor?.name || '-';
+      },
+    },
+    {
+      key: 'activityId',
+      label: 'Activity',
+      sortable: true,
+      render: (value) => {
+        if (!value) return '-';
+        const activity = activities.find(a => a.id === value);
+        return activity?.name || '-';
+      },
+    },
+    {
+      key: 'eventId',
+      label: 'Event',
+      sortable: true,
+      render: (value) => {
+        if (!value) return '-';
+        const event = events.find(e => e.id === value);
+        return event?.name || '-';
+      },
+    },
+    {
+      key: 'bookingDate',
+      label: 'Booking Date',
+      sortable: true,
+      render: (value) => new Date(value).toLocaleDateString(),
+    },
+    {
+      key: 'pricingModel',
+      label: 'Pricing',
+      sortable: true,
+      render: (value) => value === 'flat_rate' ? 'Flat Rate' : 'Per Guest',
+    },
+    {
+      key: 'guestCount',
+      label: 'Guests',
+      sortable: true,
+      render: (value) => value || '-',
+    },
+    {
+      key: 'totalCost',
+      label: 'Total Cost',
+      sortable: true,
+      render: (value) => `$${(value as number).toFixed(2)}`,
+    },
+    {
+      key: 'hostSubsidy',
+      label: 'Host Subsidy',
+      sortable: true,
+      render: (value) => `$${(value as number).toFixed(2)}`,
+    },
+    {
+      key: 'notes',
+      label: 'Notes',
+      sortable: false,
+      render: (value) => value || '-',
+    },
+  ];
+
+  // Define booking form fields
+  const bookingFormFields: VendorFormField[] = [
+    {
+      name: 'vendorId',
+      label: 'Vendor',
+      type: 'select',
+      required: true,
+      options: vendors.map(v => ({ label: v.name, value: v.id })),
+    },
+    {
+      name: 'activityId',
+      label: 'Activity (Optional)',
+      type: 'select',
+      required: false,
+      options: [
+        { label: 'None', value: '' },
+        ...activities.map(a => ({ label: a.name, value: a.id })),
+      ],
+    },
+    {
+      name: 'eventId',
+      label: 'Event (Optional)',
+      type: 'select',
+      required: false,
+      options: [
+        { label: 'None', value: '' },
+        ...events.map(e => ({ label: e.name, value: e.id })),
+      ],
+    },
+    {
+      name: 'bookingDate',
+      label: 'Booking Date',
+      type: 'date',
+      required: true,
+    },
+    {
+      name: 'pricingModel',
+      label: 'Pricing Model',
+      type: 'select',
+      required: true,
+      options: [
+        { label: 'Flat Rate', value: 'flat_rate' },
+        { label: 'Per Guest', value: 'per_guest' },
+      ],
+    },
+    {
+      name: 'baseCost',
+      label: 'Base Cost',
+      type: 'number',
+      required: true,
+      placeholder: '0.00',
+    },
+    {
+      name: 'guestCount',
+      label: 'Guest Count (required for per-guest pricing)',
+      type: 'number',
+      required: false,
+      placeholder: 'Enter number of guests',
+    },
+    {
+      name: 'hostSubsidy',
+      label: 'Host Subsidy',
+      type: 'number',
+      required: false,
+      placeholder: '0.00',
+    },
+    {
+      name: 'notes',
+      label: 'Notes',
+      type: 'textarea',
+      required: false,
+      placeholder: 'Enter any additional notes',
+      rows: 3,
+    },
+  ];
+
   return (
     <div className="space-y-6">
       {/* Page Header */}
@@ -376,6 +712,14 @@ export default function VendorsPage() {
           <h1 className="text-3xl font-bold text-sage-900">Vendor Management</h1>
           <p className="text-sage-600 mt-1">Manage your wedding vendors and track payments</p>
         </div>
+        <Button
+          variant="primary"
+          onClick={handleAddVendor}
+          aria-label="Create new vendor"
+          data-action="add-new"
+        >
+          + Add Vendor
+        </Button>
       </div>
 
       {/* Collapsible Add Form */}
@@ -400,6 +744,92 @@ export default function VendorsPage() {
         fields={formFields}
         submitLabel={selectedVendor ? 'Update Vendor' : 'Create Vendor'}
       />
+
+      {/* Vendor Bookings Section */}
+      <div className="bg-white rounded-lg shadow-sm border border-sage-200">
+        {/* Header */}
+        <button
+          onClick={() => setIsBookingsOpen(!isBookingsOpen)}
+          className="w-full flex items-center justify-between px-4 py-3 bg-sage-50 hover:bg-sage-100 transition-colors rounded-t-lg"
+          aria-expanded={isBookingsOpen}
+        >
+          <div className="flex-1 text-left">
+            <h2 className="text-lg font-semibold text-sage-900">Vendor Bookings</h2>
+            <p className="text-sm text-sage-600 mt-1">
+              {vendorBookings.length} booking{vendorBookings.length !== 1 ? 's' : ''} • Link vendors to activities and events
+            </p>
+          </div>
+          <span 
+            className={`text-sage-600 transition-transform duration-300 ${isBookingsOpen ? 'rotate-180' : ''}`}
+            aria-hidden="true"
+          >
+            ▼
+          </span>
+        </button>
+
+        {/* Collapsible Content */}
+        {isBookingsOpen && (
+          <div className="p-4 space-y-4 border-t border-sage-200">
+            {/* Add Booking Button */}
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-md font-semibold text-sage-900">Manage Vendor Bookings</h3>
+              <Button
+                variant="primary"
+                size="sm"
+                onClick={() => {
+                  console.log('Add Booking clicked');
+                  setSelectedBooking(null);
+                  setIsBookingFormOpen(true);
+                }}
+              >
+                + Add Booking
+              </Button>
+            </div>
+
+            {/* Booking Form */}
+            {isBookingFormOpen && (
+              <div className="bg-sage-50 p-4 rounded-lg border border-sage-200">
+                <CollapsibleForm
+                  title={selectedBooking ? 'Edit Booking' : 'Add New Booking'}
+                  isOpen={true}
+                  onToggle={() => {
+                    setIsBookingFormOpen(false);
+                    setSelectedBooking(null);
+                  }}
+                  onSubmit={handleBookingSubmit}
+                  onCancel={() => {
+                    setIsBookingFormOpen(false);
+                    setSelectedBooking(null);
+                  }}
+                  initialData={selectedBooking || {}}
+                  schema={selectedBooking ? updateVendorBookingSchema : createVendorBookingSchema}
+                  fields={bookingFormFields}
+                  submitLabel={selectedBooking ? 'Update Booking' : 'Create Booking'}
+                />
+              </div>
+            )}
+
+            {/* Bookings Table */}
+            <DataTable
+              data={vendorBookings}
+              columns={bookingColumns}
+              loading={false}
+              onRowClick={(booking) => {
+                setSelectedBooking(booking);
+                setIsBookingFormOpen(true);
+              }}
+              onDelete={(booking) => {
+                setBookingToDelete(booking);
+                setIsBookingDeleteDialogOpen(true);
+              }}
+              totalCount={vendorBookings.length}
+              currentPage={1}
+              pageSize={25}
+              idField="id"
+            />
+          </div>
+        )}
+      </div>
 
       {/* Data Table */}
       <DataTable
@@ -428,6 +858,21 @@ export default function VendorsPage() {
         onConfirm={handleDeleteConfirm}
         title="Delete Vendor"
         message={`Are you sure you want to delete ${vendorToDelete?.name}? This action cannot be undone.`}
+        confirmLabel="Delete"
+        cancelLabel="Cancel"
+        variant="danger"
+      />
+
+      {/* Booking Delete Confirmation Dialog */}
+      <ConfirmDialog
+        isOpen={isBookingDeleteDialogOpen}
+        onClose={() => {
+          setIsBookingDeleteDialogOpen(false);
+          setBookingToDelete(null);
+        }}
+        onConfirm={handleBookingDeleteConfirm}
+        title="Delete Vendor Booking"
+        message="Are you sure you want to delete this vendor booking? This action cannot be undone."
         confirmLabel="Delete"
         cancelLabel="Cancel"
         variant="danger"

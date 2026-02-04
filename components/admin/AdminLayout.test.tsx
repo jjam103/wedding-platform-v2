@@ -238,7 +238,7 @@ describe('AdminLayout', () => {
       );
     });
 
-    it('should show keyboard shortcuts dialog when ? is pressed', () => {
+    it('should show keyboard shortcuts dialog when ? is pressed', async () => {
       const { useKeyboardShortcuts } = require('@/hooks/useKeyboardShortcuts');
       let helpHandler: () => void;
 
@@ -258,11 +258,13 @@ describe('AdminLayout', () => {
       // Trigger help handler
       helpHandler!();
 
-      // Dialog should be visible
-      expect(screen.getByTestId('shortcuts-dialog')).toHaveStyle({ display: 'block' });
+      // Dialog should be visible after state update
+      await waitFor(() => {
+        expect(screen.getByTestId('shortcuts-dialog')).toHaveStyle({ display: 'block' });
+      });
     });
 
-    it('should close keyboard shortcuts dialog', () => {
+    it('should close keyboard shortcuts dialog', async () => {
       render(
         <AdminLayout currentSection="guests">
           <div>Test Content</div>
@@ -274,12 +276,16 @@ describe('AdminLayout', () => {
       const helpHandler = useKeyboardShortcuts.mock.calls[0][0].find((s: any) => s.key === '?').handler;
       helpHandler();
 
-      expect(screen.getByTestId('shortcuts-dialog')).toHaveStyle({ display: 'block' });
+      await waitFor(() => {
+        expect(screen.getByTestId('shortcuts-dialog')).toHaveStyle({ display: 'block' });
+      });
 
       // Close dialog
       fireEvent.click(screen.getByText('Close'));
 
-      expect(screen.getByTestId('shortcuts-dialog')).toHaveStyle({ display: 'none' });
+      await waitFor(() => {
+        expect(screen.getByTestId('shortcuts-dialog')).toHaveStyle({ display: 'none' });
+      });
     });
 
     it('should focus search input when / is pressed', () => {
@@ -338,7 +344,7 @@ describe('AdminLayout', () => {
       document.body.removeChild(addButton);
     });
 
-    it('should disable shortcuts when dialog is open', () => {
+    it('should disable shortcuts when dialog is open', async () => {
       const { useKeyboardShortcuts } = require('@/hooks/useKeyboardShortcuts');
 
       render(
@@ -354,8 +360,14 @@ describe('AdminLayout', () => {
       const helpHandler = useKeyboardShortcuts.mock.calls[0][0].find((s: any) => s.key === '?').handler;
       helpHandler();
 
-      // Shortcuts should be disabled when dialog is open
-      expect(useKeyboardShortcuts).toHaveBeenLastCalledWith(expect.any(Array), false);
+      // Wait for state update and re-render
+      await waitFor(() => {
+        expect(screen.getByTestId('shortcuts-dialog')).toHaveStyle({ display: 'block' });
+      });
+
+      // Shortcuts should be disabled when dialog is open (check last call)
+      const lastCall = useKeyboardShortcuts.mock.calls[useKeyboardShortcuts.mock.calls.length - 1];
+      expect(lastCall[1]).toBe(false);
     });
   });
 

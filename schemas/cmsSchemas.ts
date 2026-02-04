@@ -8,38 +8,56 @@ export const richTextContentSchema = z.object({
 export const photoGalleryContentSchema = z.object({
   photo_ids: z.array(z.string().uuid()),
   display_mode: z.enum(['gallery', 'carousel', 'loop']),
+  autoplaySpeed: z.number().int().min(1000).max(10000).optional(),
+  showCaptions: z.boolean().optional(),
 });
 
 export const referenceSchema = z.object({
-  type: z.enum(['activity', 'event', 'accommodation', 'location']),
+  type: z.enum(['activity', 'event', 'accommodation', 'location', 'content_page']),
   id: z.string().uuid(),
+  name: z.string().optional(),
   label: z.string().optional(),
+  description: z.string().optional(),
+  metadata: z.record(z.any()).optional(),
 });
 
 export const referencesContentSchema = z.object({
   references: z.array(referenceSchema),
 });
 
-// Column schema
-export const columnDataSchema = z.object({
-  column_number: z.union([z.literal(1), z.literal(2)]),
-  content_type: z.enum(['rich_text', 'photo_gallery', 'references']),
-  content_data: z.union([
-    richTextContentSchema,
-    photoGalleryContentSchema,
-    referencesContentSchema,
-  ]),
-});
+// Column schema with discriminated union for better validation
+export const columnDataSchema = z.discriminatedUnion('content_type', [
+  z.object({
+    column_number: z.union([z.literal(1), z.literal(2)]),
+    content_type: z.literal('rich_text'),
+    content_data: richTextContentSchema,
+  }),
+  z.object({
+    column_number: z.union([z.literal(1), z.literal(2)]),
+    content_type: z.literal('photo_gallery'),
+    content_data: photoGalleryContentSchema,
+  }),
+  z.object({
+    column_number: z.union([z.literal(1), z.literal(2)]),
+    content_type: z.literal('references'),
+    content_data: referencesContentSchema,
+  }),
+]);
 
 // Section schemas
 export const createSectionSchema = z.object({
   page_type: z.enum(['activity', 'event', 'accommodation', 'room_type', 'custom']),
   page_id: z.string().min(1),
+  title: z.string().max(200).nullable().optional(),
   display_order: z.number().int().min(0),
   columns: z.array(columnDataSchema).min(1).max(2),
 });
 
-export const updateSectionSchema = createSectionSchema.partial().extend({
+export const updateSectionSchema = z.object({
+  page_type: z.enum(['activity', 'event', 'accommodation', 'room_type', 'custom']).optional(),
+  page_id: z.string().min(1).optional(),
+  title: z.string().max(200).nullable().optional(),
+  display_order: z.number().int().min(0).optional(),
   columns: z.array(columnDataSchema).min(1).max(2).optional(),
 });
 
@@ -95,6 +113,7 @@ export interface Section {
   id: string;
   page_type: 'activity' | 'event' | 'accommodation' | 'room_type' | 'custom';
   page_id: string;
+  title?: string;
   display_order: number;
   created_at: string;
   updated_at: string;

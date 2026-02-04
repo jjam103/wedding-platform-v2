@@ -96,6 +96,67 @@ export async function create(data: CreateRSVPDTO): Promise<Result<RSVP>> {
       };
     }
 
+    // Send RSVP confirmation email (don't fail if email fails)
+    try {
+      // Get guest and activity/event details for email
+      const { data: guest } = await supabase
+        .from('guests')
+        .select('first_name, last_name, email')
+        .eq('id', result.guest_id)
+        .single();
+
+      if (guest && guest.email) {
+        let activityOrEventName = '';
+        let activityOrEventDate = '';
+
+        if (result.activity_id) {
+          const { data: activity } = await supabase
+            .from('activities')
+            .select('name, date')
+            .eq('id', result.activity_id)
+            .single();
+          
+          if (activity) {
+            activityOrEventName = activity.name;
+            activityOrEventDate = activity.date;
+          }
+        } else if (result.event_id) {
+          const { data: event } = await supabase
+            .from('events')
+            .select('name, date')
+            .eq('id', result.event_id)
+            .single();
+          
+          if (event) {
+            activityOrEventName = event.name;
+            activityOrEventDate = event.date;
+          }
+        }
+
+        // Import emailService dynamically to avoid circular dependencies
+        const { sendEmail } = await import('./emailService');
+        
+        await sendEmail({
+          to: guest.email,
+          subject: `RSVP Confirmed for ${activityOrEventName}`,
+          html: `
+            <p>Hi ${guest.first_name},</p>
+            <p>Your RSVP has been confirmed!</p>
+            <p><strong>Event:</strong> ${activityOrEventName}</p>
+            <p><strong>Date:</strong> ${activityOrEventDate}</p>
+            <p><strong>Status:</strong> ${result.status}</p>
+            ${result.guest_count ? `<p><strong>Guest Count:</strong> ${result.guest_count}</p>` : ''}
+            <p>Thank you!</p>
+          `,
+          text: `Hi ${guest.first_name}, Your RSVP has been confirmed for ${activityOrEventName} on ${activityOrEventDate}. Status: ${result.status}`,
+          template_id: undefined, // Could use 'rsvp_confirmation' template if it exists
+        });
+      }
+    } catch (emailError) {
+      // Log error but don't fail the RSVP
+      console.error('Failed to send RSVP confirmation email:', emailError);
+    }
+
     return { success: true, data: result };
   } catch (error) {
     return {

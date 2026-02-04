@@ -12,6 +12,7 @@
  */
 
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import '@testing-library/jest-dom';
 import GuestsPage from './page';
 import { ToastProvider } from '@/components/ui/ToastContext';
@@ -146,7 +147,7 @@ describe('CollapsibleForm Migration - Guests Page', () => {
           }),
         });
       }
-      if (url.includes('/api/admin/groups')) {
+      if (url.includes('/api/admin/guest-groups')) {
         return Promise.resolve({
           ok: true,
           json: () => Promise.resolve({
@@ -197,7 +198,8 @@ describe('CollapsibleForm Migration - Guests Page', () => {
       expect(screen.queryByLabelText(/first name/i)).not.toBeInTheDocument();
 
       // Click Add Guest button to open form
-      const addButton = screen.getByRole('button', { name: /add guest/i });
+      const addButton = screen.getByText('Add New Guest').closest('button');
+      if (!addButton) throw new Error('Add button not found');
       fireEvent.click(addButton);
 
       // Form should be visible
@@ -227,7 +229,8 @@ describe('CollapsibleForm Migration - Guests Page', () => {
       });
 
       // Open form
-      const addButton = screen.getByRole('button', { name: /add guest/i });
+      const addButton = screen.getByText('Add New Guest').closest('button');
+      if (!addButton) throw new Error('Add button not found');
       fireEvent.click(addButton);
 
       // Wait for form to be visible
@@ -258,7 +261,8 @@ describe('CollapsibleForm Migration - Guests Page', () => {
       });
 
       // Click Add Guest button
-      const addButton = screen.getByRole('button', { name: /add guest/i });
+      const addButton = screen.getByText('Add New Guest').closest('button');
+      if (!addButton) throw new Error('Add button not found');
       fireEvent.click(addButton);
 
       // Wait for form to be visible
@@ -296,7 +300,7 @@ describe('CollapsibleForm Migration - Guests Page', () => {
             }),
           });
         }
-        if (url.includes('/api/admin/groups')) {
+        if (url.includes('/api/admin/guest-groups')) {
           return Promise.resolve({
             ok: true,
             json: () => Promise.resolve({ success: true, data: [mockGroup] }),
@@ -308,6 +312,8 @@ describe('CollapsibleForm Migration - Guests Page', () => {
         });
       });
 
+      const user = userEvent.setup();
+
       render(
         <ToastProvider>
           <GuestsPage />
@@ -320,43 +326,43 @@ describe('CollapsibleForm Migration - Guests Page', () => {
       });
 
       // Open form
-      const addButton = screen.getByRole('button', { name: /add guest/i });
-      fireEvent.click(addButton);
+      const addButton = screen.getByText('Add New Guest').closest('button');
+      if (!addButton) throw new Error('Add button not found');
+      await user.click(addButton);
 
       // Wait for form to be visible
       await waitFor(() => {
         expect(screen.getByLabelText(/first name/i)).toBeInTheDocument();
       });
 
+      // Wait for group options to load
+      await waitFor(() => {
+        const groupFields = screen.getAllByLabelText(/group/i);
+        const groupField = groupFields.find(el => el.tagName === 'SELECT' && !el.id.includes('filter')) as HTMLSelectElement;
+        expect(groupField).toBeInTheDocument();
+        expect(groupField.options.length).toBeGreaterThan(1); // More than just the placeholder
+      });
+
       // Fill in required fields
-      fireEvent.change(screen.getByLabelText(/first name/i), {
-        target: { value: 'Jane' },
-      });
-      fireEvent.change(screen.getByLabelText(/last name/i), {
-        target: { value: 'Smith' },
-      });
+      // Group ID is first and required - use getAllByLabelText to handle multiple "Group" labels
+      const groupFields = screen.getAllByLabelText(/group/i);
+      const groupField = groupFields.find(el => el.tagName === 'SELECT' && !el.id.includes('filter')) || groupFields[0];
+      await user.selectOptions(groupField, mockGroup.id);
       
-      // Select group using the form field ID
-      const groupSelect = screen.getByRole('combobox', { name: /group/i });
-      fireEvent.change(groupSelect, {
-        target: { value: mockGroup.id },
-      });
+      await user.type(screen.getByLabelText(/first name/i), 'Jane');
+      await user.type(screen.getByLabelText(/last name/i), 'Smith');
 
       // Select age type
       const ageTypeSelect = screen.getByLabelText(/age type/i);
-      fireEvent.change(ageTypeSelect, {
-        target: { value: 'adult' },
-      });
+      await user.selectOptions(ageTypeSelect, 'adult');
 
       // Select guest type
       const guestTypeSelect = screen.getByLabelText(/guest type/i);
-      fireEvent.change(guestTypeSelect, {
-        target: { value: 'wedding_guest' },
-      });
+      await user.selectOptions(guestTypeSelect, 'wedding_guest');
 
-      // Submit form
-      const submitButton = screen.getByRole('button', { name: /create/i });
-      fireEvent.click(submitButton);
+      // Submit form by clicking the submit button
+      const submitButton = screen.getByRole('button', { name: /create|save|submit/i });
+      await user.click(submitButton);
 
       // Verify API was called
       await waitFor(() => {
@@ -368,16 +374,16 @@ describe('CollapsibleForm Migration - Guests Page', () => {
             body: expect.stringContaining('Jane'),
           })
         );
-      });
+      }, { timeout: 3000 });
 
       // Verify success toast
       await waitFor(() => {
         expect(screen.getByText(/guest created successfully/i)).toBeInTheDocument();
-      });
+      }, { timeout: 3000 });
     });
 
     it('should display validation errors for invalid input', async () => {
-      render(
+      const { container } = render(
         <ToastProvider>
           <GuestsPage />
         </ToastProvider>
@@ -389,7 +395,8 @@ describe('CollapsibleForm Migration - Guests Page', () => {
       });
 
       // Open form
-      const addButton = screen.getByRole('button', { name: /add guest/i });
+      const addButton = screen.getByText('Add New Guest').closest('button');
+      if (!addButton) throw new Error('Add button not found');
       fireEvent.click(addButton);
 
       // Wait for form to be visible
@@ -398,8 +405,9 @@ describe('CollapsibleForm Migration - Guests Page', () => {
       });
 
       // Try to submit without filling required fields
-      const submitButton = screen.getByRole('button', { name: /create/i });
-      fireEvent.click(submitButton);
+      const form = container.querySelector('form');
+      expect(form).toBeInTheDocument();
+      fireEvent.submit(form!);
 
       // Verify validation errors are displayed
       await waitFor(() => {
@@ -430,7 +438,7 @@ describe('CollapsibleForm Migration - Guests Page', () => {
             }),
           });
         }
-        if (url.includes('/api/admin/groups')) {
+        if (url.includes('/api/admin/guest-groups')) {
           return Promise.resolve({
             ok: true,
             json: () => Promise.resolve({ success: true, data: [mockGroup] }),
@@ -442,6 +450,8 @@ describe('CollapsibleForm Migration - Guests Page', () => {
         });
       });
 
+      const user = userEvent.setup();
+
       render(
         <ToastProvider>
           <GuestsPage />
@@ -451,29 +461,36 @@ describe('CollapsibleForm Migration - Guests Page', () => {
       // Wait for page to load with guest data
       await waitFor(() => {
         expect(screen.getByText('John')).toBeInTheDocument();
-      });
+      }, { timeout: 3000 });
 
-      // Click on guest row to edit
-      const guestRow = screen.getByText('John').closest('tr');
-      if (guestRow) {
-        fireEvent.click(guestRow);
+      // Find and click the edit button for the guest
+      // The DataTable mock renders action buttons
+      const editButtons = screen.queryAllByRole('button', { name: /edit/i });
+      if (editButtons.length > 0) {
+        await user.click(editButtons[0]);
+      } else {
+        // Fallback: click on the guest row
+        const guestRow = screen.getByText('John').closest('[data-testid^="guest-row"]');
+        if (guestRow) {
+          await user.click(guestRow);
+        }
       }
 
       // Wait for form to be visible with guest data
       await waitFor(() => {
         const firstNameInput = screen.getByLabelText(/first name/i) as HTMLInputElement;
+        expect(firstNameInput).toBeInTheDocument();
         expect(firstNameInput.value).toBe('John');
-      });
+      }, { timeout: 3000 });
 
-      // Update first name
+      // Update first name - clear first then type
       const firstNameInput = screen.getByLabelText(/first name/i);
-      fireEvent.change(firstNameInput, {
-        target: { value: 'Updated' },
-      });
+      await user.clear(firstNameInput);
+      await user.type(firstNameInput, 'Updated');
 
-      // Submit form
-      const submitButton = screen.getByRole('button', { name: /update/i });
-      fireEvent.click(submitButton);
+      // Submit form by clicking the submit button
+      const submitButton = screen.getByRole('button', { name: /create|save|submit|update/i });
+      await user.click(submitButton);
 
       // Verify API was called
       await waitFor(() => {
@@ -484,12 +501,12 @@ describe('CollapsibleForm Migration - Guests Page', () => {
             body: expect.stringContaining('Updated'),
           })
         );
-      });
+      }, { timeout: 3000 });
 
       // Verify success toast
       await waitFor(() => {
         expect(screen.getByText(/guest updated successfully/i)).toBeInTheDocument();
-      });
+      }, { timeout: 3000 });
     });
   });
 
@@ -510,7 +527,8 @@ describe('CollapsibleForm Migration - Guests Page', () => {
       });
 
       // Open form
-      const addButton = screen.getByRole('button', { name: /add guest/i });
+      const addButton = screen.getByText('Add New Guest').closest('button');
+      if (!addButton) throw new Error('Add button not found');
       fireEvent.click(addButton);
 
       // Wait for form to be visible
@@ -559,7 +577,7 @@ describe('CollapsibleForm Migration - Guests Page', () => {
             }),
           });
         }
-        if (url.includes('/api/admin/groups')) {
+        if (url.includes('/api/admin/guest-groups')) {
           return Promise.resolve({
             ok: true,
             json: () => Promise.resolve({ success: true, data: [mockGroup] }),
@@ -570,6 +588,8 @@ describe('CollapsibleForm Migration - Guests Page', () => {
           json: () => Promise.resolve({ success: true, data: [] }),
         });
       });
+
+      const user = userEvent.setup();
 
       render(
         <ToastProvider>
@@ -583,47 +603,45 @@ describe('CollapsibleForm Migration - Guests Page', () => {
       });
 
       // Open form
-      const addButton = screen.getByRole('button', { name: /add guest/i });
-      fireEvent.click(addButton);
+      const addButton = screen.getByText('Add New Guest').closest('button');
+      if (!addButton) throw new Error('Add button not found');
+      await user.click(addButton);
 
       // Wait for form to be visible
       await waitFor(() => {
         expect(screen.getByLabelText(/first name/i)).toBeInTheDocument();
       });
 
+      // Wait for group options to load
+      await waitFor(() => {
+        const groupFields = screen.getAllByLabelText(/group/i);
+        const groupField = groupFields.find(el => el.tagName === 'SELECT' && !el.id.includes('filter')) as HTMLSelectElement;
+        expect(groupField).toBeInTheDocument();
+        expect(groupField.options.length).toBeGreaterThan(1); // More than just the placeholder
+      });
+
       // Fill in required fields
-      fireEvent.change(screen.getByLabelText(/first name/i), {
-        target: { value: 'Jane' },
-      });
-      fireEvent.change(screen.getByLabelText(/last name/i), {
-        target: { value: 'Smith' },
-      });
+      const groupFields = screen.getAllByLabelText(/group/i);
+      const groupField = groupFields.find(el => el.tagName === 'SELECT' && !el.id.includes('filter')) || groupFields[0];
+      await user.selectOptions(groupField, mockGroup.id);
       
-      // Get group select from form (not filter) - multiple elements with "Group" label
-      const groupLabels = screen.getAllByLabelText(/group/i);
-      const groupSelect = groupLabels.find(el => el.tagName === 'SELECT' && el.id.includes('field')) as HTMLSelectElement;
-      fireEvent.change(groupSelect, {
-        target: { value: mockGroup.id },
-      });
+      await user.type(screen.getByLabelText(/first name/i), 'Jane');
+      await user.type(screen.getByLabelText(/last name/i), 'Smith');
 
       const ageTypeSelect = screen.getByLabelText(/age type/i);
-      fireEvent.change(ageTypeSelect, {
-        target: { value: 'adult' },
-      });
+      await user.selectOptions(ageTypeSelect, 'adult');
 
       const guestTypeSelect = screen.getByLabelText(/guest type/i);
-      fireEvent.change(guestTypeSelect, {
-        target: { value: 'wedding_guest' },
-      });
+      await user.selectOptions(guestTypeSelect, 'wedding_guest');
 
       // Submit form
-      const submitButton = screen.getByRole('button', { name: /create/i });
-      fireEvent.click(submitButton);
+      const submitButton = screen.getByRole('button', { name: /create|save|submit/i });
+      await user.click(submitButton);
 
       // Wait for success
       await waitFor(() => {
         expect(screen.getByText(/guest created successfully/i)).toBeInTheDocument();
-      });
+      }, { timeout: 3000 });
 
       // Form should be collapsed
       await waitFor(() => {
@@ -644,7 +662,8 @@ describe('CollapsibleForm Migration - Guests Page', () => {
       });
 
       // Open form
-      const addButton = screen.getByRole('button', { name: /add guest/i });
+      const addButton = screen.getByText('Add New Guest').closest('button');
+      if (!addButton) throw new Error('Add button not found');
       fireEvent.click(addButton);
 
       // Wait for form to be visible

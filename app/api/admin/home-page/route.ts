@@ -1,8 +1,26 @@
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
-import { getSettings, updateSettings } from '@/services/settingsService';
+import { getSetting, upsertHomePageConfig } from '@/services/settingsService';
+import { homePageConfigSchema } from '@/schemas/settingsSchemas';
 import { sanitizeRichText } from '@/utils/sanitization';
+
+/**
+ * Map error codes to HTTP status codes
+ */
+function getStatusCode(errorCode: string): number {
+  const statusMap: Record<string, number> = {
+    VALIDATION_ERROR: 400,
+    UNAUTHORIZED: 401,
+    FORBIDDEN: 403,
+    NOT_FOUND: 404,
+    CONFLICT: 409,
+    DATABASE_ERROR: 500,
+    INTERNAL_ERROR: 500,
+    UNKNOWN_ERROR: 500,
+  };
+  return statusMap[errorCode] || 500;
+}
 
 /**
  * GET /api/admin/home-page
@@ -37,19 +55,20 @@ export async function GET() {
       );
     }
     
-    // 2. Get settings
-    const result = await getSettings();
+    // 2. Get individual home page settings
+    const [titleResult, subtitleResult, welcomeMessageResult, heroImageResult] = await Promise.all([
+      getSetting('home_page_title'),
+      getSetting('home_page_subtitle'),
+      getSetting('home_page_welcome_message'),
+      getSetting('home_page_hero_image_url'),
+    ]);
     
-    if (!result.success) {
-      return NextResponse.json(result, { status: 500 });
-    }
-    
-    // 3. Extract home page config
+    // 3. Build home page config (handle NOT_FOUND gracefully)
     const homePageConfig = {
-      title: result.data.home_page_title,
-      subtitle: result.data.home_page_subtitle,
-      welcomeMessage: result.data.home_page_welcome_message,
-      heroImageUrl: result.data.home_page_hero_image_url,
+      title: titleResult.success ? titleResult.data : null,
+      subtitle: subtitleResult.success ? subtitleResult.data : null,
+      welcomeMessage: welcomeMessageResult.success ? welcomeMessageResult.data : null,
+      heroImageUrl: heroImageResult.success ? heroImageResult.data : null,
     };
     
     return NextResponse.json({ success: true, data: homePageConfig });
@@ -73,7 +92,7 @@ export async function GET() {
  */
 export async function PUT(request: Request) {
   try {
-    // 1. Authenticate
+    // 1. AUTHENTICATION
     const cookieStore = await cookies();
     const supabase = createServerClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -100,43 +119,50 @@ export async function PUT(request: Request) {
       );
     }
     
-    // 2. Parse request body
+    // 2. VALIDATION
     const body = await request.json();
+    const validation = homePageConfigSchema.safeParse(body);
     
-    // 3. Sanitize rich text content
-    const sanitizedData = {
-      home_page_title: body.title,
-      home_page_subtitle: body.subtitle,
-      home_page_welcome_message: body.welcomeMessage ? sanitizeRichText(body.welcomeMessage) : null,
-      home_page_hero_image_url: body.heroImageUrl,
-    };
-    
-    // 4. Update settings
-    const result = await updateSettings(sanitizedData);
-    
-    if (!result.success) {
-      if (result.error.code === 'VALIDATION_ERROR') {
-        return NextResponse.json(result, { status: 400 });
-      }
-      return NextResponse.json(result, { status: 500 });
+    if (!validation.success) {
+      return NextResponse.json(
+        { 
+          success: false, 
+          error: { 
+            code: 'VALIDATION_ERROR', 
+            message: 'Invalid home page configuration', 
+            details: validation.error.issues 
+          } 
+        },
+        { status: 400 }
+      );
     }
     
-    // 5. Return updated config
-    const homePageConfig = {
-      title: result.data.home_page_title,
-      subtitle: result.data.home_page_subtitle,
-      welcomeMessage: result.data.home_page_welcome_message,
-      heroImageUrl: result.data.home_page_hero_image_url,
+    // Sanitize rich text content
+    const sanitizedConfig = {
+      ...validation.data,
+      welcomeMessage: validation.data.welcomeMessage 
+        ? sanitizeRichText(validation.data.welcomeMessage) 
+        : validation.data.welcomeMessage,
     };
     
-    return NextResponse.json({ success: true, data: homePageConfig });
+    // 3. SERVICE CALL - Use upsert pattern
+    const result = await upsertHomePageConfig(sanitizedConfig);
+    
+    // 4. RESPONSE
+    if (!result.success) {
+      return NextResponse.json(result, { status: getStatusCode(result.error.code) });
+    }
+    
+    return NextResponse.json(result, { status: 200 });
+    
   } catch (error) {
+    console.error('Home page API error:', { path: request.url, method: request.method, error });
     return NextResponse.json(
       { 
         success: false, 
         error: { 
-          code: 'UNKNOWN_ERROR', 
-          message: error instanceof Error ? error.message : 'Unknown error' 
+          code: 'INTERNAL_ERROR', 
+          message: 'An unexpected error occurred' 
         } 
       },
       { status: 500 }

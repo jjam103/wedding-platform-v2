@@ -25,16 +25,32 @@ interface RSVPSummary {
   maybe: number;
 }
 
+interface WeddingInfo {
+  date: string;
+  location: string;
+  venue: string;
+}
+
+interface Announcement {
+  id: string;
+  title: string;
+  message: string;
+  urgent: boolean;
+  created_at: string;
+}
+
 /**
  * Guest Dashboard Component
  * 
  * Displays personalized dashboard for guests with:
  * - Welcome message with guest name
+ * - Wedding date, location, and venue
  * - Upcoming events and activities
  * - RSVP status summary
  * - Quick action links
+ * - Urgent announcements
  * 
- * Requirements: 13.1, 13.5
+ * Requirements: 7.1, 7.2, 7.3, 7.4, 7.5, 7.6, 7.7, 7.9, 13.1, 13.5
  */
 export function GuestDashboard({ guest }: GuestDashboardProps) {
   const [upcomingEvents, setUpcomingEvents] = useState<UpcomingEvent[]>([]);
@@ -45,6 +61,8 @@ export function GuestDashboard({ guest }: GuestDashboardProps) {
     pending: 0,
     maybe: 0,
   });
+  const [weddingInfo, setWeddingInfo] = useState<WeddingInfo | null>(null);
+  const [announcements, setAnnouncements] = useState<Announcement[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -54,10 +72,12 @@ export function GuestDashboard({ guest }: GuestDashboardProps) {
         setLoading(true);
         setError(null);
 
-        // Fetch upcoming events and RSVPs
-        const [eventsResponse, rsvpsResponse] = await Promise.all([
+        // Fetch dashboard data
+        const [eventsResponse, rsvpsResponse, weddingResponse, announcementsResponse] = await Promise.all([
           fetch('/api/guest/events'),
           fetch('/api/guest/rsvps'),
+          fetch('/api/guest/wedding-info'),
+          fetch('/api/guest/announcements'),
         ]);
 
         if (!eventsResponse.ok || !rsvpsResponse.ok) {
@@ -66,6 +86,8 @@ export function GuestDashboard({ guest }: GuestDashboardProps) {
 
         const eventsData = await eventsResponse.json();
         const rsvpsData = await rsvpsResponse.json();
+        const weddingData = weddingResponse.ok ? await weddingResponse.json() : null;
+        const announcementsData = announcementsResponse.ok ? await announcementsResponse.json() : null;
 
         if (eventsData.success && rsvpsData.success) {
           // Process upcoming events
@@ -88,6 +110,21 @@ export function GuestDashboard({ guest }: GuestDashboardProps) {
           };
 
           setRsvpSummary(summary);
+
+          // Set wedding info
+          if (weddingData?.success) {
+            setWeddingInfo(weddingData.data);
+          }
+
+          // Set announcements (urgent first)
+          if (announcementsData?.success) {
+            const sorted = announcementsData.data.sort((a: Announcement, b: Announcement) => {
+              if (a.urgent && !b.urgent) return -1;
+              if (!a.urgent && b.urgent) return 1;
+              return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+            });
+            setAnnouncements(sorted.slice(0, 3)); // Show top 3
+          }
         }
       } catch (err) {
         setError(err instanceof Error ? err.message : 'An error occurred');
@@ -188,7 +225,67 @@ export function GuestDashboard({ guest }: GuestDashboardProps) {
             <p className="text-volcano-800">{error}</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <>
+            {/* Wedding Info Banner */}
+            {weddingInfo && (
+              <div className="bg-gradient-to-r from-jungle-600 to-ocean-600 rounded-lg shadow-lg p-6 mb-6 text-white">
+                <div className="text-center">
+                  <h2 className="text-2xl font-bold mb-2">🌴 Costa Rica Wedding 🌴</h2>
+                  <div className="flex flex-col sm:flex-row items-center justify-center gap-4 text-lg">
+                    <div className="flex items-center gap-2">
+                      <span>📅</span>
+                      <span>{formatDate(weddingInfo.date)}</span>
+                    </div>
+                    <div className="hidden sm:block">•</div>
+                    <div className="flex items-center gap-2">
+                      <span>📍</span>
+                      <span>{weddingInfo.location}</span>
+                    </div>
+                    <div className="hidden sm:block">•</div>
+                    <div className="flex items-center gap-2">
+                      <span>🏨</span>
+                      <span>{weddingInfo.venue}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Urgent Announcements */}
+            {announcements.length > 0 && (
+              <div className="mb-6 space-y-3">
+                {announcements.map((announcement) => (
+                  <div
+                    key={announcement.id}
+                    className={`rounded-lg shadow-md p-4 border-l-4 ${
+                      announcement.urgent
+                        ? 'bg-volcano-50 border-volcano-500'
+                        : 'bg-ocean-50 border-ocean-500'
+                    }`}
+                  >
+                    <div className="flex items-start gap-3">
+                      {announcement.urgent && (
+                        <span className="text-2xl">⚠️</span>
+                      )}
+                      <div className="flex-1">
+                        <h3 className={`font-bold ${
+                          announcement.urgent ? 'text-volcano-800' : 'text-ocean-800'
+                        }`}>
+                          {announcement.title}
+                        </h3>
+                        <p className={`mt-1 ${
+                          announcement.urgent ? 'text-volcano-700' : 'text-ocean-700'
+                        }`}>
+                          {announcement.message}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* RSVP Summary Card */}
             <div className="lg:col-span-1">
               <div className="bg-white rounded-lg shadow-md p-6 border border-sage-200">
@@ -326,7 +423,8 @@ export function GuestDashboard({ guest }: GuestDashboardProps) {
                 )}
               </div>
             </div>
-          </div>
+            </div>
+          </>
         )}
       </main>
     </div>

@@ -359,24 +359,154 @@ export async function updateContentPage(id: string, data: UpdateContentPageDTO):
  * Deletes a content page and all associated sections
  * 
  * @param id - Content page ID
+ * @param options - Delete options (soft delete or permanent)
  * @returns Result indicating success or error details
+ * 
+ * @example
+ * // Soft delete (default)
+ * await deleteContentPage('page-id');
+ * 
+ * // Permanent delete
+ * await deleteContentPage('page-id', { permanent: true });
  */
-export async function deleteContentPage(id: string): Promise<Result<void>> {
+export async function deleteContentPage(
+  id: string,
+  options: { permanent?: boolean; deletedBy?: string } = {}
+): Promise<Result<void>> {
+  try {
+    const supabase = getSupabase();
+    const { permanent = false, deletedBy } = options;
+
+    if (permanent) {
+      // Permanent deletion - remove from database
+      // Delete associated sections (cascade will delete columns)
+      await supabase
+        .from('sections')
+        .delete()
+        .eq('page_type', 'custom')
+        .eq('page_id', id);
+
+      // Delete content page
+      const { error } = await supabase
+        .from('content_pages')
+        .delete()
+        .eq('id', id);
+
+      if (error) {
+        return {
+          success: false,
+          error: {
+            code: 'DATABASE_ERROR',
+            message: error.message,
+            details: error,
+          },
+        };
+      }
+    } else {
+      // Soft delete - set deleted_at timestamp
+      const now = new Date().toISOString();
+
+      // Soft delete associated sections and columns
+      const { data: sections } = await supabase
+        .from('sections')
+        .select('id')
+        .eq('page_type', 'custom')
+        .eq('page_id', id)
+        .is('deleted_at', null);
+
+      if (sections && sections.length > 0) {
+        const sectionIds = sections.map((s: any) => s.id);
+
+        // Soft delete columns
+        await supabase
+          .from('columns')
+          .update({ deleted_at: now, deleted_by: deletedBy })
+          .in('section_id', sectionIds)
+          .is('deleted_at', null);
+
+        // Soft delete sections
+        await supabase
+          .from('sections')
+          .update({ deleted_at: now, deleted_by: deletedBy })
+          .in('id', sectionIds)
+          .is('deleted_at', null);
+      }
+
+      // Soft delete content page
+      const { error } = await supabase
+        .from('content_pages')
+        .update({ deleted_at: now, deleted_by: deletedBy })
+        .eq('id', id)
+        .is('deleted_at', null);
+
+      if (error) {
+        return {
+          success: false,
+          error: {
+            code: 'DATABASE_ERROR',
+            message: error.message,
+            details: error,
+          },
+        };
+      }
+    }
+
+    return { success: true, data: undefined };
+  } catch (error) {
+    return {
+      success: false,
+      error: {
+        code: 'UNKNOWN_ERROR',
+        message: error instanceof Error ? error.message : 'Unknown error',
+      },
+    };
+  }
+}
+
+/**
+ * Restores a soft-deleted content page and all associated sections
+ * 
+ * @param id - Content page ID
+ * @returns Result indicating success or error details
+ * 
+ * @example
+ * const result = await restoreContentPage('page-id');
+ */
+export async function restoreContentPage(id: string): Promise<Result<ContentPage>> {
   try {
     const supabase = getSupabase();
 
-    // Delete associated sections (cascade will delete columns)
-    await supabase
+    // Restore associated sections and columns
+    const { data: sections } = await supabase
       .from('sections')
-      .delete()
+      .select('id')
       .eq('page_type', 'custom')
-      .eq('page_id', id);
+      .eq('page_id', id)
+      .not('deleted_at', 'is', null);
 
-    // Delete content page
-    const { error } = await supabase
+    if (sections && sections.length > 0) {
+      const sectionIds = sections.map((s: any) => s.id);
+
+      // Restore columns
+      await supabase
+        .from('columns')
+        .update({ deleted_at: null, deleted_by: null })
+        .in('section_id', sectionIds);
+
+      // Restore sections
+      await supabase
+        .from('sections')
+        .update({ deleted_at: null, deleted_by: null })
+        .in('id', sectionIds);
+    }
+
+    // Restore content page
+    const { data, error } = await supabase
       .from('content_pages')
-      .delete()
-      .eq('id', id);
+      .update({ deleted_at: null, deleted_by: null })
+      .eq('id', id)
+      .select()
+      .single();
 
     if (error) {
       return {
@@ -389,7 +519,7 @@ export async function deleteContentPage(id: string): Promise<Result<void>> {
       };
     }
 
-    return { success: true, data: undefined };
+    return { success: true, data };
   } catch (error) {
     return {
       success: false,

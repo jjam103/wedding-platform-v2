@@ -45,9 +45,23 @@ export async function GET(request: Request) {
     // 3. Call service
     const result = await eventService.list(filters);
 
-    // 4. Return response
-    return NextResponse.json(result, { status: result.success ? 200 : 500 });
+    // 4. Return response with proper status code mapping
+    if (!result.success) {
+      const statusMap: Record<string, number> = {
+        'VALIDATION_ERROR': 400,
+        'UNAUTHORIZED': 401,
+        'FORBIDDEN': 403,
+        'NOT_FOUND': 404,
+        'DATABASE_ERROR': 500,
+        'UNKNOWN_ERROR': 500,
+      };
+      const status = statusMap[result.error.code] || 500;
+      return NextResponse.json(result, { status });
+    }
+
+    return NextResponse.json(result, { status: 200 });
   } catch (error) {
+    console.error('Events API error:', error);
     return NextResponse.json(
       {
         success: false,

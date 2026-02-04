@@ -98,7 +98,7 @@ describe('RoomTypesPage', () => {
 
   describe('Room type creation', () => {
     it('should display collapsible form when Add Room Type button is clicked', async () => {
-      render(<RoomTypesPage params={{ id: 'accommodation-1' }} />);
+      render(<RoomTypesPage params={Promise.resolve({ id: 'accommodation-1' })} />);
 
       await waitFor(() => {
         expect(screen.getByText(/room types:/i)).toBeInTheDocument();
@@ -154,7 +154,7 @@ describe('RoomTypesPage', () => {
         return Promise.reject(new Error('Unknown URL'));
       });
 
-      render(<RoomTypesPage params={{ id: 'accommodation-1' }} />);
+      render(<RoomTypesPage params={Promise.resolve({ id: 'accommodation-1' })} />);
 
       await waitFor(() => {
         expect(screen.getByText(/room types:/i)).toBeInTheDocument();
@@ -208,7 +208,7 @@ describe('RoomTypesPage', () => {
         return Promise.reject(new Error('Unknown URL'));
       });
 
-      render(<RoomTypesPage params={{ id: 'accommodation-1' }} />);
+      render(<RoomTypesPage params={Promise.resolve({ id: 'accommodation-1' })} />);
 
       await waitFor(() => {
         expect(screen.getByText(/room types:/i)).toBeInTheDocument();
@@ -218,21 +218,21 @@ describe('RoomTypesPage', () => {
 
   describe('Capacity tracking', () => {
     it('should display capacity information for each room type', async () => {
-      render(<RoomTypesPage params={{ id: 'accommodation-1' }} />);
+      render(<RoomTypesPage params={Promise.resolve({ id: 'accommodation-1' })} />);
 
       await waitFor(() => {
-        expect(screen.getByText('Ocean View Suite')).toBeInTheDocument();
+        expect(screen.getAllByText('Ocean View Suite')).toHaveLength(2);
       });
 
-      // Verify capacity is displayed
-      expect(screen.getByText('2 guests')).toBeInTheDocument();
+      // Verify capacity is displayed (multiple room types have same capacity)
+      expect(screen.getAllByText('2 guests').length).toBeGreaterThan(0);
     });
 
     it('should display total rooms for each room type', async () => {
-      render(<RoomTypesPage params={{ id: 'accommodation-1' }} />);
+      render(<RoomTypesPage params={Promise.resolve({ id: 'accommodation-1' })} />);
 
       await waitFor(() => {
-        expect(screen.getByText('Ocean View Suite')).toBeInTheDocument();
+        expect(screen.getAllByText('Ocean View Suite')).toHaveLength(2);
       });
 
       // Verify total rooms are displayed (would be in table)
@@ -240,10 +240,10 @@ describe('RoomTypesPage', () => {
     });
 
     it('should calculate and display occupancy percentage', async () => {
-      render(<RoomTypesPage params={{ id: 'accommodation-1' }} />);
+      render(<RoomTypesPage params={Promise.resolve({ id: 'accommodation-1' })} />);
 
       await waitFor(() => {
-        expect(screen.getByText('Ocean View Suite')).toBeInTheDocument();
+        expect(screen.getAllByText('Ocean View Suite')).toHaveLength(2);
       });
 
       // Occupancy would be calculated and displayed
@@ -253,10 +253,10 @@ describe('RoomTypesPage', () => {
 
   describe('Guest assignment', () => {
     it('should display guest assignment interface', async () => {
-      render(<RoomTypesPage params={{ id: 'accommodation-1' }} />);
+      render(<RoomTypesPage params={Promise.resolve({ id: 'accommodation-1' })} />);
 
       await waitFor(() => {
-        expect(screen.getByText('Ocean View Suite')).toBeInTheDocument();
+        expect(screen.getAllByText('Ocean View Suite')).toHaveLength(2);
       });
 
       // Guest assignment interface would be part of the page
@@ -266,10 +266,10 @@ describe('RoomTypesPage', () => {
 
   describe('Section editor integration', () => {
     it('should navigate to section editor when Manage Sections button is clicked', async () => {
-      render(<RoomTypesPage params={{ id: 'accommodation-1' }} />);
+      render(<RoomTypesPage params={Promise.resolve({ id: 'accommodation-1' })} />);
 
       await waitFor(() => {
-        expect(screen.getByText('Ocean View Suite')).toBeInTheDocument();
+        expect(screen.getAllByText('Ocean View Suite')).toHaveLength(2);
       });
 
       // Find and click Manage Sections button
@@ -277,14 +277,14 @@ describe('RoomTypesPage', () => {
       fireEvent.click(manageSectionsButtons[0]);
 
       // Verify navigation
-      expect(mockRouter.push).toHaveBeenCalledWith('/admin/room-types/room-type-1/sections');
+      expect(mockRouter.push).toHaveBeenCalledWith('/admin/accommodations/accommodation-1/room-types/room-type-1/sections');
     });
 
     it('should navigate to correct room type sections page', async () => {
-      render(<RoomTypesPage params={{ id: 'accommodation-1' }} />);
+      render(<RoomTypesPage params={Promise.resolve({ id: 'accommodation-1' })} />);
 
       await waitFor(() => {
-        expect(screen.getByText('Standard Room')).toBeInTheDocument();
+        expect(screen.getAllByText('Standard Room')).toHaveLength(2);
       });
 
       // Find and click Manage Sections button for second room type
@@ -292,20 +292,20 @@ describe('RoomTypesPage', () => {
       fireEvent.click(manageSectionsButtons[1]);
 
       // Verify navigation to correct room type
-      expect(mockRouter.push).toHaveBeenCalledWith('/admin/room-types/room-type-2/sections');
+      expect(mockRouter.push).toHaveBeenCalledWith('/admin/accommodations/accommodation-1/room-types/room-type-2/sections');
     });
   });
 
   describe('Room type editing', () => {
     it('should open edit form when room type row is clicked', async () => {
-      render(<RoomTypesPage params={{ id: 'accommodation-1' }} />);
+      render(<RoomTypesPage params={Promise.resolve({ id: 'accommodation-1' })} />);
 
       await waitFor(() => {
-        expect(screen.getByText('Ocean View Suite')).toBeInTheDocument();
+        expect(screen.getAllByText('Ocean View Suite')).toHaveLength(2);
       });
 
       // Click on room type row
-      const roomTypeName = screen.getByText('Ocean View Suite');
+      const roomTypeName = screen.getAllByText('Ocean View Suite')[0];
       fireEvent.click(roomTypeName);
 
       await waitFor(() => {
@@ -314,14 +314,14 @@ describe('RoomTypesPage', () => {
     });
 
     it('should populate form with room type data when editing', async () => {
-      render(<RoomTypesPage params={{ id: 'accommodation-1' }} />);
+      render(<RoomTypesPage params={Promise.resolve({ id: 'accommodation-1' })} />);
 
       await waitFor(() => {
-        expect(screen.getByText('Ocean View Suite')).toBeInTheDocument();
+        expect(screen.getAllByText('Ocean View Suite')).toHaveLength(2);
       });
 
       // Click on room type row
-      const roomTypeName = screen.getByText('Ocean View Suite');
+      const roomTypeName = screen.getAllByText('Ocean View Suite')[0];
       fireEvent.click(roomTypeName);
 
       await waitFor(() => {
@@ -335,8 +335,12 @@ describe('RoomTypesPage', () => {
 
   describe('Room type deletion', () => {
     it('should delete room type after confirmation', async () => {
+      let roomTypesData = [...mockRoomTypes];
+      
       (global.fetch as jest.Mock).mockImplementation((url: string, options?: any) => {
         if (url.includes('/api/admin/room-types/room-type-1') && options?.method === 'DELETE') {
+          // After deletion, update the data
+          roomTypesData = mockRoomTypes.filter(rt => rt.id !== 'room-type-1');
           return Promise.resolve({
             ok: true,
             json: () => Promise.resolve({ success: true, data: undefined }),
@@ -347,7 +351,7 @@ describe('RoomTypesPage', () => {
             ok: true,
             json: () => Promise.resolve({
               success: true,
-              data: mockRoomTypes.filter(rt => rt.id !== 'room-type-1'),
+              data: roomTypesData,
             }),
           });
         }
@@ -363,17 +367,17 @@ describe('RoomTypesPage', () => {
         return Promise.reject(new Error('Unknown URL'));
       });
 
-      render(<RoomTypesPage params={{ id: 'accommodation-1' }} />);
+      render(<RoomTypesPage params={Promise.resolve({ id: 'accommodation-1' })} />);
 
       await waitFor(() => {
-        expect(screen.getByText('Ocean View Suite')).toBeInTheDocument();
+        expect(screen.getAllByText('Ocean View Suite')).toHaveLength(2);
       });
     });
   });
 
   describe('Navigation', () => {
     it('should navigate back to accommodations when Back button is clicked', async () => {
-      render(<RoomTypesPage params={{ id: 'accommodation-1' }} />);
+      render(<RoomTypesPage params={Promise.resolve({ id: 'accommodation-1' })} />);
 
       await waitFor(() => {
         expect(screen.getByText(/room types:/i)).toBeInTheDocument();
@@ -386,7 +390,7 @@ describe('RoomTypesPage', () => {
     });
 
     it('should display accommodation name in page title', async () => {
-      render(<RoomTypesPage params={{ id: 'accommodation-1' }} />);
+      render(<RoomTypesPage params={Promise.resolve({ id: 'accommodation-1' })} />);
 
       await waitFor(() => {
         expect(screen.getByText(/room types: tamarindo diria beach resort/i)).toBeInTheDocument();
@@ -396,18 +400,18 @@ describe('RoomTypesPage', () => {
 
   describe('Data loading', () => {
     it('should display loading state initially', () => {
-      render(<RoomTypesPage params={{ id: 'accommodation-1' }} />);
+      render(<RoomTypesPage params={Promise.resolve({ id: 'accommodation-1' })} />);
 
       // Loading state would be shown by DataTable component
       expect(screen.getByText(/room types:/i)).toBeInTheDocument();
     });
 
     it('should display room types after loading', async () => {
-      render(<RoomTypesPage params={{ id: 'accommodation-1' }} />);
+      render(<RoomTypesPage params={Promise.resolve({ id: 'accommodation-1' })} />);
 
       await waitFor(() => {
-        expect(screen.getByText('Ocean View Suite')).toBeInTheDocument();
-        expect(screen.getByText('Standard Room')).toBeInTheDocument();
+        expect(screen.getAllByText('Ocean View Suite')).toHaveLength(2);
+        expect(screen.getAllByText('Standard Room')).toHaveLength(2);
       });
     });
 
@@ -434,7 +438,7 @@ describe('RoomTypesPage', () => {
         return Promise.reject(new Error('Unknown URL'));
       });
 
-      render(<RoomTypesPage params={{ id: 'accommodation-1' }} />);
+      render(<RoomTypesPage params={Promise.resolve({ id: 'accommodation-1' })} />);
 
       await waitFor(() => {
         expect(screen.getByText(/room types:/i)).toBeInTheDocument();
@@ -444,15 +448,15 @@ describe('RoomTypesPage', () => {
 
   describe('Price display', () => {
     it('should format prices as currency', async () => {
-      render(<RoomTypesPage params={{ id: 'accommodation-1' }} />);
+      render(<RoomTypesPage params={Promise.resolve({ id: 'accommodation-1' })} />);
 
       await waitFor(() => {
-        expect(screen.getByText('Ocean View Suite')).toBeInTheDocument();
+        expect(screen.getAllByText('Ocean View Suite')).toHaveLength(2);
       });
 
-      // Verify price is formatted as currency
-      expect(screen.getByText('$250.00')).toBeInTheDocument();
-      expect(screen.getByText('$150.00')).toBeInTheDocument();
+      // Verify price is formatted as currency (prices may appear multiple times in table and form)
+      expect(screen.getAllByText('$250.00').length).toBeGreaterThan(0);
+      expect(screen.getAllByText('$150.00').length).toBeGreaterThan(0);
     });
   });
 });

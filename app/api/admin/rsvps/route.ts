@@ -1,119 +1,128 @@
-import { createServerClient } from '@supabase/ssr';
-import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
-import { listRSVPsSchema } from '@/schemas/rsvpSchemas';
+import { z } from 'zod';
+import { withAuth, errorResponse, successResponse } from '@/lib/apiHelpers';
+import * as rsvpManagementService from '@/services/rsvpManagementService';
 
 /**
  * GET /api/admin/rsvps
- * List RSVPs with optional filters
+ * 
+ * List all RSVPs with filtering, pagination, and statistics
+ * 
+ * Query Parameters:
+ * - page: number (default: 1)
+ * - limit: number (default: 50, max: 100)
+ * - eventId: string (UUID)
+ * - activityId: string (UUID)
+ * - status: 'pending' | 'attending' | 'declined' | 'maybe'
+ * - guestId: string (UUID)
+ * - searchQuery: string (searches guest name and email)
+ * 
+ * Returns:
+ * - data: Array of RSVP view models
+ * - pagination: { page, limit, total, totalPages }
+ * - statistics: { totalRSVPs, byStatus, totalGuestCount }
+ * 
+ * **Validates: Requirements 6.2, 6.5**
  */
+
+// Query parameter validation schema
+const queryParamsSchema = z.object({
+  page: z.coerce.number().int().positive().default(1),
+  limit: z.coerce.number().int().positive().max(100).default(50),
+  eventId: z.string().uuid().optional(),
+  activityId: z.string().uuid().optional(),
+  status: z.enum(['pending', 'attending', 'declined', 'maybe']).optional(),
+  guestId: z.string().uuid().optional(),
+  searchQuery: z.string().max(100).optional(),
+});
+
+/**
+ * Map error codes to HTTP status codes
+ */
+function getStatusCode(errorCode: string): number {
+  const statusMap: Record<string, number> = {
+    'VALIDATION_ERROR': 400,
+    'INVALID_INPUT': 400,
+    'UNAUTHORIZED': 401,
+    'AUTHENTICATION_REQUIRED': 401,
+    'FORBIDDEN': 403,
+    'NOT_FOUND': 404,
+    'DATABASE_ERROR': 500,
+    'INTERNAL_ERROR': 500,
+    'UNKNOWN_ERROR': 500,
+  };
+  
+  return statusMap[errorCode] || 500;
+}
+
 export async function GET(request: Request) {
-  try {
-    // 1. Auth check
-    const cookieStore = await cookies();
-    const supabase = createServerClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      {
-        cookies: {
-          getAll() {
-            return cookieStore.getAll();
-          },
-          setAll(cookiesToSet) {
-            cookiesToSet.forEach(({ name, value }) => {
-              cookieStore.set(name, value);
-            });
-          },
-        },
+  return withAuth(async (userId) => {
+    try {
+      // 1. Parse and validate query parameters
+      const { searchParams } = new URL(request.url);
+      
+      // Build query object, filtering out null values
+      const queryParams: Record<string, string | number> = {};
+      
+      const pageParam = searchParams.get('page');
+      const limitParam = searchParams.get('limit');
+      const eventIdParam = searchParams.get('eventId');
+      const activityIdParam = searchParams.get('activityId');
+      const statusParam = searchParams.get('status');
+      const guestIdParam = searchParams.get('guestId');
+      const searchQueryParam = searchParams.get('searchQuery');
+      
+      if (pageParam !== null) queryParams.page = pageParam;
+      if (limitParam !== null) queryParams.limit = limitParam;
+      if (eventIdParam !== null) queryParams.eventId = eventIdParam;
+      if (activityIdParam !== null) queryParams.activityId = activityIdParam;
+      if (statusParam !== null) queryParams.status = statusParam;
+      if (guestIdParam !== null) queryParams.guestId = guestIdParam;
+      if (searchQueryParam !== null) queryParams.searchQuery = searchQueryParam;
+      
+      const queryValidation = queryParamsSchema.safeParse(queryParams);
+
+      if (!queryValidation.success) {
+        return errorResponse(
+          'VALIDATION_ERROR',
+          'Invalid query parameters',
+          400,
+          { fields: queryValidation.error.issues }
+        );
       }
-    );
-    const { data: { session }, error: authError } = await supabase.auth.getSession();
-    
-    if (authError || !session) {
-      return NextResponse.json(
-        { success: false, error: { code: 'UNAUTHORIZED', message: 'Authentication required' } },
-        { status: 401 }
+
+      const { page, limit, ...filters } = queryValidation.data;
+
+      // 2. Call service layer
+      const result = await rsvpManagementService.listRSVPs(
+        filters,
+        { page, limit }
+      );
+
+      // 3. Handle service errors
+      if (!result.success) {
+        return errorResponse(
+          result.error.code,
+          result.error.message,
+          getStatusCode(result.error.code),
+          result.error.details
+        );
+      }
+
+      // 4. Return success response
+      return successResponse(result.data, 200);
+
+    } catch (error) {
+      console.error('GET /api/admin/rsvps error:', {
+        error: error instanceof Error ? error.message : 'Unknown error',
+        stack: error instanceof Error ? error.stack : undefined,
+      });
+      
+      return errorResponse(
+        'INTERNAL_ERROR',
+        'Failed to fetch RSVPs',
+        500
       );
     }
-
-    // 2. Parse query parameters
-    const { searchParams } = new URL(request.url);
-    const params = {
-      guest_id: searchParams.get('guest_id') || undefined,
-      event_id: searchParams.get('event_id') || undefined,
-      activity_id: searchParams.get('activity_id') || undefined,
-      status: searchParams.get('status') || undefined,
-      page: searchParams.get('page') ? parseInt(searchParams.get('page')!) : 1,
-      page_size: searchParams.get('page_size') ? parseInt(searchParams.get('page_size')!) : 50,
-    };
-
-    // 3. Validate parameters
-    const validation = listRSVPsSchema.safeParse(params);
-    if (!validation.success) {
-      return NextResponse.json(
-        { 
-          success: false, 
-          error: { 
-            code: 'VALIDATION_ERROR', 
-            message: 'Invalid request parameters', 
-            details: validation.error.issues 
-          } 
-        },
-        { status: 400 }
-      );
-    }
-
-    // 4. Build query
-    let query = supabase
-      .from('rsvps')
-      .select('*', { count: 'exact' });
-
-    if (validation.data.guest_id) {
-      query = query.eq('guest_id', validation.data.guest_id);
-    }
-    if (validation.data.event_id) {
-      query = query.eq('event_id', validation.data.event_id);
-    }
-    if (validation.data.activity_id) {
-      query = query.eq('activity_id', validation.data.activity_id);
-    }
-    if (validation.data.status) {
-      query = query.eq('status', validation.data.status);
-    }
-
-    // 5. Execute query with pagination
-    const from = (validation.data.page - 1) * validation.data.page_size;
-    const to = from + validation.data.page_size - 1;
-    
-    const { data, error, count } = await query.range(from, to);
-
-    if (error) {
-      return NextResponse.json(
-        { success: false, error: { code: 'DATABASE_ERROR', message: error.message } },
-        { status: 500 }
-      );
-    }
-
-    return NextResponse.json({
-      success: true,
-      data: data || [],
-      pagination: {
-        total: count || 0,
-        page: validation.data.page,
-        page_size: validation.data.page_size,
-        total_pages: Math.ceil((count || 0) / validation.data.page_size),
-      },
-    });
-  } catch (error) {
-    return NextResponse.json(
-      { 
-        success: false, 
-        error: { 
-          code: 'INTERNAL_ERROR', 
-          message: error instanceof Error ? error.message : 'Internal server error' 
-        } 
-      },
-      { status: 500 }
-    );
-  }
+  });
 }

@@ -5,6 +5,7 @@ export const dynamic = 'force-dynamic';
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { DataTableWithSuspense as DataTable, type ColumnDef } from '@/components/ui/DataTableWithSuspense';
 import { CollapsibleForm } from '@/components/admin/CollapsibleForm';
+import { InlineSectionEditor } from '@/components/admin/InlineSectionEditor';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { Button } from '@/components/ui/Button';
 import { useToast } from '@/components/ui/ToastContext';
@@ -146,8 +147,10 @@ export default function RoomTypesPage({ params }: { params: Promise<{ id: string
    */
   const handleManageSections = useCallback((roomType: RoomType) => {
     // Navigate to section editor for this room type
-    router.push(`/admin/room-types/${roomType.id}/sections`);
-  }, [router]);
+    if (accommodationId) {
+      router.push(`/admin/accommodations/${accommodationId}/room-types/${roomType.id}/sections`);
+    }
+  }, [router, accommodationId]);
 
   /**
    * Handle back to accommodations
@@ -319,7 +322,7 @@ export default function RoomTypesPage({ params }: { params: Promise<{ id: string
               {occupancy}/{roomType.totalRooms}
             </span>
             <span className="text-xs text-sage-600">
-              ({percentage.toFixed(0)}%)
+              ({(percentage ?? 0).toFixed(0)}%)
             </span>
           </div>
         );
@@ -329,18 +332,34 @@ export default function RoomTypesPage({ params }: { params: Promise<{ id: string
       key: 'actions',
       label: 'Actions',
       sortable: false,
-      render: (_, row) => (
-        <Button
-          variant="secondary"
-          size="sm"
-          onClick={(e) => {
-            e.stopPropagation();
-            handleManageSections(row as RoomType);
-          }}
-        >
-          Manage Sections
-        </Button>
-      ),
+      render: (_, row) => {
+        const roomType = row as RoomType;
+        return (
+          <div className="flex gap-2">
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={(e) => {
+                e.stopPropagation();
+                window.open(`/room-type/${roomType.slug || roomType.id}`, '_blank');
+              }}
+              title="View room type detail page"
+            >
+              View
+            </Button>
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={(e) => {
+                e.stopPropagation();
+                handleManageSections(roomType);
+              }}
+            >
+              Manage Sections
+            </Button>
+          </div>
+        );
+      },
     },
   ];
 
@@ -442,6 +461,16 @@ export default function RoomTypesPage({ params }: { params: Promise<{ id: string
         initialData={selectedRoomType || {}}
         submitLabel={selectedRoomType ? 'Update Room Type' : 'Create Room Type'}
       />
+
+      {/* Inline Section Editor - Shows when editing an existing room type */}
+      {isFormOpen && selectedRoomType && (
+        <InlineSectionEditor
+          pageType="room_type"
+          pageId={selectedRoomType.id}
+          entityName={selectedRoomType.name}
+          defaultExpanded={false}
+        />
+      )}
 
       {/* Data Table */}
       <DataTable

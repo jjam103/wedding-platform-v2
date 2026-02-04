@@ -9,6 +9,7 @@ interface NavigationItem {
   label: string;
   href: string;
   badge?: number;
+  external?: boolean;
 }
 
 interface NavigationGroup {
@@ -31,11 +32,12 @@ const STORAGE_KEY = 'admin_nav_expanded_groups';
  * GroupedNavigation Component
  * 
  * Organized navigation with logical grouping:
- * - Guest Management, Event Planning, Logistics, Content, Communication, Financial, System
+ * - Quick Actions, Guest Management, Event Planning, Logistics, Content, Communication, Financial, System
  * - Expand/collapse functionality with localStorage persistence
  * - Badge support for pending items
  * - Keyboard navigation support
  * - Mobile responsive
+ * - External link support with target="_blank"
  */
 export function GroupedNavigation({ 
   pendingPhotosCount = 0, 
@@ -56,6 +58,7 @@ export function GroupedNavigation({
       } else {
         // Default: expand all groups
         setExpandedGroups(new Set([
+          'quick-actions',
           'guest-management',
           'event-planning',
           'logistics',
@@ -121,12 +124,20 @@ export function GroupedNavigation({
 
   const navigationGroups: NavigationGroup[] = [
     {
+      id: 'quick-actions',
+      label: 'Quick Actions',
+      icon: '⚡',
+      items: [
+        { id: 'preview-portal', label: 'Preview Guest Portal', href: '/', external: true },
+      ],
+    },
+    {
       id: 'guest-management',
       label: 'Guest Management',
       icon: '👥',
       items: [
         { id: 'guests', label: 'Guests & Groups', href: '/admin/guests' },
-        // RSVPs will be added in future tasks
+        { id: 'rsvps', label: 'RSVPs', href: '/admin/rsvps' },
       ],
     },
     {
@@ -186,6 +197,7 @@ export function GroupedNavigation({
       items: [
         { id: 'settings', label: 'Settings', href: '/admin/settings' },
         { id: 'audit-logs', label: 'Audit Logs', href: '/admin/audit-logs' },
+        { id: 'deleted-items', label: 'Deleted Items', href: '/admin/deleted-items' },
         // User Management will be added in future tasks
       ],
     },
@@ -297,10 +309,15 @@ export function GroupedNavigation({
               <div className="ml-6 space-y-1" role="group" aria-label={`${group.label} items`}>
                 {group.items.map((item) => {
                   const itemActive = isActive(item.href);
+                  const linkProps = item.external
+                    ? { target: '_blank', rel: 'noopener noreferrer' }
+                    : {};
+                  
                   return (
                     <Link
                       key={item.id}
                       href={item.href}
+                      {...linkProps}
                       className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-all duration-200 min-h-[44px] ${
                         itemActive
                           ? 'bg-jungle-100 text-jungle-800 font-medium'
@@ -318,6 +335,9 @@ export function GroupedNavigation({
                         >
                           {item.badge}
                         </span>
+                      )}
+                      {item.external && (
+                        <span className="text-xs" aria-hidden="true">↗</span>
                       )}
                     </Link>
                   );

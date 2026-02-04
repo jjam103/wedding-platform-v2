@@ -6,77 +6,160 @@ inclusion: always
 
 **CRITICAL: ALL code changes require corresponding tests.** Never commit untested code.
 
-## Mandatory Testing Rules
+## Core Philosophy
 
-1. **Test Result<T> pattern** - All service methods return `Result<T>`. Test BOTH success and error paths.
-2. **Mock Supabase** - Use `createMockSupabaseClient()` for unit tests. Never hit real database.
-3. **AAA pattern** - Structure: Arrange, Act, Assert.
-4. **Security testing** - Validate input sanitization, XSS prevention, auth checks in every test suite.
-5. **Test independence** - Each test must be self-contained. No shared state between tests.
+**High coverage ≠ Quality tests**. This project had 91.2% coverage but missed critical bugs because tests focused on isolated units rather than integrated workflows.
 
-## Test Distribution
+### What Tests Must Validate
+1. **Real Runtime Behavior** - Not mocked implementations
+2. **Complete User Workflows** - Not isolated components  
+3. **Framework Compatibility** - Actual Next.js runtime (params, middleware, SSR)
+4. **State Updates & Reactivity** - Components respond to data changes
+5. **Integration Between Layers** - State → API → UI flow
 
-- **Unit Tests (70%)**: Services, utilities, hooks, pure functions
-- **Integration Tests (25%)**: API routes, database operations, RLS policies  
-- **E2E Tests (5%)**: Critical user flows only
+## Test Distribution & Stack
 
-## Testing Stack
+**Distribution:**
+- **Unit Tests (60%)**: Services, utilities, hooks - mock external dependencies only
+- **Integration Tests (30%)**: API routes, RLS policies - real test database, real auth
+- **E2E Tests (10%)**: Complete user workflows - navigation, forms, state updates
 
-- **Jest 29** with jsdom environment
-- **React Testing Library** for components (user-centric queries)
-- **fast-check** for property-based testing
-- **MSW** for external API mocking
-- **Playwright** for E2E with accessibility checks
+**Stack:**
+- Jest 29 (jsdom), React Testing Library, fast-check (property-based), Playwright (E2E)
 
-## File Organization
+**File Organization:**
+- Co-locate: `guestService.ts` → `guestService.test.ts`
+- Property tests: `*.property.test.ts`
+- Integration: `__tests__/integration/`
+- E2E: `__tests__/e2e/*.spec.ts`
+- Test naming: `describe('serviceName.methodName', () => { it('should [behavior] when [condition]', ...) })`
 
-Co-locate tests with source:
-- `guestService.ts` → `guestService.test.ts`
-- `*.property.test.ts` for property-based tests
-- `__tests__/integration/` for integration tests
-- `__tests__/e2e/*.spec.ts` for E2E tests
+## Mandatory Rules
 
-Test naming: `describe('serviceName.methodName', () => { it('should [behavior] when [condition]', ...) })`
+1. **Result<T> Pattern** - All service methods return `Result<T>`. Test success AND all error paths
+2. **Mock Supabase in Unit Tests** - Use `createMockSupabaseClient()`. Never hit real database
+3. **AAA Pattern** - Arrange, Act, Assert structure
+4. **Security Testing** - Validate input sanitization, XSS prevention, auth checks
+5. **Test Independence** - Self-contained tests. No shared state
+6. **State Reactivity** - Verify components update when data changes (not just initial render)
+7. **Complete Workflows** - E2E tests for critical user journeys
 
+## Critical Test Gaps (Real Bugs Missed)
 
-## Service Layer Tests (CRITICAL)
+### Gap #1: Form Type Coercion
+**Problem**: HTML forms convert numbers to strings, tests pass typed data directly
+```typescript
+// ❌ Misses bugs
+const result = await service.create({ baseCost: 1000 });
 
-**ALWAYS test 4 paths for every service method:**
+// ✅ Catches bugs
+const formData = new FormData();
+formData.append('baseCost', '1000'); // String from HTML
+```
 
-1. **Success path** - Valid input returns `{ success: true, data: T }`
-2. **Validation error** - Invalid input returns `{ success: false, error: { code: 'VALIDATION_ERROR', ... } }`
-3. **Database error** - DB failure returns `{ success: false, error: { code: 'DATABASE_ERROR', ... } }`
-4. **Security** - Malicious input is sanitized (XSS, SQL injection)
+### Gap #2: Component Reactivity
+**Problem**: Tests don't verify components update when props change
+```typescript
+// ✅ Tests reactivity
+const { rerender } = render(<Component groups={[]} />);
+expect(getOptions()).toHaveLength(0);
+rerender(<Component groups={[{ id: '1', name: 'New' }]} />);
+expect(getOptions()).toHaveLength(1); // Catches useMemo bugs
+```
+
+### Gap #3: RLS Policy Bypass
+**Problem**: Service role bypasses Row Level Security
+```typescript
+// ❌ Bypasses RLS
+const supabase = createClient(url, SERVICE_ROLE_KEY);
+
+// ✅ Tests RLS
+const hostClient = await createAuthenticatedClient({ role: 'host' });
+const { error } = await hostClient.from('content_pages').insert(...);
+expect(error).toBeNull();
+
+const guestClient = await createAuthenticatedClient({ role: 'guest' });
+const { error: guestError } = await guestClient.from('content_pages').insert(...);
+expect(guestError).toBeTruthy();
+```
+
+### Gap #4: Navigation Routes
+**Problem**: Mocked navigation doesn't verify routes exist
+```typescript
+// ❌ Route might 404
+const mockRouter = { push: jest.fn() };
+expect(mockRouter.push).toHaveBeenCalledWith('/admin/sections');
+
+// ✅ E2E verifies route
+test('navigates correctly', async ({ page }) => {
+  await page.click('text=Manage Sections');
+  await expect(page).not.toHaveURL(/404/);
+});
+```
+
+### Gap #5: Data Loading
+**Problem**: Tests pass data as props, skip loading logic
+```typescript
+// ❌ Skips loading
+render(<LocationSelector locations={mockLocations} />);
+
+// ✅ Tests loading
+test('loads locations', async () => {
+  await testDb.from('locations').insert([{ id: '1', name: 'Test' }]);
+  render(<LocationSelector />);
+  await waitFor(() => expect(screen.getByText('Test')).toBeInTheDocument());
+});
+```
+
+## Service Layer: 4-Path Pattern (MANDATORY)
+
+**Every service method MUST test:**
+1. **Success** - Valid input returns `{ success: true, data: T }`
+2. **Validation Error** - Invalid input returns `{ success: false, error: { code: 'VALIDATION_ERROR', ... } }`
+3. **Database Error** - DB failure returns `{ success: false, error: { code: 'DATABASE_ERROR', ... } }`
+4. **Security** - Malicious input is sanitized
 
 ```typescript
 describe('guestService.create', () => {
   let mockSupabase: ReturnType<typeof createMockSupabaseClient>;
   beforeEach(() => { mockSupabase = createMockSupabaseClient(); });
   
-  it('should return success with guest data when valid input provided', async () => {
-    const validData = { firstName: 'John', lastName: 'Doe', email: 'john@example.com', groupId: 'uuid', ageType: 'adult' as const, guestType: 'wedding_guest' as const };
-    mockSupabase.from.mockReturnValue({ insert: jest.fn().mockReturnValue({ select: jest.fn().mockReturnValue({ single: jest.fn().mockResolvedValue({ data: { id: 'guest-1', ...validData }, error: null }) }) }) });
+  it('should return success with guest data when valid input', async () => {
+    const validData = { firstName: 'John', lastName: 'Doe', email: 'john@example.com', 
+                       groupId: 'uuid', ageType: 'adult' as const, guestType: 'wedding_guest' as const };
+    mockSupabase.from.mockReturnValue({ 
+      insert: jest.fn().mockReturnValue({ 
+        select: jest.fn().mockReturnValue({ 
+          single: jest.fn().mockResolvedValue({ data: { id: 'guest-1', ...validData }, error: null }) 
+        }) 
+      }) 
+    });
     
     const result = await guestService.create(validData);
-    
     expect(result.success).toBe(true);
     if (result.success) expect(result.data.id).toBe('guest-1');
   });
   
-  it('should return VALIDATION_ERROR when email is invalid', async () => {
+  it('should return VALIDATION_ERROR when email invalid', async () => {
     const result = await guestService.create({ firstName: 'John', email: 'invalid' });
     expect(result.success).toBe(false);
     if (!result.success) expect(result.error.code).toBe('VALIDATION_ERROR');
   });
   
   it('should return DATABASE_ERROR when insert fails', async () => {
-    mockSupabase.from.mockReturnValue({ insert: jest.fn().mockReturnValue({ select: jest.fn().mockReturnValue({ single: jest.fn().mockResolvedValue({ data: null, error: { message: 'Connection failed' } }) }) }) });
+    mockSupabase.from.mockReturnValue({ 
+      insert: jest.fn().mockReturnValue({ 
+        select: jest.fn().mockReturnValue({ 
+          single: jest.fn().mockResolvedValue({ data: null, error: { message: 'Connection failed' } }) 
+        }) 
+      }) 
+    });
     const result = await guestService.create(validData);
     expect(result.success).toBe(false);
     if (!result.success) expect(result.error.code).toBe('DATABASE_ERROR');
   });
   
-  it('should sanitize input to prevent XSS attacks', async () => {
+  it('should sanitize input to prevent XSS', async () => {
     const maliciousData = { ...validData, firstName: '<script>alert("xss")</script>John' };
     const result = await guestService.create(maliciousData);
     expect(result.success).toBe(true);
@@ -90,18 +173,18 @@ describe('guestService.create', () => {
 
 ## Component Tests
 
-Use React Testing Library with user-centric queries (`getByRole`, `getByText`, `getByLabelText`):
+Use React Testing Library with user-centric queries:
 
 ```typescript
 describe('GuestCard', () => {
   const mockGuest = { id: 'guest-1', firstName: 'John', lastName: 'Doe', email: 'john@example.com' };
   
-  it('should render guest information correctly', () => {
+  it('should render guest information', () => {
     render(<GuestCard guest={mockGuest} onEdit={jest.fn()} />);
     expect(screen.getByText('John Doe')).toBeInTheDocument();
   });
   
-  it('should call onEdit with guest id when edit button clicked', () => {
+  it('should call onEdit with guest id when edit clicked', () => {
     const onEdit = jest.fn();
     render(<GuestCard guest={mockGuest} onEdit={onEdit} />);
     fireEvent.click(screen.getByRole('button', { name: /edit/i }));
@@ -110,9 +193,9 @@ describe('GuestCard', () => {
 });
 ```
 
-## Utility Function Tests
+## Utility Tests
 
-Test edge cases: empty strings, null/undefined, malicious input, boundary values:
+Test edge cases: empty, null/undefined, malicious input, boundaries:
 
 ```typescript
 describe('sanitizeInput', () => {
@@ -127,13 +210,12 @@ describe('sanitizeInput', () => {
 });
 ```
 
-
 ## Property-Based Testing
 
-Use fast-check to validate business rules across random inputs. Tag format: `Feature: destination-wedding-platform, Property N: [Description]`
+Use fast-check for business rules. Define arbitraries in `__tests__/helpers/arbitraries.ts`:
 
-**Custom arbitraries** in `test-utils/arbitraries.ts`:
 ```typescript
+// Arbitraries
 export const guestArbitrary = fc.record({
   firstName: fc.string({ minLength: 1, maxLength: 50 }),
   lastName: fc.string({ minLength: 1, maxLength: 50 }),
@@ -149,12 +231,8 @@ export const maliciousInputArbitrary = fc.oneof(
   fc.constant('<img src=x onerror=alert(1)>'),
   fc.string().map(s => `${s}<script>alert(1)</script>`)
 );
-```
 
-**Common patterns:**
-
-XSS Prevention:
-```typescript
+// XSS Prevention Property
 describe('Feature: destination-wedding-platform, Property 6: XSS Prevention', () => {
   it('should sanitize all malicious input patterns', () => {
     fc.assert(fc.property(maliciousInputArbitrary, (input) => {
@@ -165,10 +243,8 @@ describe('Feature: destination-wedding-platform, Property 6: XSS Prevention', ()
     }), { numRuns: 100 });
   });
 });
-```
 
-Business Logic:
-```typescript
+// Business Logic Property
 describe('Feature: destination-wedding-platform, Property 12: Budget Calculation', () => {
   it('should calculate total as sum of all components', () => {
     fc.assert(fc.property(budgetArbitrary, (budget) => {
@@ -181,62 +257,33 @@ describe('Feature: destination-wedding-platform, Property 12: Budget Calculation
 });
 ```
 
-Round-Trip:
+## Integration Tests - CRITICAL Architecture
+
+**MUST mock services to avoid worker crashes.**
+
+### ✅ CORRECT: Mock Services, Test Route Handlers
 ```typescript
-describe('Feature: destination-wedding-platform, Property 24: CSV Round-Trip', () => {
-  it('should preserve data through export and import', () => {
-    fc.assert(fc.property(fc.array(guestArbitrary, { minLength: 1, maxLength: 100 }), async (guests) => {
-      const csvResult = await guestService.exportToCSV(guests);
-      expect(csvResult.success).toBe(true);
-      if (!csvResult.success) return;
-      
-      const importResult = await guestService.importFromCSV(csvResult.data);
-      expect(importResult.success).toBe(true);
-      if (!importResult.success) return;
-      
-      expect(importResult.data).toHaveLength(guests.length);
-    }), { numRuns: 50 }); // Fewer runs for async
-  });
-});
-```
-
-
-## Integration Tests
-
-### CRITICAL: Integration Test Architecture
-
-**Integration tests MUST mock services to avoid worker crashes.**
-
-#### ✅ CORRECT Pattern - Mock Services, Test Route Handlers
-```typescript
-// Import route handler directly
 import { POST } from '@/app/api/admin/locations/route';
 
-// Mock the service layer
 jest.mock('@/services/locationService', () => ({
   create: jest.fn(),
   list: jest.fn(),
-  update: jest.fn(),
-  delete: jest.fn(),
 }));
 
 describe('POST /api/admin/locations', () => {
   it('should create location when valid data provided', async () => {
-    // Get mocked function
     const mockCreate = require('@/services/locationService').create;
     mockCreate.mockResolvedValue({ 
       success: true, 
       data: { id: '1', name: 'Test Location', type: 'country' } 
     });
     
-    // Create request
     const request = new Request('http://localhost:3000/api/admin/locations', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ name: 'Test Location', type: 'country' }),
     });
     
-    // Test route handler directly
     const response = await POST(request);
     const data = await response.json();
     
@@ -247,74 +294,26 @@ describe('POST /api/admin/locations', () => {
 });
 ```
 
-#### ❌ WRONG Pattern - Direct Service Imports (Causes Worker Crashes)
+### ❌ WRONG: Direct Service Imports
 ```typescript
-// ❌ NEVER DO THIS - Causes circular dependencies and worker crashes
+// ❌ NEVER - Causes circular dependencies and worker crashes
 import * as locationService from '@/services/locationService';
 
 describe('Location API', () => {
   it('should create location', async () => {
-    // This will cause worker to crash with SIGTERM/SIGABRT
-    const result = await locationService.create({ name: 'Test' });
+    const result = await locationService.create({ name: 'Test' }); // CRASHES
     expect(result.success).toBe(true);
   });
 });
 ```
 
-#### Why This Pattern?
+**Why?** Direct service imports → Supabase client circular dependencies → Jest worker crashes (SIGTERM/SIGABRT)
 
-**Problem with direct imports:**
-- Service imports Supabase client
-- Supabase client has circular dependencies in test environment
-- Jest worker process crashes with SIGTERM/SIGABRT
-- Tests fail unpredictably
+**When to use E2E instead:** Running Next.js server, full middleware, real auth flow, SSR validation
 
-**Solution with mocked services:**
-- Mock service at module level
-- Test route handler logic directly
-- No circular dependencies
-- Fast, stable, reliable tests
+### RLS Policy Testing
 
-#### When to Use E2E Instead
-
-Move tests to `__tests__/e2e/` if they require:
-- Running Next.js development server
-- Full request/response cycle with middleware
-- Real authentication flow
-- Server-side rendering validation
-
-### API Routes
-
-Test authentication, validation, and HTTP status codes:
-
-```typescript
-describe('POST /api/guests', () => {
-  it('should create guest and return 201 when authenticated with valid data', async () => {
-    const request = createMockRequest({ method: 'POST', body: { firstName: 'John', lastName: 'Doe', email: 'john@example.com', groupId: 'uuid', ageType: 'adult', guestType: 'wedding_guest' }, authenticated: true });
-    const response = await POST(request);
-    const data = await response.json();
-    expect(response.status).toBe(201);
-    expect(data.success).toBe(true);
-  });
-  
-  it('should return 400 VALIDATION_ERROR when data is invalid', async () => {
-    const request = createMockRequest({ method: 'POST', body: { firstName: 'John' }, authenticated: true });
-    const response = await POST(request);
-    expect(response.status).toBe(400);
-    expect((await response.json()).error.code).toBe('VALIDATION_ERROR');
-  });
-  
-  it('should return 401 UNAUTHORIZED when not authenticated', async () => {
-    const request = createMockRequest({ method: 'POST', body: {}, authenticated: false });
-    const response = await POST(request);
-    expect(response.status).toBe(401);
-  });
-});
-```
-
-### RLS Policies
-
-Test Row Level Security with real Supabase test client:
+Test with real authenticated clients (not service role):
 
 ```typescript
 describe('RLS: guests table', () => {
@@ -326,12 +325,10 @@ describe('RLS: guests table', () => {
   });
   
   it('should allow group owners to read their guests', async () => {
-    // Setup group and owner
     const { data: group } = await adminClient.from('groups').insert({ name: 'Test' }).select().single();
     const { data: user } = await adminClient.auth.admin.createUser({ email: 'owner@example.com', password: 'pass123' });
     await adminClient.from('group_members').insert({ groupId: group.id, userId: user.id, role: 'owner' });
     
-    // Test as owner
     await userClient.auth.signInWithPassword({ email: 'owner@example.com', password: 'pass123' });
     const { data, error } = await userClient.from('guests').select('*').eq('group_id', group.id);
     expect(error).toBeNull();
@@ -344,56 +341,11 @@ describe('RLS: guests table', () => {
 });
 ```
 
-### External Services (MSW)
-
-Mock external APIs:
-
-```typescript
-const server = setupServer(rest.post('https://api.resend.com/emails', (req, res, ctx) => res(ctx.status(200), ctx.json({ id: 'email-123' }))));
-beforeAll(() => server.listen());
-afterEach(() => server.resetHandlers());
-afterAll(() => server.close());
-
-describe('emailService', () => {
-  it('should send email via Resend API', async () => {
-    const result = await emailService.send({ to: 'guest@example.com', subject: 'RSVP', html: '<p>Thanks</p>' });
-    expect(result.success).toBe(true);
-    if (result.success) expect(result.data.id).toBe('email-123');
-  });
-  
-  it('should return EMAIL_SERVICE_ERROR when API fails', async () => {
-    server.use(rest.post('https://api.resend.com/emails', (req, res, ctx) => res(ctx.status(500))));
-    const result = await emailService.send({ to: 'guest@example.com', subject: 'RSVP', html: '<p>Thanks</p>' });
-    expect(result.success).toBe(false);
-    if (!result.success) expect(result.error.code).toBe('EMAIL_SERVICE_ERROR');
-  });
-});
-```
-
-
 ## E2E Tests (Playwright)
 
-**Use E2E tests for complete user flows and server-dependent scenarios.**
+**Use E2E for:** Complete workflows, Next.js server, middleware/auth, SSR, real endpoints, accessibility
 
-### When to Use E2E vs Integration
-
-**Use E2E tests when:**
-- Testing complete user workflows (registration, RSVP, photo upload)
-- Requiring a running Next.js server
-- Testing middleware and authentication flows
-- Validating server-side rendering
-- Testing real API endpoints with full request cycle
-- Checking accessibility and keyboard navigation
-
-**Use Integration tests when:**
-- Testing API route handler logic in isolation
-- Testing with mocked services and dependencies
-- No server required (faster, more reliable)
-- Testing specific error paths and edge cases
-
-### E2E Test Patterns
-
-Test critical user flows and accessibility:
+**Use Integration for:** API route logic, mocked services, no server (faster), specific error paths
 
 ```typescript
 test.describe('Guest Registration Flow', () => {
@@ -420,297 +372,155 @@ test.describe('Guest Registration Flow', () => {
     const nameText = await page.locator('[data-testid="guest-name"]').textContent();
     expect(nameText).not.toContain('<script>');
   });
-});
-
-// API Testing with E2E (when server required)
-test.describe('Guest API', () => {
-  test('should create guest via API', async ({ request }) => {
-    const response = await request.post('http://localhost:3000/api/admin/guests', {
-      data: { firstName: 'John', lastName: 'Doe', email: 'john@example.com' },
-    });
-    
-    expect(response.status()).toBe(201);
-    const data = await response.json();
-    expect(data.success).toBe(true);
+  
+  test('should have no accessibility violations', async ({ page }) => {
+    await page.goto('/');
+    const results = await new AxeBuilder({ page }).analyze();
+    expect(results.violations).toEqual([]);
   });
-});
-
-// Accessibility
-test('should have no accessibility violations', async ({ page }) => {
-  await page.goto('/');
-  const results = await new AxeBuilder({ page }).analyze();
-  expect(results.violations).toEqual([]);
-});
-
-test('should be keyboard navigable', async ({ page }) => {
-  await page.goto('/');
-  await page.keyboard.press('Tab');
-  await expect(page.locator(':focus')).toBeVisible();
 });
 ```
 
-### E2E Prerequisites
-
-E2E tests require:
-1. **Running server**: `npm run dev` in separate terminal
-2. **Playwright browsers**: `npx playwright install`
-3. **Test environment**: `.env.test` configured
-4. **Test fixtures**: Images and files in `__tests__/fixtures/`
-
+**Prerequisites:** Running server (`npm run dev`), Playwright browsers (`npx playwright install`), `.env.test` configured
 
 ## Test Utilities
 
-### Mock Factories (`test-utils/factories.ts`)
+Located in `__tests__/helpers/`:
 
 ```typescript
+// factories.ts - Mock data factories
 export function createMockGuest(overrides?: Partial<Guest>): Guest {
-  return { id: 'guest-1', firstName: 'John', lastName: 'Doe', email: 'john@example.com', ageType: 'adult', guestType: 'wedding_guest', groupId: 'group-1', createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(), ...overrides };
+  return { id: 'guest-1', firstName: 'John', lastName: 'Doe', email: 'john@example.com', 
+           ageType: 'adult', guestType: 'wedding_guest', groupId: 'group-1', 
+           createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(), ...overrides };
 }
-```
 
-### Supabase Mocks
-
-Unit tests (no database):
-```typescript
+// mockSupabase.ts - Supabase client mocks
 export function createMockSupabaseClient() {
-  return { from: jest.fn().mockReturnThis(), select: jest.fn().mockReturnThis(), insert: jest.fn().mockReturnThis(), update: jest.fn().mockReturnThis(), delete: jest.fn().mockReturnThis(), eq: jest.fn().mockReturnThis(), single: jest.fn(), auth: { getSession: jest.fn(), signInWithPassword: jest.fn() } };
+  return { from: jest.fn().mockReturnThis(), select: jest.fn().mockReturnThis(), 
+           insert: jest.fn().mockReturnThis(), update: jest.fn().mockReturnThis(), 
+           delete: jest.fn().mockReturnThis(), eq: jest.fn().mockReturnThis(), 
+           single: jest.fn(), auth: { getSession: jest.fn(), signInWithPassword: jest.fn() } };
 }
-```
 
-Integration tests (real database):
-```typescript
+// testDb.ts - Test database client
 export function createTestSupabaseClient() {
   return createClient(process.env.SUPABASE_TEST_URL!, process.env.SUPABASE_TEST_ANON_KEY!);
 }
-```
 
-### Request Mocking
-
-```typescript
-export function createMockRequest(options: { method?: string; body?: any; searchParams?: Record<string, string>; authenticated?: boolean }): Request {
-  const { method = 'GET', body, searchParams = {}, authenticated = true } = options;
+// testAuth.ts - Request mocking
+export function createMockRequest(options: { method?: string; body?: any; authenticated?: boolean }): Request {
+  const { method = 'GET', body, authenticated = true } = options;
   const url = new URL('http://localhost:3000/api/test');
-  Object.entries(searchParams).forEach(([key, value]) => url.searchParams.set(key, value));
   const headers = new Headers({ 'Content-Type': 'application/json' });
   if (authenticated) headers.set('Authorization', 'Bearer mock-token');
   return new Request(url.toString(), { method, headers, body: body ? JSON.stringify(body) : undefined });
 }
 ```
 
-
 ## Coverage Requirements
 
-- **Critical Paths**: 100% (auth, payments, RLS)
+- **Critical Paths** (auth, RLS): 100%
 - **Service Layer**: 90%
 - **API Routes**: 85%
 - **Components**: 70%
 - **Utilities**: 95%
 - **Overall**: 80%
 
-Jest config:
-```javascript
-module.exports = {
-  collectCoverageFrom: ['src/**/*.{ts,tsx}', '!src/**/*.d.ts', '!src/**/__tests__/**'],
-  coverageThresholds: {
-    global: { branches: 80, functions: 80, lines: 80, statements: 80 },
-    './src/services/': { branches: 90, functions: 90, lines: 90, statements: 90 }
-  }
-};
-```
-
-
-
 ## Security Testing
 
-### XSS Prevention
-
 ```typescript
-const xssPayloads = ['<script>alert("xss")</script>', '<img src=x onerror=alert(1)>', 'javascript:alert(1)', '<svg onload=alert(1)>', '<iframe src="javascript:alert(1)">'];
-
+// XSS Prevention
+const xssPayloads = ['<script>alert("xss")</script>', '<img src=x onerror=alert(1)>', 
+                     'javascript:alert(1)', '<svg onload=alert(1)>'];
 xssPayloads.forEach(payload => {
   it(`should sanitize: ${payload}`, () => {
     const sanitized = sanitizeInput(payload);
     expect(sanitized).not.toContain('<script>');
     expect(sanitized).not.toContain('javascript:');
-    expect(sanitized).not.toContain('onerror=');
   });
 });
-```
 
-### SQL Injection Prevention
-
-```typescript
-const sqlPayloads = ["'; DROP TABLE guests; --", "1' OR '1'='1", "admin'--", "' UNION SELECT * FROM users--"];
-
+// SQL Injection Prevention
+const sqlPayloads = ["'; DROP TABLE guests; --", "1' OR '1'='1", "admin'--"];
 sqlPayloads.forEach(payload => {
   it(`should safely handle: ${payload}`, async () => {
     const result = await guestService.search(payload);
     expect(result.success).toBe(true); // Should return empty, not error
   });
 });
-```
 
-### Authentication
-
-```typescript
+// Authentication
 it('should reject requests without auth token', async () => {
   const request = createMockRequest({ authenticated: false });
   const response = await GET(request);
   expect(response.status).toBe(401);
   expect((await response.json()).error.code).toBe('UNAUTHORIZED');
 });
-
-it('should reject expired sessions', async () => {
-  mockSupabase.auth.getSession.mockResolvedValue({ data: { session: null }, error: { message: 'Session expired' } });
-  const response = await GET(request);
-  expect(response.status).toBe(401);
-});
 ```
 
-
-## Troubleshooting Test Issues
+## Troubleshooting
 
 ### Worker Crashes (SIGTERM/SIGABRT)
-
-**Symptom**: Tests terminate with "worker process has failed to exit gracefully"
-
-**Cause**: Direct service imports create circular dependencies with Supabase client
-
-**Solution**: Mock services at module level
-```typescript
-// ✅ CORRECT
-jest.mock('@/services/locationService', () => ({
-  create: jest.fn(),
-  list: jest.fn(),
-}));
-
-// ❌ WRONG
-import * as locationService from '@/services/locationService';
-```
+**Cause:** Direct service imports create circular dependencies with Supabase client
+**Solution:** Mock services at module level: `jest.mock('@/services/serviceName')`
 
 ### "Request is not defined" Errors
-
-**Symptom**: `ReferenceError: Request is not defined`
-
-**Cause**: Test environment doesn't have Web API globals
-
-**Solution**: Use global Request object or move to E2E
-```typescript
-// ✅ CORRECT
-const request = new Request('http://localhost:3000/api/test', { method: 'POST' });
-
-// If this doesn't work, move test to __tests__/e2e/
-```
+**Solution:** Use global Request object or move test to `__tests__/e2e/`
 
 ### Tests Pass Locally But Fail in CI
-
-**Possible causes:**
-- Missing environment variables in CI
-- Different Node.js versions
-- Timing issues (increase timeouts)
-- Mock setup differences
-
-**Solution**: Check CI logs, verify environment variables, add explicit waits
+**Check:** Environment variables, Node.js versions, timing issues, mock setup
 
 ### Slow Integration Tests
-
-**Symptom**: Integration tests take too long
-
-**Solutions:**
-- Verify you're mocking services (not hitting real APIs)
-- Check for unnecessary `await` statements
-- Reduce test data size
-- Ensure parallel execution is enabled
-
+**Solutions:** Verify services are mocked (not hitting real APIs), reduce test data, enable parallel execution
 
 ## Preventing Flaky Tests
 
-**Always await async operations:**
 ```typescript
-// ✅ CORRECT
+// ✅ Always await async operations
 it('should update state', async () => {
   await updateState();
   expect(state).toBe('updated');
 });
 
-// ❌ WRONG - Missing await causes race condition
-it('should update state', async () => {
-  updateState();
-  expect(state).toBe('updated');
-});
-```
-
-**Ensure test independence:**
-```typescript
-// ✅ CORRECT - Self-contained
+// ✅ Ensure test independence
 it('should update guest', async () => {
   const createResult = await guestService.create(data);
   const updateResult = await guestService.update(createResult.data.id, newData);
   expect(updateResult.success).toBe(true);
 });
 
-// ❌ WRONG - Depends on previous test
-let guestId: string;
-it('should create guest', async () => {
-  const result = await guestService.create(data);
-  guestId = result.data.id;
-});
-it('should update guest', async () => {
-  await guestService.update(guestId, data); // Fails if previous test skipped
-});
-```
-
-**Mock external dependencies:**
-```typescript
-// ✅ CORRECT
+// ✅ Mock external dependencies
 it('should fetch data', async () => {
   mockAPI.mockResolvedValue({ data: 'test' });
   const result = await fetchData();
   expect(result).toBe('test');
 });
 
-// ❌ WRONG - Real API call (flaky, slow)
-it('should fetch data', async () => {
-  const result = await fetchData();
-  expect(result).toBeDefined();
-});
-```
-
-**Clean up after tests:**
-```typescript
+// ✅ Clean up after tests
 afterEach(async () => {
   await testDb.from('guests').delete().neq('id', '');
   jest.clearAllMocks();
 });
-```
 
-**Use factories for test data:**
-```typescript
-// ✅ CORRECT
+// ✅ Use factories for test data
 it('test 1', async () => {
   const result = await guestService.create(createTestGuest({ firstName: 'Jane' }));
 });
-
-// ❌ WRONG - Duplicated setup
-it('test 1', async () => {
-  const guest = { firstName: 'Jane', lastName: 'Doe', email: 'jane@example.com', groupId: 'group-1', ageType: 'adult' as const, guestType: 'wedding_guest' as const };
-  const result = await guestService.create(guest);
-});
 ```
 
-## Testing Best Practices
+## Best Practices
 
 ### DO
 - ✅ Write tests alongside code (TDD/BDD)
 - ✅ Test both success and error paths for Result<T>
-- ✅ Use descriptive test names: `should [behavior] when [condition]`
+- ✅ Use descriptive names: `should [behavior] when [condition]`
 - ✅ Follow AAA pattern (Arrange, Act, Assert)
 - ✅ Test one thing per test
 - ✅ Use factories for test data
 - ✅ Mock external dependencies (Supabase, APIs)
 - ✅ Clean up test data in `afterEach`
 - ✅ Test security (XSS, SQL injection, auth)
-- ✅ Maintain high coverage for critical paths
 
 ### DON'T
 - ❌ Skip writing tests
@@ -719,7 +529,6 @@ it('test 1', async () => {
 - ❌ Commit commented-out tests
 - ❌ Ignore flaky tests
 - ❌ Test implementation details
-- ❌ Write overly complex tests
 - ❌ Skip edge cases (null, undefined, empty, malicious input)
 
 ## Test Commands
@@ -729,29 +538,16 @@ npm test                  # Run all tests
 npm run test:unit         # Unit tests only
 npm run test:property     # Property-based tests
 npm run test:integration  # Integration tests
-npm run test:e2e          # E2E tests
+npm run test:e2e          # E2E tests (requires running server)
 npm run test:coverage     # Generate coverage report
 npm run test:watch        # Watch mode
 ```
 
-## Pre-Deployment Checklist
-
-- [ ] All unit tests pass
-- [ ] All property-based tests pass
-- [ ] All integration tests pass
-- [ ] All E2E tests pass
-- [ ] Coverage meets thresholds (80%+ overall, 90%+ services)
-- [ ] No TypeScript errors
-- [ ] No ESLint errors
-- [ ] Security tests pass (XSS, SQL injection, auth)
-- [ ] Accessibility tests pass (WCAG 2.1 AA)
-
-## Quick Reference: When Writing Tests
+## Quick Reference
 
 **Service method** → Test 4 paths: success, validation error, database error, security  
 **Component** → Test rendering, user interactions, prop changes  
 **Utility** → Test edge cases: empty, null, undefined, malicious input  
 **API route** → Test auth, validation, HTTP status codes (200, 201, 400, 401, 500)  
 **RLS policy** → Test with real Supabase client, verify access control  
-**External service** → Mock with MSW, test success and failure paths  
 **E2E flow** → Test critical user journeys, accessibility, XSS prevention

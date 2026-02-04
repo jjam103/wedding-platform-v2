@@ -10,11 +10,13 @@ interface Guest {
   first_name: string;
   last_name: string;
   email: string | null;
+  group_id?: string;
 }
 
 interface Group {
   id: string;
   name: string;
+  guest_count?: number;
 }
 
 interface EmailComposerProps {
@@ -22,6 +24,8 @@ interface EmailComposerProps {
   onClose: () => void;
   onSuccess: () => void;
 }
+
+type RecipientType = 'guests' | 'groups' | 'all' | 'custom';
 
 export function EmailComposer({ isOpen, onClose, onSuccess }: EmailComposerProps) {
   const [guests, setGuests] = useState<Guest[]>([]);
@@ -32,12 +36,16 @@ export function EmailComposer({ isOpen, onClose, onSuccess }: EmailComposerProps
   const { addToast } = useToast();
 
   // Form state
-  const [recipientType, setRecipientType] = useState<'guests' | 'groups'>('guests');
+  const [recipientType, setRecipientType] = useState<RecipientType>('guests');
   const [selectedRecipients, setSelectedRecipients] = useState<string[]>([]);
+  const [customEmails, setCustomEmails] = useState<string>('');
   const [selectedTemplate, setSelectedTemplate] = useState<string>('');
   const [subject, setSubject] = useState('');
   const [body, setBody] = useState('');
   const [showPreview, setShowPreview] = useState(false);
+  const [scheduleEnabled, setScheduleEnabled] = useState(false);
+  const [scheduledDate, setScheduledDate] = useState('');
+  const [scheduledTime, setScheduledTime] = useState('');
 
   // Fetch data
   useEffect(() => {
@@ -95,14 +103,89 @@ export function EmailComposer({ isOpen, onClose, onSuccess }: EmailComposerProps
     }
   }, [templates]);
 
+  // Get recipient emails based on selection
+  const getRecipientEmails = useCallback(async (): Promise<string[]> => {
+    if (recipientType === 'all') {
+      return guests
+        .filter((g) => g.email)
+        .map((g) => g.email!);
+    }
+
+    if (recipientType === 'custom') {
+      return customEmails
+        .split(',')
+        .map((email) => email.trim())
+        .filter((email) => email.length > 0);
+    }
+
+    if (recipientType === 'guests') {
+      return guests
+        .filter((g) => selectedRecipients.includes(g.id) && g.email)
+        .map((g) => g.email!);
+    }
+
+    if (recipientType === 'groups') {
+      // Fetch guests in selected groups
+      const groupGuestPromises = selectedRecipients.map(async (groupId) => {
+        const response = await fetch(`/api/admin/groups/${groupId}/guests`);
+        const data = await response.json();
+        return data.success ? data.data : [];
+      });
+
+      const groupGuestsArrays = await Promise.all(groupGuestPromises);
+      const allGroupGuests = groupGuestsArrays.flat();
+      
+      return allGroupGuests
+        .filter((g: Guest) => g.email)
+        .map((g: Guest) => g.email!);
+    }
+
+    return [];
+  }, [recipientType, selectedRecipients, customEmails, guests]);
+
+  // Preview with variable substitution
+  const getPreviewContent = useCallback(() => {
+    // Sample variable substitution for preview
+    const sampleVariables: Record<string, string> = {
+      guest_name: 'John Doe',
+      event_name: 'Wedding Ceremony',
+      rsvp_link: 'https://example.com/rsvp',
+      deadline_date: '2024-06-01',
+      activity_name: 'Beach Volleyball',
+      activity_date: '2024-06-15',
+      activity_time: '14:00',
+      location: 'Sunset Beach',
+    };
+
+    let previewSubject = subject;
+    let previewBody = body;
+
+    Object.entries(sampleVariables).forEach(([key, value]) => {
+      const pattern = new RegExp(`\\{\\{${key}\\}\\}`, 'g');
+      previewSubject = previewSubject.replace(pattern, value);
+      previewBody = previewBody.replace(pattern, value);
+    });
+
+    return { subject: previewSubject, body: previewBody };
+  }, [subject, body]);
+
   // Handle form submission
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (selectedRecipients.length === 0) {
+    // Validation
+    if (recipientType !== 'all' && recipientType !== 'custom' && selectedRecipients.length === 0) {
       addToast({
         type: 'error',
         message: 'Please select at least one recipient',
+      });
+      return;
+    }
+
+    if (recipientType === 'custom' && !customEmails.trim()) {
+      addToast({
+        type: 'error',
+        message: 'Please enter at least one email address',
       });
       return;
     }
@@ -123,27 +206,18 @@ export function EmailComposer({ isOpen, onClose, onSuccess }: EmailComposerProps
       return;
     }
 
+    if (scheduleEnabled && (!scheduledDate || !scheduledTime)) {
+      addToast({
+        type: 'error',
+        message: 'Please select a date and time for scheduling',
+      });
+      return;
+    }
+
     setSubmitting(true);
     try {
       // Get recipient emails
-      let recipientEmails: string[] = [];
-
-      if (recipientType === 'guests') {
-        recipientEmails = guests
-          .filter((g) => selectedRecipients.includes(g.id) && g.email)
-          .map((g) => g.email!);
-      } else {
-        // For groups, fetch all guests in selected groups
-        const groupGuests = guests.filter((g) =>
-          selectedRecipients.some((groupId) => {
-            // This is simplified - in reality, we'd need to fetch group members
-            return true;
-          })
-        );
-        recipientEmails = groupGuests
-          .filter((g) => g.email)
-          .map((g) => g.email!);
-      }
+      const recipientEmails = await getRecipientEmails();
 
       if (recipientEmails.length === 0) {
         addToast({
@@ -154,17 +228,28 @@ export function EmailComposer({ isOpen, onClose, onSuccess }: EmailComposerProps
         return;
       }
 
+      // Prepare request data
+      const requestData: any = {
+        recipients: recipientEmails,
+        subject,
+        html: body,
+        text: body.replace(/<[^>]*>/g, ''), // Strip HTML for text version
+        template_id: selectedTemplate || undefined,
+      };
+
+      // Handle scheduling
+      let endpoint = '/api/admin/emails/send';
+      if (scheduleEnabled) {
+        const scheduledDateTime = new Date(`${scheduledDate}T${scheduledTime}`);
+        requestData.scheduled_at = scheduledDateTime.toISOString();
+        endpoint = '/api/admin/emails/schedule';
+      }
+
       // Send email
-      const response = await fetch('/api/admin/emails/send', {
+      const response = await fetch(endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          recipients: recipientEmails,
-          subject,
-          html: body,
-          text: body.replace(/<[^>]*>/g, ''), // Strip HTML for text version
-          template_id: selectedTemplate || undefined,
-        }),
+        body: JSON.stringify(requestData),
       });
 
       const result = await response.json();
@@ -172,7 +257,9 @@ export function EmailComposer({ isOpen, onClose, onSuccess }: EmailComposerProps
       if (result.success) {
         addToast({
           type: 'success',
-          message: `Email sent to ${recipientEmails.length} recipient(s)`,
+          message: scheduleEnabled
+            ? `Email scheduled for ${recipientEmails.length} recipient(s)`
+            : `Email sent to ${recipientEmails.length} recipient(s)`,
         });
         onSuccess();
         onClose();
@@ -243,15 +330,16 @@ export function EmailComposer({ isOpen, onClose, onSuccess }: EmailComposerProps
                 <label className="block text-sm font-medium text-sage-700 mb-1">
                   Recipient Type
                 </label>
-                <div className="flex gap-4">
+                <div className="flex flex-wrap gap-4">
                   <label className="flex items-center">
                     <input
                       type="radio"
                       value="guests"
                       checked={recipientType === 'guests'}
                       onChange={(e) => {
-                        setRecipientType(e.target.value as 'guests' | 'groups');
+                        setRecipientType(e.target.value as RecipientType);
                         setSelectedRecipients([]);
+                        setCustomEmails('');
                       }}
                       className="mr-2"
                     />
@@ -263,50 +351,131 @@ export function EmailComposer({ isOpen, onClose, onSuccess }: EmailComposerProps
                       value="groups"
                       checked={recipientType === 'groups'}
                       onChange={(e) => {
-                        setRecipientType(e.target.value as 'guests' | 'groups');
+                        setRecipientType(e.target.value as RecipientType);
                         setSelectedRecipients([]);
+                        setCustomEmails('');
                       }}
                       className="mr-2"
                     />
                     Guest Groups
                   </label>
+                  <label className="flex items-center">
+                    <input
+                      type="radio"
+                      value="all"
+                      checked={recipientType === 'all'}
+                      onChange={(e) => {
+                        setRecipientType(e.target.value as RecipientType);
+                        setSelectedRecipients([]);
+                        setCustomEmails('');
+                      }}
+                      className="mr-2"
+                    />
+                    All Guests
+                  </label>
+                  <label className="flex items-center">
+                    <input
+                      type="radio"
+                      value="custom"
+                      checked={recipientType === 'custom'}
+                      onChange={(e) => {
+                        setRecipientType(e.target.value as RecipientType);
+                        setSelectedRecipients([]);
+                        setCustomEmails('');
+                      }}
+                      className="mr-2"
+                    />
+                    Custom List
+                  </label>
                 </div>
               </div>
 
               {/* Recipients Selection */}
-              <div className="mb-4">
-                <label htmlFor="recipients" className="block text-sm font-medium text-sage-700 mb-1">
-                  Recipients *
-                </label>
-                <select
-                  id="recipients"
-                  multiple
-                  value={selectedRecipients}
-                  onChange={(e) => {
-                    const selected = Array.from(e.target.selectedOptions, (option) => option.value);
-                    setSelectedRecipients(selected);
-                  }}
-                  className="w-full px-3 py-2 border border-sage-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-jungle-500 min-h-[120px]"
-                  required
-                >
-                  {recipientType === 'guests'
-                    ? guests
-                        .filter((g) => g.email)
-                        .map((guest) => (
-                          <option key={guest.id} value={guest.id}>
-                            {guest.first_name} {guest.last_name} ({guest.email})
-                          </option>
-                        ))
-                    : groups.map((group) => (
-                        <option key={group.id} value={group.id}>
-                          {group.name}
+              {recipientType === 'guests' && (
+                <div className="mb-4">
+                  <label htmlFor="recipients" className="block text-sm font-medium text-sage-700 mb-1">
+                    Select Guests *
+                  </label>
+                  <select
+                    id="recipients"
+                    multiple
+                    value={selectedRecipients}
+                    onChange={(e) => {
+                      const selected = Array.from(e.target.selectedOptions, (option) => option.value);
+                      setSelectedRecipients(selected);
+                    }}
+                    className="w-full px-3 py-2 border border-sage-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-jungle-500 min-h-[120px]"
+                    required
+                  >
+                    {guests
+                      .filter((g) => g.email)
+                      .map((guest) => (
+                        <option key={guest.id} value={guest.id}>
+                          {guest.first_name} {guest.last_name} ({guest.email})
                         </option>
                       ))}
-                </select>
-                <p className="mt-1 text-sm text-sage-500">
-                  Hold Ctrl/Cmd to select multiple recipients
-                </p>
-              </div>
+                  </select>
+                  <p className="mt-1 text-sm text-sage-500">
+                    Hold Ctrl/Cmd to select multiple guests
+                  </p>
+                </div>
+              )}
+
+              {recipientType === 'groups' && (
+                <div className="mb-4">
+                  <label htmlFor="groups" className="block text-sm font-medium text-sage-700 mb-1">
+                    Select Groups *
+                  </label>
+                  <select
+                    id="groups"
+                    multiple
+                    value={selectedRecipients}
+                    onChange={(e) => {
+                      const selected = Array.from(e.target.selectedOptions, (option) => option.value);
+                      setSelectedRecipients(selected);
+                    }}
+                    className="w-full px-3 py-2 border border-sage-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-jungle-500 min-h-[120px]"
+                    required
+                  >
+                    {groups.map((group) => (
+                      <option key={group.id} value={group.id}>
+                        {group.name} {group.guest_count ? `(${group.guest_count} guests)` : ''}
+                      </option>
+                    ))}
+                  </select>
+                  <p className="mt-1 text-sm text-sage-500">
+                    Hold Ctrl/Cmd to select multiple groups
+                  </p>
+                </div>
+              )}
+
+              {recipientType === 'all' && (
+                <div className="mb-4 p-4 bg-jungle-50 border border-jungle-200 rounded-lg">
+                  <p className="text-sm text-jungle-800">
+                    <strong>All Guests:</strong> Email will be sent to all {guests.filter((g) => g.email).length} guests with email addresses.
+                  </p>
+                </div>
+              )}
+
+              {recipientType === 'custom' && (
+                <div className="mb-4">
+                  <label htmlFor="customEmails" className="block text-sm font-medium text-sage-700 mb-1">
+                    Email Addresses *
+                  </label>
+                  <textarea
+                    id="customEmails"
+                    value={customEmails}
+                    onChange={(e) => setCustomEmails(e.target.value)}
+                    rows={4}
+                    className="w-full px-3 py-2 border border-sage-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-jungle-500"
+                    placeholder="Enter email addresses separated by commas"
+                    required
+                  />
+                  <p className="mt-1 text-sm text-sage-500">
+                    Separate multiple email addresses with commas
+                  </p>
+                </div>
+              )}
 
               {/* Subject */}
               <div className="mb-4">
@@ -339,8 +508,56 @@ export function EmailComposer({ isOpen, onClose, onSuccess }: EmailComposerProps
                 />
                 <p className="mt-1 text-sm text-sage-500">
                   HTML tags are supported. Use {'{{'}variable{'}'} for variable substitution.
+                  Available variables: guest_name, event_name, rsvp_link, deadline_date, activity_name, activity_date, activity_time, location
                 </p>
               </div>
+
+              {/* Schedule Option */}
+              <div className="mb-4">
+                <label className="flex items-center">
+                  <input
+                    type="checkbox"
+                    checked={scheduleEnabled}
+                    onChange={(e) => setScheduleEnabled(e.target.checked)}
+                    className="mr-2"
+                  />
+                  <span className="text-sm font-medium text-sage-700">
+                    Schedule for later
+                  </span>
+                </label>
+              </div>
+
+              {scheduleEnabled && (
+                <div className="mb-4 grid grid-cols-2 gap-4">
+                  <div>
+                    <label htmlFor="scheduledDate" className="block text-sm font-medium text-sage-700 mb-1">
+                      Date *
+                    </label>
+                    <input
+                      type="date"
+                      id="scheduledDate"
+                      value={scheduledDate}
+                      onChange={(e) => setScheduledDate(e.target.value)}
+                      min={new Date().toISOString().split('T')[0]}
+                      className="w-full px-3 py-2 border border-sage-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-jungle-500"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="scheduledTime" className="block text-sm font-medium text-sage-700 mb-1">
+                      Time *
+                    </label>
+                    <input
+                      type="time"
+                      id="scheduledTime"
+                      value={scheduledTime}
+                      onChange={(e) => setScheduledTime(e.target.value)}
+                      className="w-full px-3 py-2 border border-sage-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-jungle-500"
+                      required
+                    />
+                  </div>
+                </div>
+              )}
 
               {/* Preview Section */}
               {showPreview && (
@@ -348,15 +565,28 @@ export function EmailComposer({ isOpen, onClose, onSuccess }: EmailComposerProps
                   <h3 className="text-lg font-semibold text-sage-900 mb-2">Preview</h3>
                   <div className="bg-white p-4 rounded border border-sage-200">
                     <div className="mb-2">
-                      <strong>Subject:</strong> {subject}
+                      <strong>Subject:</strong> {getPreviewContent().subject}
                     </div>
                     <div className="mb-2">
-                      <strong>To:</strong> {selectedRecipients.length} recipient(s)
+                      <strong>To:</strong>{' '}
+                      {recipientType === 'all'
+                        ? `All guests (${guests.filter((g) => g.email).length})`
+                        : recipientType === 'custom'
+                        ? customEmails.split(',').filter((e) => e.trim()).length + ' recipient(s)'
+                        : selectedRecipients.length + ' recipient(s)'}
                     </div>
+                    {scheduleEnabled && scheduledDate && scheduledTime && (
+                      <div className="mb-2">
+                        <strong>Scheduled for:</strong> {scheduledDate} at {scheduledTime}
+                      </div>
+                    )}
                     <div className="border-t border-sage-200 pt-2 mt-2">
-                      <div dangerouslySetInnerHTML={{ __html: body }} />
+                      <div dangerouslySetInnerHTML={{ __html: getPreviewContent().body }} />
                     </div>
                   </div>
+                  <p className="mt-2 text-sm text-sage-600 italic">
+                    Note: Variables shown with sample data for preview purposes
+                  </p>
                 </div>
               )}
             </>
@@ -390,10 +620,10 @@ export function EmailComposer({ isOpen, onClose, onSuccess }: EmailComposerProps
               {submitting ? (
                 <>
                   <span className="inline-block animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></span>
-                  Sending...
+                  {scheduleEnabled ? 'Scheduling...' : 'Sending...'}
                 </>
               ) : (
-                'Send Email'
+                scheduleEnabled ? 'Schedule Email' : 'Send Email'
               )}
             </Button>
           </div>

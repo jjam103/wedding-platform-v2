@@ -1,49 +1,40 @@
-import { createAuthenticatedClient } from '@/lib/supabaseServer';
 import { NextResponse } from 'next/server';
-import { listTemplates, createTemplate } from '@/services/emailService';
+import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
+import { cookies } from 'next/headers';
+import * as emailService from '@/services/emailService';
 import { createEmailTemplateSchema } from '@/schemas/emailSchemas';
 
 /**
  * GET /api/admin/emails/templates
- * Fetches all email templates.
- * Requirements: 8.4
+ * Lists all email templates
+ * Requirements: 17.10
  */
 export async function GET(request: Request) {
   try {
     // 1. Auth check
-    const supabase = await createAuthenticatedClient();
-    const {
-      data: { session },
-      error: authError,
-    } = await supabase.auth.getSession();
-
+    const cookieStore = await cookies();
+    const supabase = createRouteHandlerClient({ cookies: () => cookieStore });
+    const { data: { session }, error: authError } = await supabase.auth.getSession();
+    
     if (authError || !session) {
       return NextResponse.json(
-        {
-          success: false,
-          error: { code: 'UNAUTHORIZED', message: 'Authentication required' },
-        },
+        { success: false, error: { code: 'UNAUTHORIZED', message: 'Authentication required' } },
         { status: 401 }
       );
     }
 
-    // 2. Fetch templates
-    const result = await listTemplates();
+    // 2. Call service
+    const result = await emailService.listTemplates();
 
-    if (!result.success) {
+    // 3. Return response
+    if (result.success) {
+      return NextResponse.json(result, { status: 200 });
+    } else {
       return NextResponse.json(result, { status: 500 });
     }
-
-    return NextResponse.json(result, { status: 200 });
   } catch (error) {
     return NextResponse.json(
-      {
-        success: false,
-        error: {
-          code: 'UNKNOWN_ERROR',
-          message: error instanceof Error ? error.message : 'Unknown error',
-        },
-      },
+      { success: false, error: { code: 'INTERNAL_ERROR', message: 'Internal server error' } },
       { status: 500 }
     );
   }
@@ -51,24 +42,19 @@ export async function GET(request: Request) {
 
 /**
  * POST /api/admin/emails/templates
- * Creates a new email template.
- * Requirements: 8.4
+ * Creates a new email template
+ * Requirements: 17.1, 17.2
  */
 export async function POST(request: Request) {
   try {
     // 1. Auth check
-    const supabase = await createAuthenticatedClient();
-    const {
-      data: { session },
-      error: authError,
-    } = await supabase.auth.getSession();
-
+    const cookieStore = await cookies();
+    const supabase = createRouteHandlerClient({ cookies: () => cookieStore });
+    const { data: { session }, error: authError } = await supabase.auth.getSession();
+    
     if (authError || !session) {
       return NextResponse.json(
-        {
-          success: false,
-          error: { code: 'UNAUTHORIZED', message: 'Authentication required' },
-        },
+        { success: false, error: { code: 'UNAUTHORIZED', message: 'Authentication required' } },
         { status: 401 }
       );
     }
@@ -76,38 +62,34 @@ export async function POST(request: Request) {
     // 2. Parse and validate
     const body = await request.json();
     const validation = createEmailTemplateSchema.safeParse(body);
-
+    
     if (!validation.success) {
       return NextResponse.json(
-        {
-          success: false,
-          error: {
-            code: 'VALIDATION_ERROR',
-            message: 'Invalid request',
-            details: validation.error.issues,
-          },
+        { 
+          success: false, 
+          error: { 
+            code: 'VALIDATION_ERROR', 
+            message: 'Invalid request', 
+            details: validation.error.issues 
+          } 
         },
         { status: 400 }
       );
     }
 
-    // 3. Create template
-    const result = await createTemplate(validation.data);
+    // 3. Call service
+    const result = await emailService.createTemplate(validation.data);
 
-    if (!result.success) {
-      return NextResponse.json(result, { status: 500 });
+    // 4. Return response
+    if (result.success) {
+      return NextResponse.json(result, { status: 201 });
+    } else {
+      const statusCode = result.error.code === 'VALIDATION_ERROR' ? 400 : 500;
+      return NextResponse.json(result, { status: statusCode });
     }
-
-    return NextResponse.json(result, { status: 201 });
   } catch (error) {
     return NextResponse.json(
-      {
-        success: false,
-        error: {
-          code: 'UNKNOWN_ERROR',
-          message: error instanceof Error ? error.message : 'Unknown error',
-        },
-      },
+      { success: false, error: { code: 'INTERNAL_ERROR', message: 'Internal server error' } },
       { status: 500 }
     );
   }

@@ -27,12 +27,17 @@ CREATE TABLE IF NOT EXISTS vendor_bookings (
   activity_id UUID REFERENCES activities(id) ON DELETE CASCADE,
   event_id UUID REFERENCES events(id) ON DELETE CASCADE,
   booking_date DATE NOT NULL,
+  guest_count INTEGER CHECK (guest_count IS NULL OR guest_count >= 0),
+  pricing_model TEXT NOT NULL DEFAULT 'flat_rate' CHECK (pricing_model IN ('flat_rate', 'per_guest')),
+  total_cost NUMERIC(10, 2) NOT NULL DEFAULT 0 CHECK (total_cost >= 0),
+  host_subsidy NUMERIC(10, 2) NOT NULL DEFAULT 0 CHECK (host_subsidy >= 0),
   notes TEXT,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   CONSTRAINT booking_target CHECK (
     (event_id IS NOT NULL AND activity_id IS NULL) OR 
     (event_id IS NULL AND activity_id IS NOT NULL)
-  )
+  ),
+  CONSTRAINT valid_subsidy CHECK (host_subsidy <= total_cost)
 );
 
 -- Create indexes for performance

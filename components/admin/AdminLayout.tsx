@@ -1,9 +1,8 @@
 'use client';
 
 import type { ReactNode } from 'react';
-import { useState, useEffect, useCallback } from 'react';
-import { Sidebar } from './Sidebar';
-import { TopBar } from './TopBar';
+import { useState, useCallback } from 'react';
+import { TopNavigation } from './TopNavigation';
 import { KeyboardShortcutsDialog } from '@/components/ui/KeyboardShortcutsDialog';
 import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
 import type { KeyboardShortcut } from '@/hooks/useKeyboardShortcuts';
@@ -17,26 +16,13 @@ interface AdminLayoutProps {
  * AdminLayout Client Component
  * 
  * Provides consistent layout structure for all admin pages with:
- * - Persistent sidebar navigation with pending photo count
- * - Top bar with user menu
+ * - Top navigation bar with tabs and sub-navigation
  * - Responsive container with mobile breakpoint handling
  * - Content area for page-specific content
+ * - Keyboard shortcuts support
  */
 export function AdminLayout({ children, currentSection }: AdminLayoutProps) {
-  const [pendingPhotosCount, setPendingPhotosCount] = useState(0);
   const [showShortcutsDialog, setShowShortcutsDialog] = useState(false);
-
-  const fetchPendingCount = async () => {
-    try {
-      const response = await fetch('/api/admin/photos/pending-count');
-      const result = await response.json();
-      if (result.success) {
-        setPendingPhotosCount(result.data.count);
-      }
-    } catch (error) {
-      console.error('Failed to fetch pending photos count:', error);
-    }
-  };
 
   // Focus search input handler
   const focusSearch = useCallback(() => {
@@ -92,42 +78,17 @@ export function AdminLayout({ children, currentSection }: AdminLayoutProps) {
   // Register keyboard shortcuts
   useKeyboardShortcuts(shortcuts, !showShortcutsDialog);
 
-  useEffect(() => {
-    // Initial fetch
-    fetchPendingCount();
-
-    // Refresh count every 30 seconds
-    const interval = setInterval(fetchPendingCount, 30000);
-
-    // Listen for photo moderation events
-    const handlePhotoModerated = () => {
-      fetchPendingCount();
-    };
-    window.addEventListener('photoModerated', handlePhotoModerated);
-
-    return () => {
-      clearInterval(interval);
-      window.removeEventListener('photoModerated', handlePhotoModerated);
-    };
-  }, []);
-
   return (
     <div className="min-h-screen bg-cloud-100">
-      {/* Sidebar - Fixed on desktop, collapsible on mobile */}
-      <Sidebar currentSection={currentSection} pendingPhotosCount={pendingPhotosCount} />
+      {/* Top Navigation */}
+      <TopNavigation />
 
-      {/* Main content area with top bar */}
-      <div className="lg:pl-64">
-        {/* Top bar */}
-        <TopBar />
-
-        {/* Page content */}
-        <main id="main-content" role="main" tabIndex={-1} className="p-4 sm:p-6 lg:p-8 focus:outline-none">
-          <div className="max-w-7xl mx-auto">
-            {children}
-          </div>
-        </main>
-      </div>
+      {/* Page content */}
+      <main id="main-content" role="main" tabIndex={-1} className="p-4 sm:p-6 lg:p-8 focus:outline-none">
+        <div className="max-w-7xl mx-auto">
+          {children}
+        </div>
+      </main>
 
       {/* Keyboard shortcuts help dialog */}
       <KeyboardShortcutsDialog

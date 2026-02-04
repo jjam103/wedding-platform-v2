@@ -8,10 +8,15 @@
 import { createClient } from '@supabase/supabase-js';
 import { readFileSync } from 'fs';
 import { fileURLToPath } from 'url';
-import { dirname, resolve } from 'path';
+import { dirname, resolve, join } from 'path';
+import { config } from 'dotenv';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
+
+// Load environment variables
+const envPath = join(__dirname, '..', '.env.local');
+config({ path: envPath });
 
 // Get migration file path from command line
 const migrationFile = process.argv[2];

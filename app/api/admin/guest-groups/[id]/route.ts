@@ -21,7 +21,7 @@ function getStatusCode(errorCode: string): number {
  */
 export async function GET(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     // 1. Authentication
@@ -35,8 +35,9 @@ export async function GET(
       );
     }
     
-    // 2. Validate ID
-    const validation = z.string().uuid().safeParse(params.id);
+    // 2. Await params and validate ID
+    const { id } = await params;
+    const validation = z.string().uuid().safeParse(id);
     if (!validation.success) {
       return NextResponse.json(
         { success: false, error: { code: 'VALIDATION_ERROR', message: 'Invalid ID format' } },
@@ -45,7 +46,7 @@ export async function GET(
     }
     
     // 3. Service call
-    const result = await groupService.get(supabase, params.id);
+    const result = await groupService.get(id);
     
     // 4. Response
     return NextResponse.json(result, { status: result.success ? 200 : getStatusCode(result.error.code) });
@@ -65,7 +66,7 @@ export async function GET(
  */
 export async function PUT(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     // 1. Authentication
@@ -79,8 +80,9 @@ export async function PUT(
       );
     }
     
-    // 2. Validate ID
-    const idValidation = z.string().uuid().safeParse(params.id);
+    // 2. Await params and validate ID
+    const { id } = await params;
+    const idValidation = z.string().uuid().safeParse(id);
     if (!idValidation.success) {
       return NextResponse.json(
         { success: false, error: { code: 'VALIDATION_ERROR', message: 'Invalid ID format' } },
@@ -100,7 +102,7 @@ export async function PUT(
     }
     
     // 4. Service call
-    const result = await groupService.update(supabase, params.id, validation.data);
+    const result = await groupService.update(id, validation.data);
     
     // 5. Response
     return NextResponse.json(result, { status: result.success ? 200 : getStatusCode(result.error.code) });
@@ -120,7 +122,7 @@ export async function PUT(
  */
 export async function DELETE(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     // 1. Authentication
@@ -134,8 +136,9 @@ export async function DELETE(
       );
     }
     
-    // 2. Validate ID
-    const validation = z.string().uuid().safeParse(params.id);
+    // 2. Await params and validate ID
+    const { id } = await params;
+    const validation = z.string().uuid().safeParse(id);
     if (!validation.success) {
       return NextResponse.json(
         { success: false, error: { code: 'VALIDATION_ERROR', message: 'Invalid ID format' } },
@@ -144,7 +147,7 @@ export async function DELETE(
     }
     
     // 3. Service call
-    const result = await groupService.deleteGroup(supabase, params.id);
+    const result = await groupService.deleteGroup(id);
     
     // 4. Response
     return NextResponse.json(result, { status: result.success ? 200 : getStatusCode(result.error.code) });

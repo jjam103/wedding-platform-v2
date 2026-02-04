@@ -19,6 +19,11 @@ const SectionEditor = dynamic(() => import('@/components/admin/SectionEditor').t
   ssr: false,
 });
 
+const InlineSectionEditor = dynamic(() => import('@/components/admin/InlineSectionEditor').then(mod => ({ default: mod.InlineSectionEditor })), {
+  loading: () => <div className="p-4 text-sm text-gray-600">Loading sections...</div>,
+  ssr: false,
+});
+
 interface HomePageConfig {
   title: string | null;
   subtitle: string | null;
@@ -50,6 +55,7 @@ export default function HomePageEditorPage() {
   const [error, setError] = useState<string | null>(null);
   const [isDirty, setIsDirty] = useState(false);
   const [showSectionEditor, setShowSectionEditor] = useState(false);
+  const [showInlineSectionEditor, setShowInlineSectionEditor] = useState(false);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const autoSaveTimerRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -152,6 +158,10 @@ export default function HomePageEditorPage() {
 
   const handleManageSections = () => {
     setShowSectionEditor(true);
+  };
+
+  const handleToggleInlineSectionEditor = () => {
+    setShowInlineSectionEditor(!showInlineSectionEditor);
   };
 
   const handleSectionEditorClose = () => {
@@ -301,7 +311,14 @@ export default function HomePageEditorPage() {
               variant="secondary"
               disabled={saving}
             >
-              Manage Sections
+              Manage Sections (Full Editor)
+            </Button>
+            <Button
+              onClick={handleToggleInlineSectionEditor}
+              variant="secondary"
+              disabled={saving}
+            >
+              {showInlineSectionEditor ? 'Hide' : 'Show'} Inline Section Editor
             </Button>
             <Button
               onClick={handlePreview}
@@ -318,6 +335,20 @@ export default function HomePageEditorPage() {
             {saving ? 'Saving...' : 'Save Changes'}
           </Button>
         </div>
+
+        {/* Inline Section Editor */}
+        {showInlineSectionEditor && (
+          <Card className="p-6">
+            <InlineSectionEditor 
+              pageType="home" 
+              pageId="home" 
+              onSave={() => {
+                console.log('Section saved');
+              }}
+              compact={false}
+            />
+          </Card>
+        )}
 
         {isDirty && !saving && (
           <p className="text-sm text-amber-600">

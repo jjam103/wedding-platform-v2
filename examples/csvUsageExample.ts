@@ -258,6 +258,7 @@ export async function generateCSVTemplate(): Promise<string> {
       invitationSentDate: null,
       rsvpDeadline: '2025-05-01',
       notes: 'Sample guest entry',
+      authMethod: 'email_matching',
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     },

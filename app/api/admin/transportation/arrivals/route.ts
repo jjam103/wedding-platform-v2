@@ -1,3 +1,4 @@
+import { createClient } from '@supabase/supabase-js';
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
@@ -8,9 +9,9 @@ import { NextResponse } from 'next/server';
  */
 export async function GET(request: Request) {
   try {
-    // 1. Auth check
+    // 1. Auth check with anon key
     const cookieStore = await cookies();
-    const supabase = createServerClient(
+    const authClient = createServerClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
       {
@@ -29,7 +30,7 @@ export async function GET(request: Request) {
     const {
       data: { session },
       error: authError,
-    } = await supabase.auth.getSession();
+    } = await authClient.auth.getSession();
 
     if (authError || !session) {
       return NextResponse.json(
@@ -56,7 +57,13 @@ export async function GET(request: Request) {
       );
     }
 
-    // 3. Query guests with arrival information
+    // 3. Use service role client for database queries (bypasses RLS)
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    );
+
+    // Query guests with arrival information
     let query = supabase
       .from('guests')
       .select('id, first_name, last_name, arrival_date, arrival_time, airport_code, flight_number')

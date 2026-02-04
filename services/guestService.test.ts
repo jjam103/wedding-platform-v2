@@ -1481,4 +1481,236 @@ invalid-uuid,,Doe,invalid-email,,adult,wedding_guest,,,false,,,,,false,,,`;
       }
     });
   });
+
+  describe('Auth Method Inheritance', () => {
+    const validData: CreateGuestDTO = {
+      firstName: 'John',
+      lastName: 'Doe',
+      email: 'john@example.com',
+      groupId: '123e4567-e89b-12d3-a456-426614174000',
+      ageType: 'adult',
+      guestType: 'wedding_guest',
+    };
+
+    beforeEach(() => {
+      jest.clearAllMocks();
+      // Clear the module cache to reset the settingsService mock
+      jest.resetModules();
+    });
+
+    it('should inherit default auth method from settings when creating a guest', async () => {
+      // Mock settingsService.getDefaultAuthMethod
+      jest.doMock('./settingsService', () => ({
+        getDefaultAuthMethod: jest.fn().mockResolvedValue({
+          success: true,
+          data: 'magic_link',
+        }),
+      }));
+
+      const mockGuest = {
+        id: 'guest-1',
+        group_id: validData.groupId,
+        first_name: validData.firstName,
+        last_name: validData.lastName,
+        email: validData.email,
+        phone: null,
+        age_type: validData.ageType,
+        guest_type: validData.guestType,
+        dietary_restrictions: null,
+        plus_one_name: null,
+        plus_one_attending: false,
+        arrival_date: null,
+        departure_date: null,
+        airport_code: null,
+        flight_number: null,
+        invitation_sent: false,
+        invitation_sent_date: null,
+        rsvp_deadline: null,
+        notes: null,
+        auth_method: 'magic_link',
+        created_at: '2024-01-01T00:00:00Z',
+        updated_at: '2024-01-01T00:00:00Z',
+      };
+
+      const mockSingle = (jest.fn() as any).mockResolvedValue({
+        data: mockGuest,
+        error: null,
+      } as any);
+      const mockSelect = (jest.fn() as any).mockReturnValue({
+        single: mockSingle,
+      });
+      const mockInsert = (jest.fn() as any).mockReturnValue({
+        select: mockSelect,
+      });
+      (mockFrom as any).mockReturnValue({
+        insert: mockInsert,
+      });
+
+      // Re-import guestService to get the mocked settingsService
+      const guestServiceModule = await import('./guestService');
+      const result = await guestServiceModule.create(validData);
+
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data.authMethod).toBe('magic_link');
+      }
+
+      // Verify that insert was called with auth_method
+      expect(mockInsert).toHaveBeenCalledWith(
+        expect.objectContaining({
+          auth_method: 'magic_link',
+        })
+      );
+    });
+
+    it('should fallback to email_matching when settings fetch fails', async () => {
+      // Mock settingsService.getDefaultAuthMethod to fail
+      jest.doMock('./settingsService', () => ({
+        getDefaultAuthMethod: jest.fn().mockResolvedValue({
+          success: false,
+          error: { code: 'NOT_FOUND', message: 'Setting not found' },
+        }),
+      }));
+
+      const mockGuest = {
+        id: 'guest-1',
+        group_id: validData.groupId,
+        first_name: validData.firstName,
+        last_name: validData.lastName,
+        email: validData.email,
+        phone: null,
+        age_type: validData.ageType,
+        guest_type: validData.guestType,
+        dietary_restrictions: null,
+        plus_one_name: null,
+        plus_one_attending: false,
+        arrival_date: null,
+        departure_date: null,
+        airport_code: null,
+        flight_number: null,
+        invitation_sent: false,
+        invitation_sent_date: null,
+        rsvp_deadline: null,
+        notes: null,
+        auth_method: 'email_matching',
+        created_at: '2024-01-01T00:00:00Z',
+        updated_at: '2024-01-01T00:00:00Z',
+      };
+
+      const mockSingle = (jest.fn() as any).mockResolvedValue({
+        data: mockGuest,
+        error: null,
+      } as any);
+      const mockSelect = (jest.fn() as any).mockReturnValue({
+        single: mockSingle,
+      });
+      const mockInsert = (jest.fn() as any).mockReturnValue({
+        select: mockSelect,
+      });
+      (mockFrom as any).mockReturnValue({
+        insert: mockInsert,
+      });
+
+      // Re-import guestService to get the mocked settingsService
+      const guestServiceModule = await import('./guestService');
+      const result = await guestServiceModule.create(validData);
+
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data.authMethod).toBe('email_matching');
+      }
+
+      // Verify that insert was called with fallback auth_method
+      expect(mockInsert).toHaveBeenCalledWith(
+        expect.objectContaining({
+          auth_method: 'email_matching',
+        })
+      );
+    });
+
+    it('should inherit auth method for bulk create operations', async () => {
+      // Mock settingsService.getDefaultAuthMethod
+      jest.doMock('./settingsService', () => ({
+        getDefaultAuthMethod: jest.fn().mockResolvedValue({
+          success: true,
+          data: 'magic_link',
+        }),
+      }));
+
+      const guestsData: CreateGuestDTO[] = [
+        {
+          firstName: 'John',
+          lastName: 'Doe',
+          email: 'john@example.com',
+          groupId: '123e4567-e89b-12d3-a456-426614174000',
+          ageType: 'adult',
+          guestType: 'wedding_guest',
+        },
+        {
+          firstName: 'Jane',
+          lastName: 'Doe',
+          email: 'jane@example.com',
+          groupId: '123e4567-e89b-12d3-a456-426614174000',
+          ageType: 'adult',
+          guestType: 'wedding_guest',
+        },
+      ];
+
+      const mockGuests = guestsData.map((data, index) => ({
+        id: `guest-${index + 1}`,
+        group_id: data.groupId,
+        first_name: data.firstName,
+        last_name: data.lastName,
+        email: data.email,
+        phone: null,
+        age_type: data.ageType,
+        guest_type: data.guestType,
+        dietary_restrictions: null,
+        plus_one_name: null,
+        plus_one_attending: false,
+        arrival_date: null,
+        departure_date: null,
+        airport_code: null,
+        flight_number: null,
+        invitation_sent: false,
+        invitation_sent_date: null,
+        rsvp_deadline: null,
+        notes: null,
+        auth_method: 'magic_link',
+        created_at: '2024-01-01T00:00:00Z',
+        updated_at: '2024-01-01T00:00:00Z',
+      }));
+
+      const mockSelect = (jest.fn() as any).mockResolvedValue({
+        data: mockGuests,
+        error: null,
+      } as any);
+      const mockInsert = (jest.fn() as any).mockReturnValue({
+        select: mockSelect,
+      });
+      (mockFrom as any).mockReturnValue({
+        insert: mockInsert,
+      });
+
+      // Re-import guestService to get the mocked settingsService
+      const guestServiceModule = await import('./guestService');
+      const result = await guestServiceModule.bulkCreate(guestsData);
+
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data).toHaveLength(2);
+        expect(result.data[0].authMethod).toBe('magic_link');
+        expect(result.data[1].authMethod).toBe('magic_link');
+      }
+
+      // Verify that insert was called with auth_method for all guests
+      expect(mockInsert).toHaveBeenCalledWith(
+        expect.arrayContaining([
+          expect.objectContaining({ auth_method: 'magic_link' }),
+          expect.objectContaining({ auth_method: 'magic_link' }),
+        ])
+      );
+    });
+  });
 });
+

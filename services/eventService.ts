@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import { sanitizeInput, sanitizeRichText } from "../utils/sanitization";
+import { generateSlug, isValidSlug, makeUniqueSlug } from "../utils/slugs";
 import {
   createEventSchema,
   updateEventSchema,
@@ -48,6 +49,37 @@ function toCamelCase(obj: any): any {
 }
 
 /**
+ * Ensures slug is unique by checking existing events and appending a number if necessary.
+ * 
+ * @param slug - Desired slug
+ * @param excludeId - ID to exclude from uniqueness check (for updates)
+ * @returns Unique slug
+ */
+async function ensureUniqueSlug(slug: string, excludeId?: string): Promise<string> {
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  );
+
+  // Get all existing slugs
+  let query = supabase.from('events').select('slug');
+  
+  if (excludeId) {
+    query = query.neq('id', excludeId);
+  }
+
+  const { data, error } = await query;
+
+  if (error) {
+    // If we can't check, return the original slug and let database handle uniqueness
+    return slug;
+  }
+
+  const existingSlugs = data.map((event: any) => event.slug).filter(Boolean);
+  return makeUniqueSlug(slug, existingSlugs);
+}
+
+/**
  * Creates a new event in the system.
  *
  * @param data - Event data including name, type, dates, and location
@@ -83,12 +115,36 @@ export async function create(data: CreateEventDTO): Promise<Result<Event>> {
       description: validation.data.description ? sanitizeRichText(validation.data.description) : null,
     };
 
+    // 2.1. Generate slug if not provided
+    const baseSlug = generateSlug(sanitized.name);
+    if (!isValidSlug(baseSlug)) {
+      return {
+        success: false,
+        error: {
+          code: 'VALIDATION_ERROR',
+          message: 'Event name must contain at least one alphanumeric character to generate a valid slug',
+          details: {
+            field: 'name',
+            value: sanitized.name,
+            reason: 'Generated slug is invalid or empty after normalization',
+          },
+        },
+      };
+    }
+
+    // 2.2. Ensure slug is unique
+    const uniqueSlug = await ensureUniqueSlug(baseSlug);
+    const sanitizedWithSlug = {
+      ...sanitized,
+      slug: uniqueSlug,
+    };
+
     // 3. Check for scheduling conflicts if location is specified
-    if (sanitized.locationId) {
+    if (sanitizedWithSlug.locationId) {
       const conflictCheck = await checkSchedulingConflicts({
-        locationId: sanitized.locationId,
-        startDate: sanitized.startDate,
-        endDate: sanitized.endDate || null,
+        locationId: sanitizedWithSlug.locationId,
+        startDate: sanitizedWithSlug.startDate,
+        endDate: sanitizedWithSlug.endDate || null,
       });
 
       if (!conflictCheck.success) {
@@ -113,7 +169,7 @@ export async function create(data: CreateEventDTO): Promise<Result<Event>> {
       process.env.SUPABASE_SERVICE_ROLE_KEY!
     );
 
-    const dbData = toSnakeCase(sanitized);
+    const dbData = toSnakeCase(sanitizedWithSlug);
     const { data: result, error } = await supabase
       .from('events')
       .insert(dbData)
@@ -156,6 +212,7 @@ export async function get(id: string): Promise<Result<Event>> {
       .from('events')
       .select('*')
       .eq('id', id)
+      .is('deleted_at', null)
       .single();
 
     if (error) {
@@ -213,6 +270,9 @@ export async function update(id: string, data: UpdateEventDTO): Promise<Result<E
     if (sanitized.description) {
       sanitized.description = sanitizeRichText(sanitized.description);
     }
+
+    // 2.1. Preserve slug - do not regenerate from name on update
+    // Slug should only be set on creation or explicitly updated by admin
 
     // 3. Check for scheduling conflicts if location or dates are being updated
     if (sanitized.locationId || sanitized.startDate || sanitized.endDate) {
@@ -295,16 +355,137 @@ export async function update(id: string, data: UpdateEventDTO): Promise<Result<E
  * Note: Activities with event_id set to this event will have their event_id set to NULL (not deleted).
  *
  * @param id - Event UUID
+ * @param options - Delete options (soft delete or permanent)
  * @returns Result indicating success or error details
+ * 
+ * @example
+ * // Soft delete (default)
+ * await deleteEvent('event-id');
+ * 
+ * // Permanent delete
+ * await deleteEvent('event-id', { permanent: true });
  */
-export async function deleteEvent(id: string): Promise<Result<void>> {
+export async function deleteEvent(
+  id: string,
+  options: { permanent?: boolean; deletedBy?: string } = {}
+): Promise<Result<void>> {
   try {
     const supabase = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.SUPABASE_SERVICE_ROLE_KEY!
     );
 
-    const { error } = await supabase.from('events').delete().eq('id', id);
+    const { permanent = false, deletedBy } = options;
+
+    if (permanent) {
+      // Permanent deletion - remove from database
+      const { error } = await supabase.from('events').delete().eq('id', id);
+
+      if (error) {
+        return {
+          success: false,
+          error: { code: 'DATABASE_ERROR', message: error.message, details: error },
+        };
+      }
+    } else {
+      // Soft delete - set deleted_at timestamp
+      const now = new Date().toISOString();
+
+      // Soft delete associated activities
+      await supabase
+        .from('activities')
+        .update({ deleted_at: now, deleted_by: deletedBy })
+        .eq('event_id', id)
+        .is('deleted_at', null);
+
+      // Soft delete associated RSVPs
+      const { data: activities } = await supabase
+        .from('activities')
+        .select('id')
+        .eq('event_id', id);
+
+      if (activities && activities.length > 0) {
+        const activityIds = activities.map((a: any) => a.id);
+        await supabase
+          .from('rsvps')
+          .update({ deleted_at: now, deleted_by: deletedBy })
+          .in('activity_id', activityIds)
+          .is('deleted_at', null);
+      }
+
+      // Soft delete event
+      const { error } = await supabase
+        .from('events')
+        .update({ deleted_at: now, deleted_by: deletedBy })
+        .eq('id', id)
+        .is('deleted_at', null);
+
+      if (error) {
+        return {
+          success: false,
+          error: { code: 'DATABASE_ERROR', message: error.message, details: error },
+        };
+      }
+    }
+
+    return { success: true, data: undefined };
+  } catch (error) {
+    return {
+      success: false,
+      error: {
+        code: 'UNKNOWN_ERROR',
+        message: error instanceof Error ? error.message : 'Unknown error',
+      },
+    };
+  }
+}
+
+/**
+ * Restores a soft-deleted event and all associated activities and RSVPs
+ * 
+ * @param id - Event ID
+ * @returns Result containing the restored event or error details
+ * 
+ * @example
+ * const result = await restoreEvent('event-id');
+ */
+export async function restoreEvent(id: string): Promise<Result<Event>> {
+  try {
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    );
+
+    // Restore associated activities
+    const { data: activities } = await supabase
+      .from('activities')
+      .select('id')
+      .eq('event_id', id)
+      .not('deleted_at', 'is', null);
+
+    if (activities && activities.length > 0) {
+      const activityIds = activities.map((a: any) => a.id);
+
+      // Restore RSVPs
+      await supabase
+        .from('rsvps')
+        .update({ deleted_at: null, deleted_by: null })
+        .in('activity_id', activityIds);
+
+      // Restore activities
+      await supabase
+        .from('activities')
+        .update({ deleted_at: null, deleted_by: null })
+        .in('id', activityIds);
+    }
+
+    // Restore event
+    const { data, error } = await supabase
+      .from('events')
+      .update({ deleted_at: null, deleted_by: null })
+      .eq('id', id)
+      .select()
+      .single();
 
     if (error) {
       return {
@@ -313,7 +494,7 @@ export async function deleteEvent(id: string): Promise<Result<void>> {
       };
     }
 
-    return { success: true, data: undefined };
+    return { success: true, data };
   } catch (error) {
     return {
       success: false,
@@ -357,6 +538,9 @@ export async function list(filters: EventFilterDTO = {}): Promise<Result<Paginat
     );
 
     let query = supabase.from('events').select('*', { count: 'exact' });
+
+    // Filter out soft-deleted items
+    query = query.is('deleted_at', null);
 
     // Apply filters
     if (filterParams.eventType) {
@@ -560,6 +744,64 @@ export async function checkSchedulingConflicts(
         })),
       },
     };
+  } catch (error) {
+    return {
+      success: false,
+      error: {
+        code: 'UNKNOWN_ERROR',
+        message: error instanceof Error ? error.message : 'Unknown error',
+      },
+    };
+  }
+}
+
+/**
+ * Retrieves a single event by slug.
+ *
+ * @param slug - Event slug (URL-safe identifier)
+ * @returns Result containing the event or error details
+ *
+ * @example
+ * const result = await eventService.getBySlug('wedding-ceremony');
+ */
+export async function getBySlug(slug: string): Promise<Result<Event>> {
+  try {
+    // Validate slug format
+    if (!slug || typeof slug !== 'string' || slug.trim() === '') {
+      return {
+        success: false,
+        error: {
+          code: 'VALIDATION_ERROR',
+          message: 'Invalid slug provided',
+        },
+      };
+    }
+
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    );
+
+    const { data, error } = await supabase
+      .from('events')
+      .select('*')
+      .eq('slug', slug.toLowerCase())
+      .single();
+
+    if (error) {
+      if (error.code === 'PGRST116') {
+        return {
+          success: false,
+          error: { code: 'NOT_FOUND', message: 'Event not found' },
+        };
+      }
+      return {
+        success: false,
+        error: { code: 'DATABASE_ERROR', message: error.message, details: error },
+      };
+    }
+
+    return { success: true, data: toCamelCase(data) as Event };
   } catch (error) {
     return {
       success: false,

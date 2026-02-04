@@ -6,11 +6,20 @@
 
 import { createGroupSchema, updateGroupSchema } from '@/schemas/groupSchemas';
 import type { CreateGroupDTO, UpdateGroupDTO, Group, GroupWithCount } from '@/schemas/groupSchemas';
-import type { SupabaseClient } from '@supabase/supabase-js';
 
 type Result<T> = 
   | { success: true; data: T }
   | { success: false; error: { code: string; message: string; details?: any } };
+
+// Lazy load supabase to avoid initialization issues in tests
+let _supabase: any = null;
+function getSupabase() {
+  if (!_supabase) {
+    const { supabase } = require('@/lib/supabase');
+    _supabase = supabase;
+  }
+  return _supabase;
+}
 
 /**
  * Sanitize user input to prevent XSS attacks.
@@ -43,8 +52,10 @@ function toCamelCase(obj: any): any {
 /**
  * Creates a new guest group.
  */
-export async function create(supabase: SupabaseClient, data: CreateGroupDTO): Promise<Result<Group>> {
+export async function create(data: CreateGroupDTO): Promise<Result<Group>> {
   try {
+    const supabase = getSupabase();
+    
     // 1. Validate
     const validation = createGroupSchema.safeParse(data);
     if (!validation.success) {
@@ -93,8 +104,10 @@ export async function create(supabase: SupabaseClient, data: CreateGroupDTO): Pr
 /**
  * Gets a group by ID.
  */
-export async function get(supabase: SupabaseClient, id: string): Promise<Result<Group>> {
+export async function get(id: string): Promise<Result<Group>> {
   try {
+    const supabase = getSupabase();
+    
     const { data, error } = await supabase
       .from('groups')
       .select('*')
@@ -129,8 +142,10 @@ export async function get(supabase: SupabaseClient, id: string): Promise<Result<
 /**
  * Lists all groups with guest counts.
  */
-export async function list(supabase: SupabaseClient): Promise<Result<GroupWithCount[]>> {
+export async function list(): Promise<Result<GroupWithCount[]>> {
   try {
+    const supabase = getSupabase();
+    
     const { data, error } = await supabase
       .from('groups')
       .select(`
@@ -166,8 +181,10 @@ export async function list(supabase: SupabaseClient): Promise<Result<GroupWithCo
 /**
  * Updates a group.
  */
-export async function update(supabase: SupabaseClient, id: string, data: UpdateGroupDTO): Promise<Result<Group>> {
+export async function update(id: string, data: UpdateGroupDTO): Promise<Result<Group>> {
   try {
+    const supabase = getSupabase();
+    
     // 1. Validate
     const validation = updateGroupSchema.safeParse(data);
     if (!validation.success) {
@@ -227,8 +244,10 @@ export async function update(supabase: SupabaseClient, id: string, data: UpdateG
  * Deletes a group.
  * Note: This will cascade delete all guests in the group.
  */
-export async function deleteGroup(supabase: SupabaseClient, id: string): Promise<Result<void>> {
+export async function deleteGroup(id: string): Promise<Result<void>> {
   try {
+    const supabase = getSupabase();
+    
     // Check if group has guests
     const { data: guests, error: guestsError } = await supabase
       .from('guests')

@@ -239,14 +239,15 @@ describe('ConfirmDialog - Accessibility', () => {
       render(<ConfirmDialog {...defaultProps} variant="danger" />);
 
       const confirmButton = screen.getByText('Confirm');
-      expect(confirmButton).toHaveClass('bg-volcano-500');
+      expect(confirmButton).toHaveStyle({ backgroundColor: '#ef4444' });
     });
 
     it('should apply warning variant to confirm button', () => {
       render(<ConfirmDialog {...defaultProps} variant="warning" />);
 
       const confirmButton = screen.getByText('Confirm');
-      expect(confirmButton).toHaveClass('bg-sage-200');
+      // Warning variant maps to secondary button style
+      expect(confirmButton).toHaveStyle({ backgroundColor: '#e5e7eb' });
     });
   });
 

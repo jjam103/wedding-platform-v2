@@ -158,6 +158,47 @@ export async function getAccommodation(id: string): Promise<Result<Accommodation
 }
 
 /**
+ * Retrieves a single accommodation by slug.
+ * Requirements: 24.10 (Slug Management - slug-based routing)
+ */
+export async function getAccommodationBySlug(slug: string): Promise<Result<Accommodation>> {
+  try {
+    const { data, error } = await supabase
+      .from('accommodations')
+      .select('*')
+      .eq('slug', slug)
+      .single();
+
+    if (error) {
+      if (error.code === 'PGRST116') {
+        return {
+          success: false,
+          error: { code: 'NOT_FOUND', message: 'Accommodation not found' },
+        };
+      }
+      return {
+        success: false,
+        error: { code: 'DATABASE_ERROR', message: error.message, details: error },
+      };
+    }
+
+    return { success: true, data: toCamelCase(data) as Accommodation };
+  } catch (error) {
+    return {
+      success: false,
+      error: {
+        code: 'UNKNOWN_ERROR',
+        message: error instanceof Error ? error.message : 'Unknown error',
+      },
+    };
+  }
+}
+
+// Alias for backward compatibility
+export const get = getAccommodation;
+export const getBySlug = getAccommodationBySlug;
+
+/**
  * Updates an existing accommodation.
  */
 export async function updateAccommodation(id: string, data: UpdateAccommodationDTO): Promise<Result<Accommodation>> {

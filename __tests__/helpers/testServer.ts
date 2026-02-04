@@ -6,7 +6,6 @@
  */
 
 import { spawn, ChildProcess } from 'child_process';
-import fetch from 'node-fetch';
 
 let serverProcess: ChildProcess | null = null;
 const SERVER_PORT = 3001; // Use different port than dev server

@@ -1,6 +1,6 @@
 export const dynamic = 'force-dynamic';
 
-import { createServerComponentClient } from '@supabase/auth-helpers-nextjs';
+import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { FamilyManager } from '@/components/guest/FamilyManager';
@@ -15,7 +15,23 @@ import { FamilyManager } from '@/components/guest/FamilyManager';
  * Requirements: 13.2, 13.3, 13.4
  */
 export default async function FamilyPage() {
-  const supabase = createServerComponentClient({ cookies });
+  const cookieStore = await cookies();
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        getAll() {
+          return cookieStore.getAll();
+        },
+        setAll(cookiesToSet) {
+          cookiesToSet.forEach(({ name, value, options }) =>
+            cookieStore.set(name, value, options)
+          );
+        },
+      },
+    }
+  );
   
   // Check authentication
   const { data: { session }, error: authError } = await supabase.auth.getSession();
@@ -64,5 +80,31 @@ export default async function FamilyPage() {
     familyMembers = [guest];
   }
   
-  return <FamilyManager currentGuest={guest} familyMembers={familyMembers} />;
+  // Fetch RSVP status for all family members
+  const guestIds = familyMembers.map(m => m.id);
+  const { data: rsvps } = await supabase
+    .from('rsvps')
+    .select(`
+      id,
+      guest_id,
+      event_id,
+      activity_id,
+      status,
+      guest_count,
+      dietary_notes,
+      events:event_id(id, name),
+      activities:activity_id(id, name)
+    `)
+    .in('guest_id', guestIds);
+  
+  // Group RSVPs by guest_id
+  const rsvpsByGuest = (rsvps || []).reduce((acc, rsvp) => {
+    if (!acc[rsvp.guest_id]) {
+      acc[rsvp.guest_id] = [];
+    }
+    acc[rsvp.guest_id].push(rsvp);
+    return acc;
+  }, {} as Record<string, any[]>);
+  
+  return <FamilyManager currentGuest={guest} familyMembers={familyMembers} rsvpsByGuest={rsvpsByGuest} />;
 }

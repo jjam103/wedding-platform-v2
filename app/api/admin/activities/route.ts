@@ -51,12 +51,22 @@ export async function GET(request: Request) {
     // 4. Return response
     return NextResponse.json(result, { status: result.success ? 200 : 500 });
   } catch (error) {
+    console.error('Activities API Error:', error);
+    console.error('Error details:', {
+      message: error instanceof Error ? error.message : 'Unknown',
+      stack: error instanceof Error ? error.stack : undefined,
+      env: {
+        hasUrl: !!process.env.NEXT_PUBLIC_SUPABASE_URL,
+        hasServiceKey: !!process.env.SUPABASE_SERVICE_ROLE_KEY,
+      }
+    });
     return NextResponse.json(
       {
         success: false,
         error: {
           code: 'INTERNAL_ERROR',
           message: error instanceof Error ? error.message : 'Unknown error',
+          stack: error instanceof Error ? error.stack : undefined,
         },
       },
       { status: 500 }

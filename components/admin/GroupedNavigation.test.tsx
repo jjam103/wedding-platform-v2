@@ -54,6 +54,7 @@ describe('GroupedNavigation', () => {
     it('should render all navigation groups', () => {
       render(<GroupedNavigation />);
 
+      expect(screen.getByText('Quick Actions')).toBeInTheDocument();
       expect(screen.getByText('Guest Management')).toBeInTheDocument();
       expect(screen.getByText('Event Planning')).toBeInTheDocument();
       expect(screen.getByText('Logistics')).toBeInTheDocument();
@@ -67,7 +68,8 @@ describe('GroupedNavigation', () => {
       render(<GroupedNavigation />);
 
       // All groups should be expanded, so navigation items should be visible
-      expect(screen.getByText('Guests')).toBeInTheDocument();
+      expect(screen.getByText('Preview Guest Portal')).toBeInTheDocument();
+      expect(screen.getByText('Guests & Groups')).toBeInTheDocument();
       expect(screen.getByText('Events')).toBeInTheDocument();
       expect(screen.getByText('Activities')).toBeInTheDocument();
       expect(screen.getByText('Vendors')).toBeInTheDocument();
@@ -81,7 +83,7 @@ describe('GroupedNavigation', () => {
       render(<GroupedNavigation />);
 
       // Verify group is initially expanded
-      expect(screen.getByText('Guests')).toBeInTheDocument();
+      expect(screen.getByText('Guests & Groups')).toBeInTheDocument();
 
       // Click on Guest Management header to collapse
       const guestManagementButton = screen.getByRole('button', { name: /guest management section/i });
@@ -104,14 +106,14 @@ describe('GroupedNavigation', () => {
       fireEvent.click(guestManagementButton);
 
       await waitFor(() => {
-        expect(screen.queryByText('Guests')).not.toBeInTheDocument();
+        expect(screen.queryByText('Guests & Groups')).not.toBeInTheDocument();
       });
 
       // Now expand it again
       fireEvent.click(guestManagementButton);
 
       await waitFor(() => {
-        expect(screen.getByText('Guests')).toBeInTheDocument();
+        expect(screen.getByText('Guests & Groups')).toBeInTheDocument();
       });
 
       // Verify aria-expanded is true
@@ -289,20 +291,20 @@ describe('GroupedNavigation', () => {
       const guestManagementButton = screen.getByRole('button', { name: /guest management section/i });
       
       // Initially expanded
-      expect(screen.getByText('Guests')).toBeInTheDocument();
+      expect(screen.getByText('Guests & Groups')).toBeInTheDocument();
 
       // Press Enter
       fireEvent.keyDown(guestManagementButton, { key: 'Enter' });
 
       await waitFor(() => {
-        expect(screen.queryByText('Guests')).not.toBeInTheDocument();
+        expect(screen.queryByText('Guests & Groups')).not.toBeInTheDocument();
       });
 
       // Press Enter again to expand
       fireEvent.keyDown(guestManagementButton, { key: 'Enter' });
 
       await waitFor(() => {
-        expect(screen.getByText('Guests')).toBeInTheDocument();
+        expect(screen.getByText('Guests & Groups')).toBeInTheDocument();
       });
     });
 
@@ -312,20 +314,20 @@ describe('GroupedNavigation', () => {
       const guestManagementButton = screen.getByRole('button', { name: /guest management section/i });
       
       // Initially expanded
-      expect(screen.getByText('Guests')).toBeInTheDocument();
+      expect(screen.getByText('Guests & Groups')).toBeInTheDocument();
 
       // Press Space
       fireEvent.keyDown(guestManagementButton, { key: ' ' });
 
       await waitFor(() => {
-        expect(screen.queryByText('Guests')).not.toBeInTheDocument();
+        expect(screen.queryByText('Guests & Groups')).not.toBeInTheDocument();
       });
 
       // Press Space again to expand
       fireEvent.keyDown(guestManagementButton, { key: ' ' });
 
       await waitFor(() => {
-        expect(screen.getByText('Guests')).toBeInTheDocument();
+        expect(screen.getByText('Guests & Groups')).toBeInTheDocument();
       });
     });
 
@@ -348,7 +350,7 @@ describe('GroupedNavigation', () => {
       const guestManagementButton = screen.getByRole('button', { name: /guest management section/i });
       
       // Initially expanded
-      expect(screen.getByText('Guests')).toBeInTheDocument();
+      expect(screen.getByText('Guests & Groups')).toBeInTheDocument();
 
       // Press other keys
       fireEvent.keyDown(guestManagementButton, { key: 'a' });
@@ -356,7 +358,7 @@ describe('GroupedNavigation', () => {
       fireEvent.keyDown(guestManagementButton, { key: 'Tab' });
 
       // Should still be expanded
-      expect(screen.getByText('Guests')).toBeInTheDocument();
+      expect(screen.getByText('Guests & Groups')).toBeInTheDocument();
     });
 
     it('should support keyboard navigation between groups', () => {
@@ -514,7 +516,7 @@ describe('GroupedNavigation', () => {
 
       render(<GroupedNavigation />);
 
-      const guestsLink = screen.getByRole('link', { name: 'Guests' });
+      const guestsLink = screen.getByRole('link', { name: 'Guests & Groups' });
       
       // Should have active styling
       expect(guestsLink.className).toContain('jungle');
@@ -527,7 +529,7 @@ describe('GroupedNavigation', () => {
       const onNavigate = jest.fn();
       render(<GroupedNavigation onNavigate={onNavigate} />);
 
-      const guestsLink = screen.getByRole('link', { name: 'Guests' });
+      const guestsLink = screen.getByRole('link', { name: 'Guests & Groups' });
       fireEvent.click(guestsLink);
 
       expect(onNavigate).toHaveBeenCalled();
@@ -573,7 +575,7 @@ describe('GroupedNavigation', () => {
 
       render(<GroupedNavigation />);
 
-      const guestsLink = screen.getByRole('link', { name: 'Guests' });
+      const guestsLink = screen.getByRole('link', { name: 'Guests & Groups' });
       expect(guestsLink).toHaveAttribute('aria-current', 'page');
     });
 
@@ -584,6 +586,149 @@ describe('GroupedNavigation', () => {
       
       // Should have min-h-[44px] class for accessibility
       expect(guestManagementButton.className).toContain('min-h-[44px]');
+    });
+  });
+
+  describe('Preview Guest Portal Link', () => {
+    it('should render Preview Guest Portal link in Quick Actions group', () => {
+      render(<GroupedNavigation />);
+
+      const previewLink = screen.getByRole('link', { name: 'Preview Guest Portal' });
+      expect(previewLink).toBeInTheDocument();
+    });
+
+    it('should have correct href for Preview Guest Portal link', () => {
+      render(<GroupedNavigation />);
+
+      const previewLink = screen.getByRole('link', { name: 'Preview Guest Portal' });
+      expect(previewLink).toHaveAttribute('href', '/');
+    });
+
+    it('should open Preview Guest Portal in new tab', () => {
+      render(<GroupedNavigation />);
+
+      const previewLink = screen.getByRole('link', { name: 'Preview Guest Portal' });
+      expect(previewLink).toHaveAttribute('target', '_blank');
+      expect(previewLink).toHaveAttribute('rel', 'noopener noreferrer');
+    });
+
+    it('should display external link indicator for Preview Guest Portal', () => {
+      render(<GroupedNavigation />);
+
+      const previewLink = screen.getByRole('link', { name: 'Preview Guest Portal' });
+      
+      // Should contain external link indicator (↗)
+      expect(previewLink.textContent).toContain('↗');
+    });
+
+    it('should call onNavigate when Preview Guest Portal is clicked', () => {
+      const onNavigate = jest.fn();
+      render(<GroupedNavigation onNavigate={onNavigate} />);
+
+      const previewLink = screen.getByRole('link', { name: 'Preview Guest Portal' });
+      fireEvent.click(previewLink);
+
+      expect(onNavigate).toHaveBeenCalled();
+    });
+
+    it('should be visible in Quick Actions group when expanded', () => {
+      render(<GroupedNavigation />);
+
+      // Quick Actions should be expanded by default
+      const quickActionsButton = screen.getByRole('button', { name: /quick actions section/i });
+      expect(quickActionsButton).toHaveAttribute('aria-expanded', 'true');
+
+      // Preview link should be visible
+      expect(screen.getByText('Preview Guest Portal')).toBeInTheDocument();
+    });
+
+    it('should not be visible when Quick Actions group is collapsed', async () => {
+      render(<GroupedNavigation />);
+
+      // Collapse Quick Actions
+      const quickActionsButton = screen.getByRole('button', { name: /quick actions section/i });
+      fireEvent.click(quickActionsButton);
+
+      await waitFor(() => {
+        expect(screen.queryByText('Preview Guest Portal')).not.toBeInTheDocument();
+      });
+    });
+  });
+
+  describe('RSVPs Link', () => {
+    it('should render RSVPs link in Guest Management group', () => {
+      render(<GroupedNavigation />);
+
+      const rsvpsLink = screen.getByRole('link', { name: 'RSVPs' });
+      expect(rsvpsLink).toBeInTheDocument();
+    });
+
+    it('should have correct href for RSVPs link', () => {
+      render(<GroupedNavigation />);
+
+      const rsvpsLink = screen.getByRole('link', { name: 'RSVPs' });
+      expect(rsvpsLink).toHaveAttribute('href', '/admin/rsvps');
+    });
+
+    it('should be visible in Guest Management group when expanded', () => {
+      render(<GroupedNavigation />);
+
+      // Guest Management should be expanded by default
+      const guestManagementButton = screen.getByRole('button', { name: /guest management section/i });
+      expect(guestManagementButton).toHaveAttribute('aria-expanded', 'true');
+
+      // RSVPs link should be visible
+      expect(screen.getByText('RSVPs')).toBeInTheDocument();
+    });
+
+    it('should not be visible when Guest Management group is collapsed', async () => {
+      render(<GroupedNavigation />);
+
+      // Collapse Guest Management
+      const guestManagementButton = screen.getByRole('button', { name: /guest management section/i });
+      fireEvent.click(guestManagementButton);
+
+      await waitFor(() => {
+        expect(screen.queryByText('RSVPs')).not.toBeInTheDocument();
+      });
+    });
+
+    it('should call onNavigate when RSVPs link is clicked', () => {
+      const onNavigate = jest.fn();
+      render(<GroupedNavigation onNavigate={onNavigate} />);
+
+      const rsvpsLink = screen.getByRole('link', { name: 'RSVPs' });
+      fireEvent.click(rsvpsLink);
+
+      expect(onNavigate).toHaveBeenCalled();
+    });
+
+    it('should highlight RSVPs link when on RSVP page', () => {
+      const { usePathname } = require('next/navigation');
+      usePathname.mockReturnValue('/admin/rsvps');
+
+      render(<GroupedNavigation />);
+
+      const rsvpsLink = screen.getByRole('link', { name: 'RSVPs' });
+      
+      // Should have active styling
+      expect(rsvpsLink.className).toContain('jungle');
+      expect(rsvpsLink).toHaveAttribute('aria-current', 'page');
+    });
+
+    it('should be in Guest Management group alongside Guests & Groups', () => {
+      render(<GroupedNavigation />);
+
+      // Both links should be in the same group
+      const guestsLink = screen.getByRole('link', { name: 'Guests & Groups' });
+      const rsvpsLink = screen.getByRole('link', { name: 'RSVPs' });
+
+      expect(guestsLink).toBeInTheDocument();
+      expect(rsvpsLink).toBeInTheDocument();
+
+      // Both should be within the Guest Management group
+      const guestManagementButton = screen.getByRole('button', { name: /guest management section/i });
+      expect(guestManagementButton).toBeInTheDocument();
     });
   });
 });

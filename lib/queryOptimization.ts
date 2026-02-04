@@ -1,320 +1,368 @@
 /**
- * Database Query Optimization Utilities
+ * Query Optimization Utilities
  * 
- * Provides utilities for:
- * - Selecting only needed fields
- * - Implementing pagination (50 items per page default)
- * - Query performance monitoring
+ * This module provides utilities for optimizing database queries,
+ * preventing N+1 query patterns, and implementing efficient data fetching.
  * 
- * Requirements: 20.1, 20.4
+ * Requirements: 19.1, 19.2, 18.6, 18.7
  */
 
-import type { SupabaseClient } from '@supabase/supabase-js';
-
-/**
- * Default page size for pagination
- */
-export const DEFAULT_PAGE_SIZE = 50;
+import { createClient } from '@supabase/supabase-js';
 
 /**
- * Maximum page size to prevent performance issues
+ * Pagination configuration
  */
-export const MAX_PAGE_SIZE = 100;
-
-/**
- * Pagination parameters
- */
-export interface PaginationParams {
-  page?: number;
-  pageSize?: number;
-}
-
-/**
- * Pagination result
- */
-export interface PaginatedResult<T> {
-  data: T[];
-  pagination: {
-    page: number;
-    pageSize: number;
-    totalCount: number;
-    totalPages: number;
-    hasNextPage: boolean;
-    hasPreviousPage: boolean;
-  };
-}
+export const PAGINATION_DEFAULTS = {
+  GUESTS_PER_PAGE: 50,
+  ACTIVITIES_PER_PAGE: 50,
+  EVENTS_PER_PAGE: 50,
+  PHOTOS_PER_PAGE: 50,
+  EMAIL_HISTORY_PER_PAGE: 50,
+  AUDIT_LOGS_PER_PAGE: 100,
+} as const;
 
 /**
  * Calculate pagination range for Supabase queries
- * 
- * @param page - Page number (1-indexed)
- * @param pageSize - Number of items per page
- * @returns Object with from and to indices for Supabase range()
  */
-export function calculatePaginationRange(
-  page: number = 1,
-  pageSize: number = DEFAULT_PAGE_SIZE
-): { from: number; to: number } {
-  // Validate and constrain inputs
-  const validPage = Math.max(1, page);
-  const validPageSize = Math.min(Math.max(1, pageSize), MAX_PAGE_SIZE);
-
-  const from = (validPage - 1) * validPageSize;
-  const to = from + validPageSize - 1;
-
+export function getPaginationRange(page: number, pageSize: number): { from: number; to: number } {
+  const from = (page - 1) * pageSize;
+  const to = from + pageSize - 1;
   return { from, to };
 }
 
 /**
- * Build paginated result object
+ * Fetch guests with their RSVPs in a single query (prevents N+1)
  * 
- * @param data - Query result data
- * @param totalCount - Total count from query
- * @param page - Current page number
- * @param pageSize - Items per page
- * @returns Paginated result with metadata
- */
-export function buildPaginatedResult<T>(
-  data: T[],
-  totalCount: number,
-  page: number = 1,
-  pageSize: number = DEFAULT_PAGE_SIZE
-): PaginatedResult<T> {
-  const validPage = Math.max(1, page);
-  const validPageSize = Math.min(Math.max(1, pageSize), MAX_PAGE_SIZE);
-  const totalPages = Math.ceil(totalCount / validPageSize);
-
-  return {
-    data,
-    pagination: {
-      page: validPage,
-      pageSize: validPageSize,
-      totalCount,
-      totalPages,
-      hasNextPage: validPage < totalPages,
-      hasPreviousPage: validPage > 1,
-    },
-  };
-}
-
-/**
- * Execute paginated query with automatic range calculation
+ * Instead of:
+ * 1. Fetch all guests
+ * 2. For each guest, fetch their RSVPs (N queries)
  * 
- * @param query - Supabase query builder
- * @param params - Pagination parameters
- * @returns Paginated result
+ * Do:
+ * 1. Fetch guests with RSVPs joined (1 query)
  */
-export async function executePaginatedQuery<T>(
-  query: any,
-  params: PaginationParams = {}
-): Promise<PaginatedResult<T>> {
-  const { page = 1, pageSize = DEFAULT_PAGE_SIZE } = params;
-  const { from, to } = calculatePaginationRange(page, pageSize);
+export async function fetchGuestsWithRSVPs(
+  supabase: ReturnType<typeof createClient>,
+  options: {
+    groupId?: string;
+    page?: number;
+    pageSize?: number;
+  } = {}
+) {
+  const { groupId, page = 1, pageSize = PAGINATION_DEFAULTS.GUESTS_PER_PAGE } = options;
+  const { from, to } = getPaginationRange(page, pageSize);
 
-  const { data, error, count } = await query
-    .range(from, to);
+  let query = supabase
+    .from('guests')
+    .select(`
+      *,
+      rsvps (
+        id,
+        activity_id,
+        event_id,
+        response_status,
+        guest_count,
+        dietary_restrictions
+      )
+    `, { count: 'exact' })
+    .range(from, to)
+    .order('last_name', { ascending: true });
 
-  if (error) {
-    throw new Error(`Query failed: ${error.message}`);
+  if (groupId) {
+    query = query.eq('group_id', groupId);
   }
 
-  return buildPaginatedResult(data || [], count || 0, page, pageSize);
+  return query;
 }
 
 /**
- * Field selection utilities
+ * Fetch events with their activities in a single query (prevents N+1)
  */
+export async function fetchEventsWithActivities(
+  supabase: ReturnType<typeof createClient>,
+  options: {
+    includeInactive?: boolean;
+    page?: number;
+    pageSize?: number;
+  } = {}
+) {
+  const { includeInactive = false, page = 1, pageSize = PAGINATION_DEFAULTS.EVENTS_PER_PAGE } = options;
+  const { from, to } = getPaginationRange(page, pageSize);
 
-/**
- * Common field selections for different entities
- * Selecting only needed fields improves query performance
- */
-export const FIELD_SELECTIONS = {
-  // Guest list view - minimal fields
-  guestList: 'id, first_name, last_name, email, age_type, guest_type, group_id',
-  
-  // Guest detail view - all fields
-  guestDetail: '*',
-  
-  // Event list view
-  eventList: 'id, slug, title, event_type, event_date, event_time, is_active, location_id',
-  
-  // Event detail view
-  eventDetail: '*',
-  
-  // Activity list view
-  activityList: 'id, slug, title, activity_type, activity_date, activity_time, capacity, cost_per_person',
-  
-  // Activity detail view
-  activityDetail: '*',
-  
-  // Content page list view
-  contentPageList: 'id, slug, title, status, created_at, updated_at',
-  
-  // Content page detail view
-  contentPageDetail: '*',
-  
-  // Location list view
-  locationList: 'id, name, address, parent_location_id',
-  
-  // Location detail view
-  locationDetail: '*',
-  
-  // Vendor list view
-  vendorList: 'id, name, category, cost, payment_status',
-  
-  // Vendor detail view
-  vendorDetail: '*',
-  
-  // Photo list view
-  photoList: 'id, photo_url, caption, moderation_status, page_type, page_id, created_at',
-  
-  // Photo detail view
-  photoDetail: '*',
-  
-  // Audit log list view
-  auditLogList: 'id, timestamp, user_id, action, entity_type, entity_id, description',
-  
-  // Audit log detail view
-  auditLogDetail: '*',
-} as const;
+  let query = supabase
+    .from('events')
+    .select(`
+      *,
+      activities (
+        id,
+        title,
+        activity_date,
+        activity_time,
+        activity_type,
+        capacity,
+        cost_per_person,
+        location_id
+      ),
+      locations (
+        id,
+        name,
+        type
+      )
+    `, { count: 'exact' })
+    .range(from, to)
+    .order('event_date', { ascending: true });
 
-/**
- * Query performance monitoring
- */
-
-interface QueryMetrics {
-  queryName: string;
-  startTime: number;
-  endTime: number;
-  duration: number;
-  recordCount: number;
-}
-
-const queryMetrics: QueryMetrics[] = [];
-
-/**
- * Start monitoring a query
- * 
- * @param queryName - Name of the query for identification
- * @returns Start time
- */
-export function startQueryMonitoring(queryName: string): number {
-  return performance.now();
-}
-
-/**
- * End monitoring a query and log metrics
- * 
- * @param queryName - Name of the query
- * @param startTime - Start time from startQueryMonitoring
- * @param recordCount - Number of records returned
- */
-export function endQueryMonitoring(
-  queryName: string,
-  startTime: number,
-  recordCount: number
-): void {
-  const endTime = performance.now();
-  const duration = endTime - startTime;
-
-  const metrics: QueryMetrics = {
-    queryName,
-    startTime,
-    endTime,
-    duration,
-    recordCount,
-  };
-
-  queryMetrics.push(metrics);
-
-  // Log slow queries (> 500ms)
-  if (duration > 500) {
-    console.warn(`Slow query detected: ${queryName} took ${duration.toFixed(2)}ms`);
+  if (!includeInactive) {
+    query = query.eq('is_active', true);
   }
 
-  // Keep only last 100 metrics
-  if (queryMetrics.length > 100) {
-    queryMetrics.shift();
+  return query;
+}
+
+/**
+ * Fetch activities with their RSVPs and capacity info in a single query (prevents N+1)
+ */
+export async function fetchActivitiesWithRSVPs(
+  supabase: ReturnType<typeof createClient>,
+  options: {
+    eventId?: string;
+    page?: number;
+    pageSize?: number;
+  } = {}
+) {
+  const { eventId, page = 1, pageSize = PAGINATION_DEFAULTS.ACTIVITIES_PER_PAGE } = options;
+  const { from, to } = getPaginationRange(page, pageSize);
+
+  let query = supabase
+    .from('activities')
+    .select(`
+      *,
+      rsvps (
+        id,
+        guest_id,
+        response_status,
+        guest_count
+      ),
+      locations (
+        id,
+        name,
+        type
+      )
+    `, { count: 'exact' })
+    .range(from, to)
+    .order('activity_date', { ascending: true });
+
+  if (eventId) {
+    query = query.eq('event_id', eventId);
   }
+
+  return query;
 }
 
 /**
- * Get query performance metrics
- * 
- * @returns Array of query metrics
+ * Fetch content pages with their sections in a single query (prevents N+1)
  */
-export function getQueryMetrics(): QueryMetrics[] {
-  return [...queryMetrics];
-}
+export async function fetchContentPagesWithSections(
+  supabase: ReturnType<typeof createClient>,
+  options: {
+    status?: 'draft' | 'published';
+    page?: number;
+    pageSize?: number;
+  } = {}
+) {
+  const { status, page = 1, pageSize = 50 } = options;
+  const { from, to } = getPaginationRange(page, pageSize);
 
-/**
- * Get average query duration by name
- * 
- * @param queryName - Name of the query
- * @returns Average duration in milliseconds
- */
-export function getAverageQueryDuration(queryName: string): number {
-  const relevantMetrics = queryMetrics.filter(m => m.queryName === queryName);
-  
-  if (relevantMetrics.length === 0) {
-    return 0;
+  let query = supabase
+    .from('content_pages')
+    .select(`
+      *,
+      sections (
+        id,
+        title,
+        display_order,
+        section_columns (
+          id,
+          column_number,
+          content_type,
+          content_data
+        )
+      )
+    `, { count: 'exact' })
+    .range(from, to)
+    .order('updated_at', { ascending: false });
+
+  if (status) {
+    query = query.eq('status', status);
   }
 
-  const totalDuration = relevantMetrics.reduce((sum, m) => sum + m.duration, 0);
-  return totalDuration / relevantMetrics.length;
+  return query;
 }
 
 /**
- * Clear query metrics
+ * Fetch photos with uploader info in a single query (prevents N+1)
  */
-export function clearQueryMetrics(): void {
-  queryMetrics.length = 0;
+export async function fetchPhotosWithUploaders(
+  supabase: ReturnType<typeof createClient>,
+  options: {
+    moderationStatus?: 'pending' | 'approved' | 'rejected';
+    pageType?: string;
+    pageId?: string;
+    page?: number;
+    pageSize?: number;
+  } = {}
+) {
+  const { moderationStatus, pageType, pageId, page = 1, pageSize = PAGINATION_DEFAULTS.PHOTOS_PER_PAGE } = options;
+  const { from, to } = getPaginationRange(page, pageSize);
+
+  let query = supabase
+    .from('photos')
+    .select(`
+      *,
+      guests!uploader_id (
+        id,
+        first_name,
+        last_name
+      )
+    `, { count: 'exact' })
+    .range(from, to)
+    .order('created_at', { ascending: false });
+
+  if (moderationStatus) {
+    query = query.eq('moderation_status', moderationStatus);
+  }
+
+  if (pageType && pageId) {
+    query = query.eq('page_type', pageType).eq('page_id', pageId);
+  }
+
+  return query;
 }
 
 /**
- * Index recommendations for frequently queried fields
+ * Batch fetch entities by IDs (prevents N+1)
  * 
- * These indexes should be created in the database for optimal performance:
+ * Instead of:
+ * for (const id of ids) {
+ *   await supabase.from('table').select('*').eq('id', id).single();
+ * }
  * 
- * Guests table:
- * - CREATE INDEX idx_guests_group_id ON guests(group_id);
- * - CREATE INDEX idx_guests_email ON guests(email);
- * - CREATE INDEX idx_guests_last_name ON guests(last_name);
+ * Do:
+ * await batchFetchByIds(supabase, 'table', ids);
+ */
+export async function batchFetchByIds<T = any>(
+  supabase: ReturnType<typeof createClient>,
+  table: string,
+  ids: string[],
+  selectFields: string = '*'
+): Promise<{ data: T[] | null; error: any }> {
+  if (ids.length === 0) {
+    return { data: [], error: null };
+  }
+
+  return supabase
+    .from(table)
+    .select(selectFields)
+    .in('id', ids);
+}
+
+/**
+ * Fetch audit logs with user info in a single query (prevents N+1)
+ */
+export async function fetchAuditLogsWithUsers(
+  supabase: ReturnType<typeof createClient>,
+  options: {
+    userId?: string;
+    entityType?: string;
+    action?: string;
+    page?: number;
+    pageSize?: number;
+  } = {}
+) {
+  const { userId, entityType, action, page = 1, pageSize = PAGINATION_DEFAULTS.AUDIT_LOGS_PER_PAGE } = options;
+  const { from, to } = getPaginationRange(page, pageSize);
+
+  let query = supabase
+    .from('audit_logs')
+    .select(`
+      *,
+      users!user_id (
+        id,
+        email,
+        role
+      )
+    `, { count: 'exact' })
+    .range(from, to)
+    .order('timestamp', { ascending: false });
+
+  if (userId) {
+    query = query.eq('user_id', userId);
+  }
+
+  if (entityType) {
+    query = query.eq('entity_type', entityType);
+  }
+
+  if (action) {
+    query = query.eq('action', action);
+  }
+
+  return query;
+}
+
+/**
+ * Fetch email history with template info in a single query (prevents N+1)
+ */
+export async function fetchEmailHistoryWithTemplates(
+  supabase: ReturnType<typeof createClient>,
+  options: {
+    deliveryStatus?: string;
+    page?: number;
+    pageSize?: number;
+  } = {}
+) {
+  const { deliveryStatus, page = 1, pageSize = PAGINATION_DEFAULTS.EMAIL_HISTORY_PER_PAGE } = options;
+  const { from, to } = getPaginationRange(page, pageSize);
+
+  let query = supabase
+    .from('email_history')
+    .select(`
+      *,
+      email_templates (
+        id,
+        name,
+        category
+      ),
+      users!sent_by (
+        id,
+        email
+      )
+    `, { count: 'exact' })
+    .range(from, to)
+    .order('sent_at', { ascending: false });
+
+  if (deliveryStatus) {
+    query = query.eq('delivery_status', deliveryStatus);
+  }
+
+  return query;
+}
+
+/**
+ * Query optimization best practices:
  * 
- * Events table:
- * - CREATE INDEX idx_events_slug ON events(slug);
- * - CREATE INDEX idx_events_event_date ON events(event_date);
- * - CREATE INDEX idx_events_location_id ON events(location_id);
- * - CREATE INDEX idx_events_is_active ON events(is_active);
+ * 1. Always use pagination for large result sets
+ * 2. Use select with joins to fetch related data in one query
+ * 3. Batch queries when fetching multiple entities by ID
+ * 4. Use indexes on frequently queried columns
+ * 5. Use composite indexes for multi-column filters
+ * 6. Use partial indexes for frequently filtered subsets
+ * 7. Avoid SELECT * when you only need specific fields
+ * 8. Use .single() only when you expect exactly one result
+ * 9. Use .maybeSingle() when you expect 0 or 1 results
+ * 10. Use count: 'exact' only when you need the total count
  * 
- * Activities table:
- * - CREATE INDEX idx_activities_slug ON activities(slug);
- * - CREATE INDEX idx_activities_activity_date ON activities(activity_date);
- * - CREATE INDEX idx_activities_event_id ON activities(event_id);
- * 
- * Content Pages table:
- * - CREATE INDEX idx_content_pages_slug ON content_pages(slug);
- * - CREATE INDEX idx_content_pages_status ON content_pages(status);
- * 
- * Sections table:
- * - CREATE INDEX idx_sections_page_type_page_id ON sections(page_type, page_id);
- * - CREATE INDEX idx_sections_display_order ON sections(display_order);
- * 
- * Locations table:
- * - CREATE INDEX idx_locations_parent_location_id ON locations(parent_location_id);
- * 
- * Photos table:
- * - CREATE INDEX idx_photos_moderation_status ON photos(moderation_status);
- * - CREATE INDEX idx_photos_page_type_page_id ON photos(page_type, page_id);
- * 
- * Audit Logs table:
- * - CREATE INDEX idx_audit_logs_user_id ON audit_logs(user_id);
- * - CREATE INDEX idx_audit_logs_entity_type ON audit_logs(entity_type);
- * - CREATE INDEX idx_audit_logs_timestamp ON audit_logs(timestamp DESC);
- * 
- * RSVPs table:
- * - CREATE INDEX idx_rsvps_guest_id ON rsvps(guest_id);
- * - CREATE INDEX idx_rsvps_activity_id ON rsvps(activity_id);
- * - CREATE INDEX idx_rsvps_event_id ON rsvps(event_id);
+ * Performance targets:
+ * - Database queries: < 100ms (p95)
+ * - API responses: < 500ms (p95)
+ * - Page loads: < 2 seconds
  */

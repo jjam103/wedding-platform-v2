@@ -99,6 +99,7 @@ export type ConflictCheckDTO = z.infer<typeof conflictCheckSchema>;
 export interface Event {
   id: string;
   name: string;
+  slug: string;
   description: string | null;
   eventType: 'ceremony' | 'reception' | 'pre_wedding' | 'post_wedding';
   locationId: string | null;

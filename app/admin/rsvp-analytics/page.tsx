@@ -174,7 +174,7 @@ export default function RSVPAnalyticsPage(): React.JSX.Element {
         <div className="p-6">
           <h2 className="text-xl font-semibold mb-4">Overall Response Rate</h2>
           <div className="text-4xl font-bold text-jungle-600 mb-4">
-            {analytics.overall_response_rate.toFixed(1)}%
+            {(analytics.overall_response_rate ?? 0).toFixed(1)}%
           </div>
           <div className="grid grid-cols-4 gap-4">
             <div className="text-center">
@@ -211,7 +211,7 @@ export default function RSVPAnalyticsPage(): React.JSX.Element {
                       {new Date(event.event_date).toLocaleDateString()} • {event.total_responded}/{event.total_invited} responded
                     </div>
                   </div>
-                  <div className="text-lg font-semibold">{event.response_rate.toFixed(1)}%</div>
+                  <div className="text-lg font-semibold">{(event.response_rate ?? 0).toFixed(1)}%</div>
                 </div>
                 <div className="w-full bg-gray-200 rounded-full h-4 overflow-hidden">
                   <div
@@ -254,7 +254,7 @@ export default function RSVPAnalyticsPage(): React.JSX.Element {
                           {activity.by_status.attending}/{activity.capacity} capacity
                         </div>
                       </div>
-                      <div className="text-lg font-semibold">{utilization.toFixed(1)}%</div>
+                      <div className="text-lg font-semibold">{(utilization ?? 0).toFixed(1)}%</div>
                     </div>
                     <div className="w-full bg-gray-200 rounded-full h-4 overflow-hidden">
                       <div

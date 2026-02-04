@@ -1,0 +1,86 @@
+name: Weekly Test Report
+
+on:
+  schedule:
+    # Run every Monday at 9:00 AM UTC
+    - cron: '0 9 * * 1'
+  workflow_dispatch: # Allow manual trigger
+
+jobs:
+  weekly-report:
+    name: Generate Weekly Test Report
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20.x
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Download test metrics history
+        uses: actions/download-artifact@v4
+        with:
+          name: test-metrics
+          path: test-results/metrics/
+        continue-on-error: true
+      
+      - name: Generate weekly report
+        run: |
+          node scripts/generate-weekly-test-report.mjs
+        env:
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+          REPORT_EMAIL: ${{ secrets.REPORT_EMAIL }}
+      
+      - name: Upload weekly report
+        uses: actions/upload-artifact@v4
+        with:
+          name: weekly-test-report
+          path: test-results/metrics/weekly-reports/
+          retention-days: 90
+      
+      - name: Create GitHub Discussion
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const reportPath = 'test-results/metrics/weekly-reports/latest.md';
+            
+            if (!fs.existsSync(reportPath)) {
+              console.log('No report generated');
+              return;
+            }
+            
+            const report = fs.readFileSync(reportPath, 'utf8');
+            
+            // Create a discussion in the repository
+            try {
+              const { data: discussion } = await github.rest.discussions.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                category_id: process.env.DISCUSSION_CATEGORY_ID || 'general',
+                title: `📊 Weekly Test Report - ${new Date().toLocaleDateString()}`,
+                body: report,
+              });
+              
+              console.log(`Discussion created: ${discussion.html_url}`);
+            } catch (error) {
+              console.log('Could not create discussion (may not be enabled):', error.message);
+              
+              // Fallback: Create an issue instead
+              const { data: issue } = await github.rest.issues.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title: `📊 Weekly Test Report - ${new Date().toLocaleDateString()}`,
+                body: report,
+                labels: ['test-report', 'automated'],
+              });
+              
+              console.log(`Issue created: ${issue.html_url}`);
+            }

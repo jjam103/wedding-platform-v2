@@ -165,9 +165,12 @@ export type CalculateCostDTO = z.infer<typeof calculateCostSchema>;
 export interface Accommodation {
   id: string;
   name: string;
+  slug: string;
   locationId: string | null;
   description: string | null;
   address: string | null;
+  checkInDate?: string | null;
+  checkOutDate?: string | null;
   status: 'draft' | 'published';
   createdAt: string;
   updatedAt: string;
@@ -180,6 +183,7 @@ export interface RoomType {
   id: string;
   accommodationId: string;
   name: string;
+  slug: string;
   description: string | null;
   capacity: number;
   totalRooms: number;

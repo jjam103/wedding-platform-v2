@@ -1,0 +1,130 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e1]:
+  - link "Skip to main content" [ref=e2] [cursor=pointer]:
+    - /url: "#main-content"
+  - link "Skip to main content" [ref=e3] [cursor=pointer]:
+    - /url: "#main-content"
+  - generic [ref=e4]:
+    - navigation "Main navigation" [ref=e5]:
+      - generic [ref=e7]:
+        - link "Admin" [ref=e8] [cursor=pointer]:
+          - /url: /admin
+          - generic [ref=e9]: 🌴
+          - generic [ref=e10]: Admin
+        - button "Content" [ref=e11]:
+          - generic [ref=e12]: 📝
+          - generic [ref=e13]: Content
+        - button "Guests" [ref=e14]:
+          - generic [ref=e15]: 👥
+          - generic [ref=e16]: Guests
+        - button "RSVPs" [ref=e17]:
+          - generic [ref=e18]: ✓
+          - generic [ref=e19]: RSVPs
+        - button "Logistics" [ref=e20]:
+          - generic [ref=e21]: 🚗
+          - generic [ref=e22]: Logistics
+        - button "Admin" [ref=e23]:
+          - generic [ref=e24]: ⚙️
+          - generic [ref=e25]: Admin
+    - banner [ref=e26]:
+      - generic [ref=e27]:
+        - heading "Wedding Admin" [level=1] [ref=e29]
+        - toolbar "User actions" [ref=e30]:
+          - button "Notifications (coming soon)" [ref=e31]: 🔔
+          - button "User menu" [ref=e33]:
+            - generic [ref=e34]: A
+            - generic [ref=e35]: Admin
+            - generic [ref=e36]: ▼
+    - main [ref=e37]:
+      - generic [ref=e39]:
+        - generic [ref=e41]:
+          - heading "RSVP Management" [level=1] [ref=e42]
+          - paragraph [ref=e43]: View and manage all RSVPs across events and activities
+        - generic [ref=e44]:
+          - generic [ref=e45]:
+            - generic [ref=e46]:
+              - generic [ref=e47]: Total RSVPs
+              - generic [ref=e48]: "0"
+            - generic [ref=e49]:
+              - generic [ref=e50]: Attending
+              - generic [ref=e51]: "0"
+              - generic [ref=e52]: 0 total guests
+            - generic [ref=e53]:
+              - generic [ref=e54]: Declined
+              - generic [ref=e55]: "0"
+            - generic [ref=e56]:
+              - generic [ref=e57]: Maybe
+              - generic [ref=e58]: "0"
+            - generic [ref=e59]:
+              - generic [ref=e60]: Pending
+              - generic [ref=e61]: "0"
+          - generic [ref=e62]:
+            - generic [ref=e63]:
+              - generic [ref=e64]:
+                - generic [ref=e65]: Search RSVPs
+                - searchbox "Search RSVPs" [ref=e66]
+              - generic [ref=e67]:
+                - group "Filter controls" [ref=e68]:
+                  - generic [ref=e69]:
+                    - generic [ref=e70]: Filter by Event
+                    - combobox "Filter by Event" [ref=e71]:
+                      - option "All Event" [selected]
+                      - option "Test Wedding Ceremony"
+                  - generic [ref=e72]:
+                    - generic [ref=e73]: Filter by Activity
+                    - combobox "Filter by Activity" [ref=e74]:
+                      - option "All Activity" [selected]
+                      - option "Test Beach Volleyball"
+                  - generic [ref=e75]:
+                    - generic [ref=e76]: Filter by Status
+                    - combobox "Filter by Status" [ref=e77]:
+                      - option "All Status" [selected]
+                      - option "Pending"
+                      - option "Attending"
+                      - option "Declined"
+                      - option "Maybe"
+                - button "Export RSVPs to CSV" [active] [ref=e79] [cursor=pointer]: Export
+            - table "RSVPs data table" [ref=e82]:
+              - rowgroup [ref=e83]:
+                - row "Select all rows Guest Name Email Event Activity Status Guest Count Responded" [ref=e84]:
+                  - columnheader "Select all rows" [ref=e85]:
+                    - checkbox "Select all rows" [ref=e86]
+                  - columnheader "Guest Name" [ref=e87] [cursor=pointer]:
+                    - generic [ref=e89]: Guest Name
+                  - columnheader "Email" [ref=e90] [cursor=pointer]:
+                    - generic [ref=e92]: Email
+                  - columnheader "Event" [ref=e93] [cursor=pointer]:
+                    - generic [ref=e95]: Event
+                  - columnheader "Activity" [ref=e96] [cursor=pointer]:
+                    - generic [ref=e98]: Activity
+                  - columnheader "Status" [ref=e99] [cursor=pointer]:
+                    - generic [ref=e101]: Status
+                  - columnheader "Guest Count" [ref=e102] [cursor=pointer]:
+                    - generic [ref=e104]: Guest Count
+                  - columnheader "Responded" [ref=e105] [cursor=pointer]:
+                    - generic [ref=e107]: Responded
+              - rowgroup [ref=e108]:
+                - row "No RSVPs found" [ref=e109]:
+                  - cell "No RSVPs found" [ref=e110]
+  - button "Open Next.js Dev Tools" [ref=e116] [cursor=pointer]:
+    - img [ref=e117]
+  - alert [ref=e120]
+  - region "Notifications":
+    - alert [ref=e122]:
+      - img [ref=e124]
+      - paragraph [ref=e127]: Failed to fetch RSVPs
+      - button "Close notification" [ref=e128]:
+        - img [ref=e129]
+    - alert [ref=e132]:
+      - img [ref=e134]
+      - paragraph [ref=e137]: Failed to export RSVPs
+      - button "Close notification" [ref=e138]:
+        - img [ref=e139]
+    - alert [ref=e142]:
+      - img [ref=e144]
+      - paragraph [ref=e147]: Failed to export RSVPs
+      - button "Close notification" [ref=e148]:
+        - img [ref=e149]
+```

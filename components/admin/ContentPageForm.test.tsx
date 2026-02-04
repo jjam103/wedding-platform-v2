@@ -13,6 +13,7 @@
  */
 
 import { render, screen, fireEvent, waitFor, cleanup } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { ContentPageForm } from './ContentPageForm';
 import type { ContentPage } from '@/schemas/cmsSchemas';
 
@@ -242,6 +243,8 @@ describe('ContentPageForm', () => {
 
   describe('Form Validation', () => {
     it('should validate required title field', async () => {
+      const user = userEvent.setup();
+      
       render(
         <ContentPageForm
           title="Add Content Page"
@@ -251,8 +254,11 @@ describe('ContentPageForm', () => {
         />
       );
 
-      const submitButton = screen.getByRole('button', { name: /create/i });
-      fireEvent.click(submitButton);
+      // Submit the form (this will trigger validation)
+      const form = screen.getByRole('button', { name: /create/i }).closest('form');
+      if (form) {
+        fireEvent.submit(form);
+      }
 
       await waitFor(() => {
         expect(screen.getByText('Title is required')).toBeInTheDocument();
@@ -262,6 +268,8 @@ describe('ContentPageForm', () => {
     });
 
     it('should validate required slug field', async () => {
+      const user = userEvent.setup();
+      
       render(
         <ContentPageForm
           title="Add Content Page"
@@ -274,11 +282,15 @@ describe('ContentPageForm', () => {
       const titleInput = screen.getByLabelText(/title/i);
       const slugInput = screen.getByLabelText(/slug/i);
 
-      fireEvent.change(titleInput, { target: { value: 'Test Title' } });
-      fireEvent.change(slugInput, { target: { value: '' } });
+      await user.clear(titleInput);
+      await user.type(titleInput, 'Test Title');
+      await user.clear(slugInput);
 
-      const submitButton = screen.getByRole('button', { name: /create/i });
-      fireEvent.click(submitButton);
+      // Submit the form
+      const form = screen.getByRole('button', { name: /create/i }).closest('form');
+      if (form) {
+        fireEvent.submit(form);
+      }
 
       await waitFor(() => {
         expect(screen.getByText('Slug is required')).toBeInTheDocument();
@@ -317,6 +329,8 @@ describe('ContentPageForm', () => {
     });
 
     it('should clear field errors when user starts typing', async () => {
+      const user = userEvent.setup();
+      
       render(
         <ContentPageForm
           title="Add Content Page"
@@ -327,8 +341,10 @@ describe('ContentPageForm', () => {
       );
 
       // Trigger validation error
-      const submitButton = screen.getByRole('button', { name: /create/i });
-      fireEvent.click(submitButton);
+      const form = screen.getByRole('button', { name: /create/i }).closest('form');
+      if (form) {
+        fireEvent.submit(form);
+      }
 
       await waitFor(() => {
         expect(screen.getByText('Title is required')).toBeInTheDocument();
@@ -336,7 +352,7 @@ describe('ContentPageForm', () => {
 
       // Start typing in title field
       const titleInput = screen.getByLabelText(/title/i);
-      fireEvent.change(titleInput, { target: { value: 'Test' } });
+      await user.type(titleInput, 'Test');
 
       // Error should be cleared
       await waitFor(() => {
@@ -709,16 +725,21 @@ describe('ContentPageForm', () => {
         />
       );
 
-      const submitButton = screen.getByRole('button', { name: /create/i });
-      fireEvent.click(submitButton);
+      // Submit the form to trigger validation
+      const form = screen.getByRole('button', { name: /create/i }).closest('form');
+      if (form) {
+        fireEvent.submit(form);
+      }
 
       await waitFor(() => {
-        const titleInput = screen.getByLabelText(/title/i);
-        expect(titleInput).toHaveAttribute('aria-invalid', 'true');
-        
         const errorMessage = screen.getByText('Title is required');
+        expect(errorMessage).toBeInTheDocument();
         expect(errorMessage).toHaveAttribute('role', 'alert');
       });
+      
+      // Check aria-invalid is set
+      const titleInput = screen.getByLabelText(/title/i);
+      expect(titleInput).toHaveAttribute('aria-invalid', 'true');
     });
 
     it('should have proper help text for slug field', () => {

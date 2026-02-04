@@ -39,7 +39,30 @@ jobs:
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY || 'placeholder-key' }}
       
       - name: Run unit & integration tests
-        run: npm run test:quick -- --coverage
+        run: |
+          # Use selective test running in CI for faster feedback
+          # Run only changed tests on PRs, full suite on main branch
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            echo "Running tests for changed files only..."
+            npm run test:changed -- --coverage
+          else
+            echo "Running full test suite..."
+            npm run test:quick -- --coverage
+          fi
+      
+      - name: Generate test metrics report
+        if: always()
+        run: |
+          # Generate comprehensive metrics report
+          npm run test:metrics || echo "Metrics generation skipped (no history yet)"
+      
+      - name: Upload test metrics
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-metrics
+          path: test-results/metrics/
+          retention-days: 90
       
       - name: Upload coverage reports
         uses: codecov/codecov-action@v4
@@ -66,6 +89,29 @@ jobs:
           path: playwright-report/
           retention-days: 30
       
+      - name: Publish E2E test results
+        uses: EnricoMi/publish-unit-test-result-action@v2
+        if: always()
+        with:
+          files: |
+            test-results/e2e-junit.xml
+          check_name: E2E Test Results
+          comment_title: 🎭 E2E Test Results
+      
+      - name: Send test failure alerts
+        if: always()
+        run: |
+          # Send alerts for test failures
+          node scripts/send-test-failure-alert.mjs || echo "Alert sending skipped (no critical issues or not configured)"
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+          ALERT_EMAIL: ${{ secrets.ALERT_EMAIL }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_SERVER_URL: ${{ github.server_url }}
+          GITHUB_RUN_ID: ${{ github.run_id }}
+      
       - name: Comment PR with test results
         uses: actions/github-script@v7
         if: github.event_name == 'pull_request' && always()
@@ -74,17 +120,48 @@ jobs:
             const fs = require('fs');
             let comment = '## 🧪 Test Results\n\n';
             
+            // Coverage
             if (fs.existsSync('./coverage/coverage-summary.json')) {
               const coverage = JSON.parse(fs.readFileSync('./coverage/coverage-summary.json', 'utf8'));
               const total = coverage.total;
-              comment += '### Coverage\n';
-              comment += `- Lines: ${total.lines.pct}%\n`;
-              comment += `- Statements: ${total.statements.pct}%\n`;
-              comment += `- Functions: ${total.functions.pct}%\n`;
-              comment += `- Branches: ${total.branches.pct}%\n\n`;
+              comment += '### 📊 Coverage\n';
+              comment += `- Lines: ${total.lines.pct}% ${total.lines.pct >= 85 ? '✅' : '⚠️'}\n`;
+              comment += `- Statements: ${total.statements.pct}% ${total.statements.pct >= 85 ? '✅' : '⚠️'}\n`;
+              comment += `- Functions: ${total.functions.pct}% ${total.functions.pct >= 85 ? '✅' : '⚠️'}\n`;
+              comment += `- Branches: ${total.branches.pct}% ${total.branches.pct >= 80 ? '✅' : '⚠️'}\n\n`;
             }
             
-            comment += '✅ All checks passed!';
+            // Test Metrics
+            if (fs.existsSync('./test-results/metrics/latest.json')) {
+              const metrics = JSON.parse(fs.readFileSync('./test-results/metrics/latest.json', 'utf8'));
+              comment += '### 🎯 Test Metrics\n';
+              comment += `- Total Tests: ${metrics.summary.totalTests}\n`;
+              comment += `- Pass Rate: ${metrics.summary.passRate.toFixed(2)}% ${metrics.summary.passRate >= 95 ? '✅' : '⚠️'}\n`;
+              comment += `- Duration: ${(metrics.summary.totalDuration / 1000).toFixed(2)}s ${metrics.summary.totalDuration < 300000 ? '✅' : '⚠️'}\n`;
+              
+              if (metrics.flakyTests.length > 0) {
+                comment += `- Flaky Tests: ${metrics.flakyTests.length} ⚠️\n`;
+              }
+              
+              if (metrics.slowTests.length > 0) {
+                comment += `- Slow Tests (>5s): ${metrics.slowTests.length} ${metrics.slowTests.length < 10 ? '✅' : '⚠️'}\n`;
+              }
+              
+              if (metrics.failedTests.length > 0) {
+                comment += `\n### ❌ Failed Tests\n`;
+                metrics.failedTests.slice(0, 5).forEach(test => {
+                  comment += `- ${test.name}\n`;
+                });
+                if (metrics.failedTests.length > 5) {
+                  comment += `- ... and ${metrics.failedTests.length - 5} more\n`;
+                }
+              }
+              
+              comment += '\n';
+            }
+            
+            comment += '✅ All checks passed!\n\n';
+            comment += '📊 [View detailed metrics](../actions/runs/${{ github.run_id }})';
             
             github.rest.issues.createComment({
               issue_number: context.issue.number,

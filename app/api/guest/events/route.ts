@@ -1,129 +1,109 @@
-import { getAuthenticatedUser } from '@/lib/apiAuth';
+import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
+import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
+import * as eventService from '@/services/eventService';
+import * as rsvpService from '@/services/rsvpService';
 
 /**
  * GET /api/guest/events
  * 
- * Retrieves upcoming events and activities for the authenticated guest.
- * Returns combined list of events and activities with RSVP status.
+ * Lists all events the authenticated guest is invited to with RSVP status.
  * 
- * Requirements: 13.1, 13.5
+ * Query Parameters:
+ * - from: ISO date string (optional) - Filter events from this date
+ * - to: ISO date string (optional) - Filter events to this date
+ * 
+ * Requirements: 9.1, 9.2, 9.5, 9.6
  */
 export async function GET(request: Request) {
   try {
-    const auth = await getAuthenticatedUser();
+    // 1. AUTHENTICATION
+    const supabase = createRouteHandlerClient({ cookies });
+    const { data: { session }, error: authError } = await supabase.auth.getSession();
     
-    if (!auth) {
+    if (authError || !session) {
       return NextResponse.json(
         { success: false, error: { code: 'UNAUTHORIZED', message: 'Authentication required' } },
         { status: 401 }
       );
     }
-
-    const { user, supabase } = auth;
     
-    // Get guest information
+    // Get guest ID from session
     const { data: guest, error: guestError } = await supabase
       .from('guests')
-      .select('id, guest_type')
-      .eq('email', user.email)
+      .select('id, group_id')
+      .eq('email', session.user.email)
       .single();
     
     if (guestError || !guest) {
       return NextResponse.json(
-        { success: false, error: { code: 'GUEST_NOT_FOUND', message: 'Guest not found' } },
+        { success: false, error: { code: 'NOT_FOUND', message: 'Guest not found' } },
         { status: 404 }
       );
     }
     
-    // Fetch published events visible to this guest type
-    const { data: events, error: eventsError } = await supabase
-      .from('events')
-      .select('id, name, event_type, start_date, end_date, location_id, rsvp_required')
-      .eq('status', 'published')
-      .or(`visibility.cs.{${guest.guest_type}},visibility.eq.{}`)
-      .gte('start_date', new Date().toISOString())
-      .order('start_date', { ascending: true });
+    // 2. VALIDATION (query parameters)
+    const { searchParams } = new URL(request.url);
+    const from = searchParams.get('from');
+    const to = searchParams.get('to');
     
-    if (eventsError) {
+    // Validate date formats if provided
+    if (from && isNaN(Date.parse(from))) {
       return NextResponse.json(
-        { success: false, error: { code: 'DATABASE_ERROR', message: eventsError.message } },
-        { status: 500 }
+        { success: false, error: { code: 'VALIDATION_ERROR', message: 'Invalid from date format' } },
+        { status: 400 }
       );
     }
     
-    // Fetch published activities visible to this guest type
-    const { data: activities, error: activitiesError } = await supabase
-      .from('activities')
-      .select('id, name, activity_type, start_time, end_time, location_id, event_id')
-      .eq('status', 'published')
-      .or(`visibility.cs.{${guest.guest_type}},visibility.eq.{}`)
-      .gte('start_time', new Date().toISOString())
-      .order('start_time', { ascending: true });
-    
-    if (activitiesError) {
+    if (to && isNaN(Date.parse(to))) {
       return NextResponse.json(
-        { success: false, error: { code: 'DATABASE_ERROR', message: activitiesError.message } },
-        { status: 500 }
+        { success: false, error: { code: 'VALIDATION_ERROR', message: 'Invalid to date format' } },
+        { status: 400 }
       );
     }
     
-    // Fetch RSVPs for this guest
-    const { data: rsvps, error: rsvpsError } = await supabase
-      .from('rsvps')
-      .select('event_id, activity_id, status')
-      .eq('guest_id', guest.id);
-    
-    if (rsvpsError) {
-      return NextResponse.json(
-        { success: false, error: { code: 'DATABASE_ERROR', message: rsvpsError.message } },
-        { status: 500 }
-      );
-    }
-    
-    // Create RSVP lookup map
-    const rsvpMap = new Map<string, string>();
-    rsvps?.forEach(rsvp => {
-      if (rsvp.event_id) {
-        rsvpMap.set(`event-${rsvp.event_id}`, rsvp.status);
-      }
-      if (rsvp.activity_id) {
-        rsvpMap.set(`activity-${rsvp.activity_id}`, rsvp.status);
-      }
+    // 3. SERVICE CALL - Get published events
+    const eventsResult = await eventService.list({
+      status: 'published',
+      startDateFrom: from || undefined,
+      startDateTo: to || undefined,
     });
     
-    // Combine and format events and activities
-    const combinedEvents = [
-      ...(events || []).map(event => ({
-        id: event.id,
-        name: event.name,
-        type: 'event' as const,
-        date: event.start_date,
-        time: event.start_date,
-        location: event.location_id,
-        rsvpStatus: rsvpMap.get(`event-${event.id}`) || 'pending',
-      })),
-      ...(activities || []).map(activity => ({
-        id: activity.id,
-        name: activity.name,
-        type: 'activity' as const,
-        date: activity.start_time,
-        time: activity.start_time,
-        location: activity.location_id,
-        rsvpStatus: rsvpMap.get(`activity-${activity.id}`) || 'pending',
-      })),
-    ].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+    if (!eventsResult.success) {
+      return NextResponse.json(eventsResult, { status: 500 });
+    }
     
-    return NextResponse.json({ success: true, data: combinedEvents });
+    // Get RSVP status for each event
+    const eventsWithRsvp = await Promise.all(
+      eventsResult.data.events.map(async (event) => {
+        const rsvpResult = await rsvpService.list({ 
+          guest_id: guest.id, 
+          event_id: event.id,
+          page: 1,
+          page_size: 1
+        });
+        
+        const rsvpStatus = rsvpResult.success && rsvpResult.data.rsvps.length > 0
+          ? rsvpResult.data.rsvps[0].status
+          : 'pending';
+        
+        return {
+          ...event,
+          rsvpStatus,
+        };
+      })
+    );
+    
+    // 4. RESPONSE
+    return NextResponse.json({
+      success: true,
+      data: eventsWithRsvp,
+    });
+    
   } catch (error) {
+    console.error('API Error:', { path: request.url, error });
     return NextResponse.json(
-      {
-        success: false,
-        error: {
-          code: 'UNKNOWN_ERROR',
-          message: error instanceof Error ? error.message : 'Unknown error',
-        },
-      },
+      { success: false, error: { code: 'INTERNAL_ERROR', message: 'An unexpected error occurred' } },
       { status: 500 }
     );
   }

@@ -34,6 +34,46 @@ let healthStatus: HealthCheckResult = {
 };
 
 /**
+ * Validates B2 environment variables are present and properly configured.
+ * 
+ * @returns Result indicating if configuration is valid
+ */
+export function validateB2Config(): Result<B2Config> {
+  const requiredVars = {
+    endpoint: process.env.B2_ENDPOINT,
+    region: process.env.B2_REGION,
+    accessKeyId: process.env.B2_ACCESS_KEY_ID,
+    secretAccessKey: process.env.B2_SECRET_ACCESS_KEY,
+    bucket: process.env.B2_BUCKET_NAME,
+    cdnDomain: process.env.B2_CDN_DOMAIN || process.env.CLOUDFLARE_CDN_URL,
+  };
+
+  const missing: string[] = [];
+  if (!requiredVars.endpoint) missing.push('B2_ENDPOINT');
+  if (!requiredVars.region) missing.push('B2_REGION');
+  if (!requiredVars.accessKeyId) missing.push('B2_ACCESS_KEY_ID');
+  if (!requiredVars.secretAccessKey) missing.push('B2_SECRET_ACCESS_KEY');
+  if (!requiredVars.bucket) missing.push('B2_BUCKET_NAME');
+  if (!requiredVars.cdnDomain) missing.push('B2_CDN_DOMAIN or CLOUDFLARE_CDN_URL');
+
+  if (missing.length > 0) {
+    return {
+      success: false,
+      error: {
+        code: 'CONFIGURATION_ERROR',
+        message: `Missing required B2 environment variables: ${missing.join(', ')}`,
+        details: { missing },
+      },
+    };
+  }
+
+  return {
+    success: true,
+    data: requiredVars as B2Config,
+  };
+}
+
+/**
  * Initializes the B2 S3-compatible client with configuration.
  * 
  * @param config - B2 configuration including endpoint, credentials, and CDN domain
@@ -42,12 +82,18 @@ let healthStatus: HealthCheckResult = {
 export function initializeB2Client(config: B2Config): Result<void> {
   try {
     if (!config.endpoint || !config.accessKeyId || !config.secretAccessKey || !config.bucket) {
+      const missing: string[] = [];
+      if (!config.endpoint) missing.push('endpoint');
+      if (!config.accessKeyId) missing.push('accessKeyId');
+      if (!config.secretAccessKey) missing.push('secretAccessKey');
+      if (!config.bucket) missing.push('bucket');
+
       return {
         success: false,
         error: {
           code: 'CONFIGURATION_ERROR',
-          message: 'Missing required B2 configuration',
-          details: { config },
+          message: `Missing required B2 configuration: ${missing.join(', ')}`,
+          details: { missing },
         },
       };
     }
@@ -62,8 +108,16 @@ export function initializeB2Client(config: B2Config): Result<void> {
       forcePathStyle: true, // Required for B2 S3-compatible API
     });
 
+    console.log('✅ B2 client initialized successfully', {
+      endpoint: config.endpoint,
+      region: config.region,
+      bucket: config.bucket,
+      cdnDomain: config.cdnDomain,
+    });
+
     return { success: true, data: undefined };
   } catch (error) {
+    console.error('❌ Failed to initialize B2 client:', error);
     return {
       success: false,
       error: {
@@ -106,11 +160,18 @@ export async function uploadToB2(
   return await circuitBreaker.execute(async () => {
     try {
       if (!s3Client) {
+        console.error('❌ B2 upload failed: Client not initialized');
+        console.error('   Call initializeB2Client() with valid configuration first');
+        console.error('   Required env vars: B2_ENDPOINT, B2_REGION, B2_ACCESS_KEY_ID, B2_SECRET_ACCESS_KEY, B2_BUCKET_NAME, B2_CDN_DOMAIN');
+        
         return {
           success: false,
           error: {
             code: 'CLIENT_NOT_INITIALIZED',
             message: 'B2 client not initialized. Call initializeB2Client first.',
+            details: {
+              hint: 'Check that all required B2 environment variables are set',
+            },
           },
         };
       }
@@ -133,6 +194,8 @@ export async function uploadToB2(
       await s3Client.send(command);
 
       // Generate Cloudflare CDN URL
+      // When using virtual-host style CNAME (bucket.s3.region.backblazeb2.com),
+      // the URL format is just: https://cdn.domain.com/{key}
       const cdnDomain = process.env.B2_CDN_DOMAIN || '';
       const url = `https://${cdnDomain}/${key}`;
 
@@ -212,6 +275,7 @@ export function getB2HealthStatus(): HealthCheckResult {
 
 /**
  * Generates a Cloudflare CDN URL for a given B2 storage key.
+ * Assumes Cloudflare CNAME points to virtual-host style B2 endpoint.
  * 
  * @param key - Storage key (path) of the file
  * @returns CDN URL for the file
@@ -219,9 +283,14 @@ export function getB2HealthStatus(): HealthCheckResult {
  * @example
  * const url = generateCDNUrl('photos/1234567890-photo.jpg');
  * // Returns: https://cdn.example.com/photos/1234567890-photo.jpg
+ * 
+ * @note Requires Cloudflare CNAME to point to:
+ *       bucket-name.s3.region.backblazeb2.com (virtual-host style)
  */
 export function generateCDNUrl(key: string): string {
   const cdnDomain = process.env.B2_CDN_DOMAIN || '';
+  // Virtual-host style: CNAME points to bucket.s3.region.backblazeb2.com
+  // So URL is just: https://cdn.domain.com/{key}
   return `https://${cdnDomain}/${key}`;
 }
 

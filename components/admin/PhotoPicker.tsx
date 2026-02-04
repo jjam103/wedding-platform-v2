@@ -40,6 +40,8 @@ export function PhotoPicker({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showPicker, setShowPicker] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
 
   // Fetch approved photos
   useEffect(() => {
@@ -47,6 +49,36 @@ export function PhotoPicker({
       fetchPhotos();
     }
   }, [showPicker, pageType, pageId]);
+
+  // Fetch selected photos on mount to display them
+  useEffect(() => {
+    if (selectedPhotoIds.length > 0) {
+      fetchSelectedPhotos();
+    }
+  }, [selectedPhotoIds]);
+
+  const fetchSelectedPhotos = useCallback(async () => {
+    try {
+      const photoPromises = selectedPhotoIds.map(async (id) => {
+        const response = await fetch(`/api/admin/photos/${id}`);
+        if (!response.ok) return null;
+        const result = await response.json();
+        return result.success ? result.data : null;
+      });
+
+      const fetchedPhotos = await Promise.all(photoPromises);
+      const validPhotos = fetchedPhotos.filter((p): p is Photo => p !== null);
+      
+      // Merge with existing photos, avoiding duplicates
+      setPhotos(prevPhotos => {
+        const existingIds = new Set(prevPhotos.map(p => p.id));
+        const newPhotos = validPhotos.filter(p => !existingIds.has(p.id));
+        return [...prevPhotos, ...newPhotos];
+      });
+    } catch (err) {
+      console.error('Failed to fetch selected photos:', err);
+    }
+  }, [selectedPhotoIds]);
 
   const fetchPhotos = useCallback(async () => {
     setLoading(true);
@@ -97,6 +129,59 @@ export function PhotoPicker({
       onSelectionChange(selectedPhotoIds.filter(id => id !== photoId));
     },
     [selectedPhotoIds, onSelectionChange]
+  );
+
+  const handleFileUpload = useCallback(
+    async (event: React.ChangeEvent<HTMLInputElement>) => {
+      const files = event.target.files;
+      if (!files || files.length === 0) return;
+
+      setUploading(true);
+      setUploadError(null);
+
+      try {
+        const uploadedPhotoIds: string[] = [];
+
+        for (const file of Array.from(files)) {
+          const formData = new FormData();
+          formData.append('file', file);
+          
+          const metadata = {
+            page_type: pageType || 'memory',
+            page_id: pageId || 'general',
+            caption: file.name.replace(/\.[^/.]+$/, ''), // Remove extension
+            alt_text: file.name.replace(/\.[^/.]+$/, ''),
+          };
+          formData.append('metadata', JSON.stringify(metadata));
+
+          const response = await fetch('/api/admin/photos', {
+            method: 'POST',
+            body: formData,
+          });
+
+          const result = await response.json();
+
+          if (result.success) {
+            uploadedPhotoIds.push(result.data.id);
+          } else {
+            throw new Error(result.error?.message || 'Upload failed');
+          }
+        }
+
+        // Add uploaded photos to selection
+        onSelectionChange([...selectedPhotoIds, ...uploadedPhotoIds]);
+        
+        // Refresh photo list
+        fetchPhotos();
+      } catch (err) {
+        setUploadError(err instanceof Error ? err.message : 'Upload failed');
+      } finally {
+        setUploading(false);
+        // Reset file input
+        event.target.value = '';
+      }
+    },
+    [pageType, pageId, selectedPhotoIds, onSelectionChange, fetchPhotos]
   );
 
   const handleClearAll = useCallback(() => {
@@ -190,9 +275,41 @@ export function PhotoPicker({
           >
             {/* Header */}
             <div className="flex items-center justify-between p-6 border-b border-gray-200">
-              <h3 className="text-lg font-semibold text-gray-900">
-                Select Photos
-              </h3>
+              <div className="flex items-center gap-4">
+                <h3 className="text-lg font-semibold text-gray-900">
+                  Select Photos
+                </h3>
+                
+                {/* Upload button */}
+                <label className="relative cursor-pointer">
+                  <input
+                    type="file"
+                    multiple
+                    accept="image/*"
+                    onChange={handleFileUpload}
+                    disabled={uploading || disabled}
+                    className="sr-only"
+                    aria-label="Upload photos"
+                  />
+                  <span className="inline-flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-blue-600 bg-blue-50 border border-blue-300 rounded-md hover:bg-blue-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed">
+                    <svg
+                      className="w-4 h-4"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
+                      />
+                    </svg>
+                    {uploading ? 'Uploading...' : 'Upload Photos'}
+                  </span>
+                </label>
+              </div>
+              
               <button
                 onClick={() => setShowPicker(false)}
                 className="text-gray-600 hover:text-gray-900"
@@ -216,6 +333,42 @@ export function PhotoPicker({
 
             {/* Content */}
             <div className="flex-1 overflow-auto p-6">
+              {/* Upload error message */}
+              {uploadError && (
+                <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-md">
+                  <p className="text-sm text-red-800">{uploadError}</p>
+                </div>
+              )}
+              
+              {/* Uploading indicator */}
+              {uploading && (
+                <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-md">
+                  <div className="flex items-center gap-3">
+                    <svg
+                      className="animate-spin h-5 w-5 text-blue-600"
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                    >
+                      <circle
+                        className="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                      />
+                      <path
+                        className="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                      />
+                    </svg>
+                    <p className="text-sm text-blue-800">Uploading photos...</p>
+                  </div>
+                </div>
+              )}
+              
               {loading ? (
                 <div className="flex items-center justify-center py-12">
                   <div className="text-gray-600">Loading photos...</div>

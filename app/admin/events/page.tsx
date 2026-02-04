@@ -5,6 +5,7 @@ export const dynamic = 'force-dynamic';
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { DataTableWithSuspense as DataTable, type ColumnDef } from '@/components/ui/DataTableWithSuspense';
 import { CollapsibleForm } from '@/components/admin/CollapsibleForm';
+import { InlineSectionEditor } from '@/components/admin/InlineSectionEditor';
 import { LocationSelector } from '@/components/admin/LocationSelector';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { Button } from '@/components/ui/Button';
@@ -51,6 +52,8 @@ export default function EventsPage() {
   const [eventToDelete, setEventToDelete] = useState<Event | null>(null);
   const [selectedLocationId, setSelectedLocationId] = useState<string>('');
   const [conflictError, setConflictError] = useState<string | null>(null);
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [isBulkDeleteDialogOpen, setIsBulkDeleteDialogOpen] = useState(false);
   
   // Ref for scrolling to newly created event
   const newEventRef = useRef<string | null>(null);
@@ -139,15 +142,6 @@ export default function EventsPage() {
     setEventToDelete(event);
     setIsDeleteDialogOpen(true);
   }, []);
-
-  /**
-   * Handle manage sections button click
-   * TODO: Implement sections management page
-   */
-  // const handleManageSections = useCallback((event: Event) => {
-  //   // Navigate to section editor for this event
-  //   router.push(`/admin/events/${event.id}/sections`);
-  // }, [router]);
 
   /**
    * Handle form submission (create or update)
@@ -268,6 +262,58 @@ export default function EventsPage() {
   }, [eventToDelete, addToast, fetchEvents]);
 
   /**
+   * Handle bulk delete
+   */
+  const handleBulkDelete = useCallback(async (ids: string[]) => {
+    if (!ids || ids.length === 0) return;
+
+    try {
+      const response = await fetch('/api/admin/events/bulk-delete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ids }),
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        addToast({
+          type: 'success',
+          message: result.data.message || `Successfully deleted ${ids.length} event(s)`,
+        });
+        
+        // Clear selection
+        setSelectedIds([]);
+        
+        // Refresh event list
+        await fetchEvents();
+        
+        // Close dialog
+        setIsBulkDeleteDialogOpen(false);
+      } else {
+        addToast({
+          type: 'error',
+          message: result.error?.message || 'Failed to delete events',
+        });
+      }
+    } catch (error) {
+      addToast({
+        type: 'error',
+        message: error instanceof Error ? error.message : 'Failed to delete events',
+      });
+    }
+  }, [addToast, fetchEvents]);
+
+  /**
+   * Handle bulk delete button click
+   */
+  const handleBulkDeleteClick = useCallback(() => {
+    if (selectedIds.length > 0) {
+      setIsBulkDeleteDialogOpen(true);
+    }
+  }, [selectedIds]);
+
+  /**
    * Format date for display
    */
   const formatDate = (dateString: string) => {
@@ -364,32 +410,25 @@ export default function EventsPage() {
       key: 'actions',
       label: 'Actions',
       sortable: false,
-      render: (_, row) => (
-        <div className="flex gap-2">
-          <Button
-            variant="secondary"
-            size="sm"
-            onClick={(e) => {
-              e.stopPropagation();
-              window.location.href = `/guest/events/${(row as Event).id}`;
-            }}
-          >
-            View
-          </Button>
-          {/* TODO: Implement sections management page
-          <Button
-            variant="secondary"
-            size="sm"
-            onClick={(e) => {
-              e.stopPropagation();
-              handleManageSections(row as Event);
-            }}
-          >
-            Manage Sections
-          </Button>
-          */}
-        </div>
-      ),
+      render: (_, row) => {
+        const event = row as Event;
+        const slug = event.slug || event.id;
+        return (
+          <div className="flex gap-2">
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={(e) => {
+                e.stopPropagation();
+                window.open(`/event/${slug}`, '_blank');
+              }}
+              title="View event detail page"
+            >
+              View
+            </Button>
+          </div>
+        );
+      },
     },
   ];
 
@@ -538,6 +577,16 @@ export default function EventsPage() {
         )}
       </CollapsibleForm>
 
+      {/* Inline Section Editor - Shows when editing an existing event */}
+      {isFormOpen && selectedEvent && (
+        <InlineSectionEditor
+          pageType="event"
+          pageId={selectedEvent.id}
+          entityName={selectedEvent.name}
+          defaultExpanded={false}
+        />
+      )}
+
       {/* Data Table */}
       <DataTable
         data={events}
@@ -549,6 +598,10 @@ export default function EventsPage() {
         currentPage={1}
         pageSize={25}
         idField="id"
+        selectable={true}
+        onSelectionChange={setSelectedIds}
+        onBulkDelete={handleBulkDelete}
+        entityType="events"
       />
 
       {/* Delete Confirmation Dialog */}
@@ -562,6 +615,20 @@ export default function EventsPage() {
         title="Delete Event"
         message={`Are you sure you want to delete "${eventToDelete?.name}"? This action cannot be undone.`}
         confirmLabel="Delete"
+        cancelLabel="Cancel"
+        variant="danger"
+      />
+
+      {/* Bulk Delete Confirmation Dialog */}
+      <ConfirmDialog
+        isOpen={isBulkDeleteDialogOpen}
+        onClose={() => {
+          setIsBulkDeleteDialogOpen(false);
+        }}
+        onConfirm={() => handleBulkDelete(selectedIds)}
+        title="Delete Multiple Events"
+        message={`Are you sure you want to delete ${selectedIds.length} event${selectedIds.length > 1 ? 's' : ''}? This action cannot be undone.`}
+        confirmLabel="Delete All"
         cancelLabel="Cancel"
         variant="danger"
       />

@@ -32,7 +32,7 @@ export async function GET(request: Request) {
     }
     
     // 2. Service call
-    const result = await groupService.list(supabase);
+    const result = await groupService.list();
     
     // 3. Response
     return NextResponse.json(result, { status: result.success ? 200 : getStatusCode(result.error.code) });
@@ -75,7 +75,7 @@ export async function POST(request: Request) {
     }
     
     // 3. Service call
-    const result = await groupService.create(supabase, validation.data);
+    const result = await groupService.create(validation.data);
     
     // 4. Response
     return NextResponse.json(result, { status: result.success ? 201 : getStatusCode(result.error.code) });

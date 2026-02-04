@@ -1,6 +1,6 @@
 export const dynamic = 'force-dynamic';
 
-import { createServerComponentClient } from '@supabase/auth-helpers-nextjs';
+import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { RSVPManager } from '@/components/guest/RSVPManager';
@@ -17,7 +17,23 @@ import { RSVPManager } from '@/components/guest/RSVPManager';
  * Requirements: 13.6, 6.1-6.8
  */
 export default async function RSVPPage() {
-  const supabase = createServerComponentClient({ cookies });
+  const cookieStore = await cookies();
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        getAll() {
+          return cookieStore.getAll();
+        },
+        setAll(cookiesToSet) {
+          cookiesToSet.forEach(({ name, value, options }) =>
+            cookieStore.set(name, value, options)
+          );
+        },
+      },
+    }
+  );
   
   // Check authentication
   const { data: { session }, error: authError } = await supabase.auth.getSession();

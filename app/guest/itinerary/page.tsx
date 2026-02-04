@@ -1,6 +1,6 @@
 export const dynamic = 'force-dynamic';
 
-import { createServerComponentClient } from '@supabase/auth-helpers-nextjs';
+import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { ItineraryViewer } from '@/components/guest/ItineraryViewer';
@@ -8,16 +8,35 @@ import { ItineraryViewer } from '@/components/guest/ItineraryViewer';
 /**
  * Itinerary Page
  * 
- * Displays personalized itinerary for the guest:
- * - Events and activities schedule
+ * Displays personalized itinerary for the guest with enhanced features:
+ * - Events and activities schedule in chronological order
+ * - Multiple view modes (day-by-day, calendar, list)
+ * - Date range filtering
+ * - Capacity warnings and deadline alerts
+ * - PDF export capability
  * - Accommodation details
  * - Transportation information
- * - PDF export capability
  * 
- * Requirements: 13.10, 18.3, 18.4
+ * Requirements: 26.1, 26.2, 26.4, 26.5, 26.6, 13.10, 18.3, 18.4
  */
 export default async function ItineraryPage() {
-  const supabase = createServerComponentClient({ cookies });
+  const cookieStore = await cookies();
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        getAll() {
+          return cookieStore.getAll();
+        },
+        setAll(cookiesToSet) {
+          cookiesToSet.forEach(({ name, value, options }) =>
+            cookieStore.set(name, value, options)
+          );
+        },
+      },
+    }
+  );
   
   // Check authentication
   const { data: { session }, error: authError } = await supabase.auth.getSession();

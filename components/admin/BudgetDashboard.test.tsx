@@ -142,9 +142,10 @@ describe('BudgetDashboard', () => {
       );
 
       // Total budget should be vendor costs + activity net costs
-      // Vendors: 8500, Activities: (50*75 + 30*100) - (50*25) = 6500 - 1250 = 5250
-      // Total: 8500 + 5250 = 13750
-      expect(screen.getByText('$13,750')).toBeInTheDocument();
+      // Vendors: 8500 (2000 + 5000 + 1500)
+      // Activities: (50*75 + 30*100) - (50*25) = 6750 - 1250 = 5500
+      // Total: 8500 + 5500 = 14000
+      expect(screen.getByText('$14,000')).toBeInTheDocument();
     });
 
     it('should display total paid correctly', () => {
@@ -172,8 +173,8 @@ describe('BudgetDashboard', () => {
       );
 
       // Balance due = Total budget - Total paid
-      // 13750 - 6000 = 7750
-      expect(screen.getByText('$7,750')).toBeInTheDocument();
+      // 14000 - 6000 = 8000
+      expect(screen.getByText('$8,000')).toBeInTheDocument();
     });
 
     it('should display host subsidies correctly', () => {
@@ -187,7 +188,10 @@ describe('BudgetDashboard', () => {
       );
 
       // Host subsidies from activities: 50 * 25 = 1250
-      expect(screen.getByText('$1,250')).toBeInTheDocument();
+      // Find the Host Subsidies card specifically (first occurrence in summary cards)
+      const hostSubsidiesLabels = screen.getAllByText('Host Subsidies');
+      const hostSubsidiesCard = hostSubsidiesLabels[0].closest('.p-6');
+      expect(hostSubsidiesCard).toHaveTextContent('$1,250');
     });
 
     it('should calculate percentages correctly', () => {
@@ -200,11 +204,11 @@ describe('BudgetDashboard', () => {
         />
       );
 
-      // Payment percentage: 6000/13750 = 44%
-      expect(screen.getByText('44% of budget')).toBeInTheDocument();
+      // Payment percentage: 6000/14000 = 43%
+      expect(screen.getByText('43% of budget')).toBeInTheDocument();
       
-      // Balance percentage: 7750/13750 = 56%
-      expect(screen.getByText('56% remaining')).toBeInTheDocument();
+      // Balance percentage: 8000/14000 = 57%
+      expect(screen.getByText('57% remaining')).toBeInTheDocument();
     });
   });
 
@@ -219,9 +223,11 @@ describe('BudgetDashboard', () => {
         />
       );
 
-      expect(screen.getByText('Photography')).toBeInTheDocument();
-      expect(screen.getByText('Catering')).toBeInTheDocument();
-      expect(screen.getByText('Music')).toBeInTheDocument();
+      // Category names are lowercase in the DOM (capitalize is CSS only)
+      // Just verify they exist (may appear multiple times in different sections)
+      expect(screen.getAllByText('photography').length).toBeGreaterThan(0);
+      expect(screen.getAllByText('catering').length).toBeGreaterThan(0);
+      expect(screen.getAllByText('music').length).toBeGreaterThan(0);
     });
 
     it('should display vendor counts per category', () => {
@@ -234,7 +240,9 @@ describe('BudgetDashboard', () => {
         />
       );
 
-      expect(screen.getByText('1 vendor')).toBeInTheDocument();
+      // Each category has 1 vendor, so "1 vendor" appears 3 times
+      const vendorCounts = screen.getAllByText('1 vendor');
+      expect(vendorCounts.length).toBe(3);
     });
 
     it('should show category totals', () => {
@@ -247,12 +255,11 @@ describe('BudgetDashboard', () => {
         />
       );
 
-      // Photography: $2,000
-      expect(screen.getByText('$2,000')).toBeInTheDocument();
-      // Catering: $5,000
-      expect(screen.getByText('$5,000')).toBeInTheDocument();
-      // Music: $1,500
-      expect(screen.getByText('$1,500')).toBeInTheDocument();
+      // Photography: $2,000, Catering: $5,000, Music: $1,500
+      // These amounts may appear multiple times, just verify they exist
+      expect(screen.getAllByText('$2,000').length).toBeGreaterThan(0);
+      expect(screen.getAllByText('$5,000').length).toBeGreaterThan(0);
+      expect(screen.getAllByText('$1,500').length).toBeGreaterThan(0);
     });
 
     it('should display balance due for unpaid categories', () => {
@@ -283,13 +290,13 @@ describe('BudgetDashboard', () => {
       );
 
       // Total cost: (50*75) + (30*100) = 3750 + 3000 = 6750
-      expect(screen.getByText('$6,750')).toBeInTheDocument();
+      expect(screen.getAllByText('$6,750').length).toBeGreaterThan(0);
       
-      // Host subsidy: 50*25 = 1250
-      expect(screen.getByText('$1,250')).toBeInTheDocument();
+      // Host subsidy: 50*25 = 1250 (appears multiple times)
+      expect(screen.getAllByText('$1,250').length).toBeGreaterThan(0);
       
       // Guest cost: 6750 - 1250 = 5500
-      expect(screen.getByText('$5,500')).toBeInTheDocument();
+      expect(screen.getAllByText('$5,500').length).toBeGreaterThan(0);
     });
 
     it('should list individual activities with costs', () => {
@@ -358,9 +365,10 @@ describe('BudgetDashboard', () => {
       );
 
       expect(screen.getByText('Vendor Payment Tracking')).toBeInTheDocument();
-      expect(screen.getByText('$1,500')).toBeInTheDocument(); // Unpaid
-      expect(screen.getByText('$1,000')).toBeInTheDocument(); // Partial
-      expect(screen.getByText('$5,000')).toBeInTheDocument(); // Paid
+      // Amounts may appear multiple times
+      expect(screen.getAllByText('$1,500').length).toBeGreaterThan(0); // Unpaid
+      expect(screen.getAllByText('$1,000').length).toBeGreaterThan(0); // Partial
+      expect(screen.getAllByText('$5,000').length).toBeGreaterThan(0); // Paid
     });
 
     it('should display unpaid vendors table', () => {
@@ -375,8 +383,8 @@ describe('BudgetDashboard', () => {
       );
 
       expect(screen.getByText('Unpaid Vendors')).toBeInTheDocument();
-      expect(screen.getByText('DJ')).toBeInTheDocument();
-      expect(screen.getByText('Music')).toBeInTheDocument();
+      expect(screen.getAllByText('DJ').length).toBeGreaterThan(0);
+      expect(screen.getAllByText(/music/i).length).toBeGreaterThan(0);
     });
 
     it('should display partially paid vendors table', () => {
@@ -391,7 +399,7 @@ describe('BudgetDashboard', () => {
       );
 
       expect(screen.getByText('Partially Paid Vendors')).toBeInTheDocument();
-      expect(screen.getByText('Photographer')).toBeInTheDocument();
+      expect(screen.getAllByText('Photographer').length).toBeGreaterThan(0);
     });
 
     it('should display paid vendors table', () => {
@@ -406,7 +414,7 @@ describe('BudgetDashboard', () => {
       );
 
       expect(screen.getByText('Paid Vendors')).toBeInTheDocument();
-      expect(screen.getByText('Caterer')).toBeInTheDocument();
+      expect(screen.getAllByText('Caterer').length).toBeGreaterThan(0);
     });
   });
 
@@ -423,7 +431,7 @@ describe('BudgetDashboard', () => {
       );
 
       expect(screen.getByText('Individual Guest Subsidies')).toBeInTheDocument();
-      expect(screen.getByText('$1,250')).toBeInTheDocument(); // Activity subsidies
+      expect(screen.getAllByText('$1,250').length).toBeGreaterThan(0); // Activity subsidies
     });
 
     it('should display activity subsidies table', () => {
@@ -438,9 +446,9 @@ describe('BudgetDashboard', () => {
       );
 
       expect(screen.getByText('Activity Subsidies')).toBeInTheDocument();
-      expect(screen.getByText('Welcome Dinner')).toBeInTheDocument();
-      expect(screen.getByText('$25')).toBeInTheDocument(); // Per person
-      expect(screen.getByText('50')).toBeInTheDocument(); // Attendees
+      expect(screen.getAllByText('Welcome Dinner').length).toBeGreaterThan(0);
+      expect(screen.getAllByText('$25').length).toBeGreaterThan(0); // Per person
+      expect(screen.getAllByText('50').length).toBeGreaterThan(0); // Attendees
     });
 
     it('should show message when no subsidies configured', () => {

@@ -12,7 +12,7 @@ import {
   type BatchUploadDTO,
   type PhotoFilterDTO,
 } from '../schemas/photoSchemas';
-import { uploadToB2, isB2Healthy } from './b2Service';
+import { uploadToB2, isB2Healthy, initializeB2Client } from './b2Service';
 
 type Result<T> = 
   | { success: true; data: T } 
@@ -23,6 +23,38 @@ const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
+
+// Initialize B2 client if credentials are available
+if (
+  process.env.B2_ACCESS_KEY_ID &&
+  process.env.B2_SECRET_ACCESS_KEY &&
+  process.env.B2_BUCKET_NAME
+) {
+  // B2 uses S3-compatible API with region-specific endpoints
+  // Default to us-west-004 which is the most common B2 region
+  const region = process.env.B2_REGION || 'us-west-004';
+  const endpoint = process.env.B2_ENDPOINT || `https://s3.${region}.backblazeb2.com`;
+  
+  const b2Config = {
+    endpoint,
+    region,
+    accessKeyId: process.env.B2_ACCESS_KEY_ID,
+    secretAccessKey: process.env.B2_SECRET_ACCESS_KEY,
+    bucket: process.env.B2_BUCKET_NAME,
+    cdnDomain: process.env.B2_CDN_DOMAIN || process.env.CLOUDFLARE_CDN_URL?.replace(/^https?:\/\//, '') || '',
+  };
+  
+  const initResult = initializeB2Client(b2Config);
+  if (!initResult.success) {
+    console.warn('Failed to initialize B2 client:', initResult.error.message);
+    console.warn('Photo uploads will use Supabase Storage only');
+  } else {
+    console.log('✓ B2 client initialized successfully');
+  }
+} else {
+  console.warn('B2 credentials not configured - using Supabase Storage only');
+  console.warn('Required: B2_ACCESS_KEY_ID, B2_SECRET_ACCESS_KEY, B2_BUCKET_NAME');
+}
 
 interface Photo {
   id: string;
@@ -96,17 +128,22 @@ export async function uploadPhoto(
 
     // 3. Check B2 health and attempt upload
     const b2HealthResult = await isB2Healthy();
+    console.log('[PhotoService] B2 health check:', b2HealthResult);
     let photoUrl: string;
     let storageType: 'b2' | 'supabase';
 
     if (b2HealthResult.success && b2HealthResult.data) {
       // Try B2 upload
+      console.log('[PhotoService] Attempting B2 upload...');
       const b2Result = await uploadToB2(file, fileName, contentType);
+      console.log('[PhotoService] B2 upload result:', b2Result);
       if (b2Result.success) {
         photoUrl = b2Result.data.url;
         storageType = 'b2';
+        console.log('[PhotoService] Using B2 storage:', photoUrl);
       } else {
         // B2 failed, fallback to Supabase
+        console.log('[PhotoService] B2 failed, falling back to Supabase');
         const supabaseResult = await uploadToSupabaseStorage(file, fileName, contentType);
         if (!supabaseResult.success) {
           return supabaseResult;
@@ -116,6 +153,7 @@ export async function uploadPhoto(
       }
     } else {
       // B2 unhealthy, use Supabase directly
+      console.log('[PhotoService] B2 unhealthy, using Supabase directly');
       const supabaseResult = await uploadToSupabaseStorage(file, fileName, contentType);
       if (!supabaseResult.success) {
         return supabaseResult;

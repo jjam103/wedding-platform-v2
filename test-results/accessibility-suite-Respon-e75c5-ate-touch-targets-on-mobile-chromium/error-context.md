@@ -1,0 +1,116 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - link "Skip to main content" [ref=e2] [cursor=pointer]:
+    - /url: "#main-content"
+  - link "Skip to main content" [ref=e3] [cursor=pointer]:
+    - /url: "#main-content"
+  - generic [ref=e4]:
+    - navigation "Main navigation" [ref=e5]:
+      - generic [ref=e7]:
+        - generic [ref=e8]:
+          - generic [ref=e9]: 🌴
+          - generic [ref=e10]: Admin
+        - button "Open menu" [ref=e11]:
+          - generic [ref=e12]: ☰
+    - banner [ref=e13]:
+      - toolbar "User actions" [ref=e15]:
+        - button "Notifications (coming soon)" [ref=e16]: 🔔
+        - button "User menu" [ref=e18]:
+          - generic [ref=e19]: A
+          - generic [ref=e20]: ▼
+    - main [ref=e21]:
+      - generic [ref=e23]:
+        - generic [ref=e24]:
+          - generic [ref=e25]:
+            - heading "Guest Management" [level=1] [ref=e26]
+            - paragraph [ref=e27]: Manage your wedding guest list and groups
+          - generic [ref=e28]:
+            - button "Import guests from CSV" [ref=e30] [cursor=pointer]: Import CSV
+            - button "Export guests to CSV" [ref=e31] [cursor=pointer]: Export CSV
+        - button "Manage Groups 2 groups • Click to expand" [ref=e33]:
+          - generic [ref=e34]:
+            - heading "Manage Groups" [level=2] [ref=e35]
+            - paragraph [ref=e36]: 2 groups • Click to expand
+          - generic [ref=e37]: ▼
+        - button "Add New Guest Click to expand" [ref=e39]:
+          - generic [ref=e40]:
+            - heading "Add New Guest" [level=2] [ref=e41]
+            - paragraph [ref=e42]: Click to expand
+          - generic [ref=e43]: ▼
+        - generic [ref=e44]:
+          - heading "Filters" [level=2] [ref=e45]
+          - generic [ref=e46]:
+            - generic [ref=e47]:
+              - generic [ref=e48]: RSVP Status
+              - combobox "RSVP Status" [ref=e49]:
+                - option "All" [selected]
+                - option "Pending"
+                - option "Attending"
+                - option "Declined"
+                - option "Maybe"
+            - generic [ref=e50]:
+              - generic [ref=e51]: Activity
+              - combobox "Activity" [ref=e52]:
+                - option "All" [selected]
+                - option "Test Beach Volleyball"
+            - generic [ref=e53]:
+              - generic [ref=e54]: Transportation
+              - combobox "Transportation" [ref=e55]:
+                - option "All" [selected]
+                - option "Has Transportation"
+                - option "No Transportation"
+            - generic [ref=e56]:
+              - generic [ref=e57]: Age Group
+              - combobox "Age Group" [ref=e58]:
+                - option "All" [selected]
+                - option "Adult"
+                - option "Child"
+                - option "Senior"
+            - generic [ref=e59]:
+              - generic [ref=e60]: Airport
+              - combobox "Airport" [ref=e61]:
+                - option "All" [selected]
+                - option "SJO (San José)"
+                - option "LIR (Liberia)"
+                - option "Other"
+          - generic [ref=e62]:
+            - generic [ref=e63]: Group By
+            - combobox "Group By" [ref=e64]:
+              - option "None" [selected]
+              - option "Group"
+              - option "Guest Type"
+              - option "Age Type"
+              - option "Airport"
+          - button "Clear All Filters" [ref=e66] [cursor=pointer]
+        - generic [ref=e67]:
+          - generic [ref=e69]:
+            - group "Filter controls" [ref=e70]:
+              - generic [ref=e71]:
+                - generic [ref=e72]: Filter by Group
+                - combobox "Filter by Group" [ref=e73]:
+                  - option "All Group" [selected]
+                  - option "Cleanup Test Group 1770225767151"
+                  - option "Isolation Test Group 1770225766626"
+              - generic [ref=e74]:
+                - generic [ref=e75]: Filter by Guest Type
+                - combobox "Filter by Guest Type" [ref=e76]:
+                  - option "All Guest Type" [selected]
+                  - option "Wedding Party"
+                  - option "Wedding Guest"
+                  - option "Pre-wedding Only"
+                  - option "Post-wedding Only"
+              - generic [ref=e77]:
+                - generic [ref=e78]: Filter by Age Type
+                - combobox "Filter by Age Type" [ref=e79]:
+                  - option "All Age Type" [selected]
+                  - option "Adult"
+                  - option "Child"
+                  - option "Senior"
+            - button "Export guests to CSV" [ref=e81] [cursor=pointer]: Export
+          - generic [ref=e84]: No guests found
+  - button "Open Next.js Dev Tools" [ref=e90] [cursor=pointer]:
+    - img [ref=e91]
+  - alert [ref=e94]
+```

@@ -1,0 +1,215 @@
+e97b4372fca04401655f52e501d26a9e
+/**
+ * Sections RLS Regression Test
+ * 
+ * This test prevents regression of the "permission denied for table users" bug
+ * that occurred when creating sections with real authentication.
+ * 
+ * Bug Description:
+ * - Service methods were using service role client that bypassed RLS
+ * - When called from API routes with real auth, RLS policies were enforced
+ * - Sections table had RLS policies that referenced users table
+ * - Real auth didn't have permission to query users table
+ * - Result: "permission denied for table users" error
+ * 
+ * This test validates:
+ * - Sections can be created with real authentication (not service role)
+ * - RLS policies work correctly with authenticated users
+ * - No "permission denied" errors occur
+ * 
+ * Validates: Requirements 5.4
+ */ "use strict";
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+const _testDb = require("../helpers/testDb");
+const _factories = require("../helpers/factories");
+const _cleanup = require("../helpers/cleanup");
+const _sectionsService = /*#__PURE__*/ _interop_require_wildcard(require("../../services/sectionsService"));
+function _getRequireWildcardCache(nodeInterop) {
+    if (typeof WeakMap !== "function") return null;
+    var cacheBabelInterop = new WeakMap();
+    var cacheNodeInterop = new WeakMap();
+    return (_getRequireWildcardCache = function(nodeInterop) {
+        return nodeInterop ? cacheNodeInterop : cacheBabelInterop;
+    })(nodeInterop);
+}
+function _interop_require_wildcard(obj, nodeInterop) {
+    if (!nodeInterop && obj && obj.__esModule) {
+        return obj;
+    }
+    if (obj === null || typeof obj !== "object" && typeof obj !== "function") {
+        return {
+            default: obj
+        };
+    }
+    var cache = _getRequireWildcardCache(nodeInterop);
+    if (cache && cache.has(obj)) {
+        return cache.get(obj);
+    }
+    var newObj = {
+        __proto__: null
+    };
+    var hasPropertyDescriptor = Object.defineProperty && Object.getOwnPropertyDescriptor;
+    for(var key in obj){
+        if (key !== "default" && Object.prototype.hasOwnProperty.call(obj, key)) {
+            var desc = hasPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : null;
+            if (desc && (desc.get || desc.set)) {
+                Object.defineProperty(newObj, key, desc);
+            } else {
+                newObj[key] = obj[key];
+            }
+        }
+    }
+    newObj.default = obj;
+    if (cache) {
+        cache.set(obj, newObj);
+    }
+    return newObj;
+}
+describe('Sections RLS Regression Tests', ()=>{
+    afterEach(async ()=>{
+        // Clean up test data
+        await (0, _cleanup.cleanupTestSections)();
+        await (0, _cleanup.cleanupTestEvents)();
+    });
+    it('should create section with real auth without permission denied error', async ()=>{
+        await (0, _testDb.withTestDatabase)(async (db)=>{
+            // Create authenticated user (not service role!)
+            const { client, user } = await db.createAuthenticatedClient();
+            // Create a test event first
+            const event = (0, _factories.createTestEvent)();
+            const { data: createdEvent, error: eventError } = await client.from('events').insert(event).select().single();
+            expect(eventError).toBeNull();
+            expect(createdEvent).toBeDefined();
+            // Create section with real authentication
+            const sectionData = {
+                entityType: 'event',
+                entityId: createdEvent.id,
+                position: 0
+            };
+            const result = await _sectionsService.create(sectionData);
+            // THIS IS THE KEY TEST - Would have caught the RLS bug!
+            // The bug caused: "permission denied for table users"
+            expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data).toBeDefined();
+                expect(result.data.entityType).toBe('event');
+                expect(result.data.entityId).toBe(createdEvent.id);
+            } else {
+                // If this fails, check the error message
+                console.error('Section creation failed:', result.error);
+                expect(result.error.message).not.toContain('permission denied');
+                expect(result.error.message).not.toContain('users');
+            }
+        });
+    });
+    it('should update section with real auth without RLS errors', async ()=>{
+        await (0, _testDb.withTestDatabase)(async (db)=>{
+            const { client, user } = await db.createAuthenticatedClient();
+            // Create event and section
+            const event = (0, _factories.createTestEvent)();
+            const { data: createdEvent } = await client.from('events').insert(event).select().single();
+            const section = (0, _factories.createTestSection)({
+                entityId: createdEvent.id
+            });
+            const { data: createdSection } = await client.from('sections').insert(section).select().single();
+            // Update section with real auth
+            const result = await _sectionsService.update(createdSection.id, {
+                position: 1
+            });
+            expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.position).toBe(1);
+            }
+        });
+    });
+    it('should delete section with real auth without RLS errors', async ()=>{
+        await (0, _testDb.withTestDatabase)(async (db)=>{
+            const { client, user } = await db.createAuthenticatedClient();
+            // Create event and section
+            const event = (0, _factories.createTestEvent)();
+            const { data: createdEvent } = await client.from('events').insert(event).select().single();
+            const section = (0, _factories.createTestSection)({
+                entityId: createdEvent.id
+            });
+            const { data: createdSection } = await client.from('sections').insert(section).select().single();
+            // Delete section with real auth
+            const result = await _sectionsService.deleteSection(createdSection.id);
+            expect(result.success).toBe(true);
+        });
+    });
+    it('should list sections with real auth without RLS errors', async ()=>{
+        await (0, _testDb.withTestDatabase)(async (db)=>{
+            const { client, user } = await db.createAuthenticatedClient();
+            // Create event and sections
+            const event = (0, _factories.createTestEvent)();
+            const { data: createdEvent } = await client.from('events').insert(event).select().single();
+            const sections = [
+                (0, _factories.createTestSection)({
+                    entityId: createdEvent.id,
+                    position: 0
+                }),
+                (0, _factories.createTestSection)({
+                    entityId: createdEvent.id,
+                    position: 1
+                })
+            ];
+            await client.from('sections').insert(sections);
+            // List sections with real auth
+            const result = await _sectionsService.list({
+                entityType: 'event',
+                entityId: createdEvent.id
+            });
+            expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.length).toBeGreaterThanOrEqual(2);
+            }
+        });
+    });
+    it('should handle RLS policies correctly for different entity types', async ()=>{
+        await (0, _testDb.withTestDatabase)(async (db)=>{
+            const { client, user } = await db.createAuthenticatedClient();
+            // Test with different entity types
+            const entityTypes = [
+                'event',
+                'activity',
+                'accommodation',
+                'room_type',
+                'content_page'
+            ];
+            for (const entityType of entityTypes){
+                const sectionData = {
+                    entityType,
+                    entityId: `test-${entityType}-id`,
+                    position: 0
+                };
+                const result = await _sectionsService.create(sectionData);
+                // Should not fail with RLS errors
+                if (!result.success) {
+                    expect(result.error.message).not.toContain('permission denied');
+                    expect(result.error.message).not.toContain('users');
+                }
+            }
+        });
+    });
+}); /**
+ * Why This Test Would Have Caught the Bug:
+ * 
+ * The sections RLS bug occurred because:
+ * 1. Service methods used service role client (bypassed RLS)
+ * 2. API routes used real auth (enforced RLS)
+ * 3. RLS policies referenced users table
+ * 4. Real auth didn't have permission to query users table
+ * 
+ * This test explicitly:
+ * - Uses real authentication (not service role)
+ * - Calls service methods that interact with sections table
+ * - Validates no "permission denied" errors occur
+ * - Tests all CRUD operations with RLS enforcement
+ * 
+ * If the RLS policies are misconfigured, this test will fail with the exact
+ * error message that users would see, making it easy to diagnose and fix.
+ */ 
+
+//# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJzb3VyY2VzIjpbIi9Vc2Vycy9qYXJvbi9EZXNrdG9wL3dlZGRpbmctcGxhdGZvcm0tdjIvX190ZXN0c19fL3JlZ3Jlc3Npb24vc2VjdGlvbnNSbHMucmVncmVzc2lvbi50ZXN0LnRzIl0sInNvdXJjZXNDb250ZW50IjpbIi8qKlxuICogU2VjdGlvbnMgUkxTIFJlZ3Jlc3Npb24gVGVzdFxuICogXG4gKiBUaGlzIHRlc3QgcHJldmVudHMgcmVncmVzc2lvbiBvZiB0aGUgXCJwZXJtaXNzaW9uIGRlbmllZCBmb3IgdGFibGUgdXNlcnNcIiBidWdcbiAqIHRoYXQgb2NjdXJyZWQgd2hlbiBjcmVhdGluZyBzZWN0aW9ucyB3aXRoIHJlYWwgYXV0aGVudGljYXRpb24uXG4gKiBcbiAqIEJ1ZyBEZXNjcmlwdGlvbjpcbiAqIC0gU2VydmljZSBtZXRob2RzIHdlcmUgdXNpbmcgc2VydmljZSByb2xlIGNsaWVudCB0aGF0IGJ5cGFzc2VkIFJMU1xuICogLSBXaGVuIGNhbGxlZCBmcm9tIEFQSSByb3V0ZXMgd2l0aCByZWFsIGF1dGgsIFJMUyBwb2xpY2llcyB3ZXJlIGVuZm9yY2VkXG4gKiAtIFNlY3Rpb25zIHRhYmxlIGhhZCBSTFMgcG9saWNpZXMgdGhhdCByZWZlcmVuY2VkIHVzZXJzIHRhYmxlXG4gKiAtIFJlYWwgYXV0aCBkaWRuJ3QgaGF2ZSBwZXJtaXNzaW9uIHRvIHF1ZXJ5IHVzZXJzIHRhYmxlXG4gKiAtIFJlc3VsdDogXCJwZXJtaXNzaW9uIGRlbmllZCBmb3IgdGFibGUgdXNlcnNcIiBlcnJvclxuICogXG4gKiBUaGlzIHRlc3QgdmFsaWRhdGVzOlxuICogLSBTZWN0aW9ucyBjYW4gYmUgY3JlYXRlZCB3aXRoIHJlYWwgYXV0aGVudGljYXRpb24gKG5vdCBzZXJ2aWNlIHJvbGUpXG4gKiAtIFJMUyBwb2xpY2llcyB3b3JrIGNvcnJlY3RseSB3aXRoIGF1dGhlbnRpY2F0ZWQgdXNlcnNcbiAqIC0gTm8gXCJwZXJtaXNzaW9uIGRlbmllZFwiIGVycm9ycyBvY2N1clxuICogXG4gKiBWYWxpZGF0ZXM6IFJlcXVpcmVtZW50cyA1LjRcbiAqL1xuXG5pbXBvcnQgeyB3aXRoVGVzdERhdGFiYXNlLCBjcmVhdGVBbmRTaWduSW5UZXN0VXNlciB9IGZyb20gJy4uL2hlbHBlcnMvdGVzdERiJztcbmltcG9ydCB7IGNyZWF0ZVRlc3RFdmVudCwgY3JlYXRlVGVzdFNlY3Rpb24gfSBmcm9tICcuLi9oZWxwZXJzL2ZhY3Rvcmllcyc7XG5pbXBvcnQgeyBjbGVhbnVwVGVzdFNlY3Rpb25zLCBjbGVhbnVwVGVzdEV2ZW50cyB9IGZyb20gJy4uL2hlbHBlcnMvY2xlYW51cCc7XG5pbXBvcnQgKiBhcyBzZWN0aW9uc1NlcnZpY2UgZnJvbSAnQC9zZXJ2aWNlcy9zZWN0aW9uc1NlcnZpY2UnO1xuXG5kZXNjcmliZSgnU2VjdGlvbnMgUkxTIFJlZ3Jlc3Npb24gVGVzdHMnLCAoKSA9PiB7XG4gIGFmdGVyRWFjaChhc3luYyAoKSA9PiB7XG4gICAgLy8gQ2xlYW4gdXAgdGVzdCBkYXRhXG4gICAgYXdhaXQgY2xlYW51cFRlc3RTZWN0aW9ucygpO1xuICAgIGF3YWl0IGNsZWFudXBUZXN0RXZlbnRzKCk7XG4gIH0pO1xuICBcbiAgaXQoJ3Nob3VsZCBjcmVhdGUgc2VjdGlvbiB3aXRoIHJlYWwgYXV0aCB3aXRob3V0IHBlcm1pc3Npb24gZGVuaWVkIGVycm9yJywgYXN5bmMgKCkgPT4ge1xuICAgIGF3YWl0IHdpdGhUZXN0RGF0YWJhc2UoYXN5bmMgKGRiKSA9PiB7XG4gICAgICAvLyBDcmVhdGUgYXV0aGVudGljYXRlZCB1c2VyIChub3Qgc2VydmljZSByb2xlISlcbiAgICAgIGNvbnN0IHsgY2xpZW50LCB1c2VyIH0gPSBhd2FpdCBkYi5jcmVhdGVBdXRoZW50aWNhdGVkQ2xpZW50KCk7XG4gICAgICBcbiAgICAgIC8vIENyZWF0ZSBhIHRlc3QgZXZlbnQgZmlyc3RcbiAgICAgIGNvbnN0IGV2ZW50ID0gY3JlYXRlVGVzdEV2ZW50KCk7XG4gICAgICBjb25zdCB7IGRhdGE6IGNyZWF0ZWRFdmVudCwgZXJyb3I6IGV2ZW50RXJyb3IgfSA9IGF3YWl0IGNsaWVudFxuICAgICAgICAuZnJvbSgnZXZlbnRzJylcbiAgICAgICAgLmluc2VydChldmVudClcbiAgICAgICAgLnNlbGVjdCgpXG4gICAgICAgIC5zaW5nbGUoKTtcbiAgICAgIFxuICAgICAgZXhwZWN0KGV2ZW50RXJyb3IpLnRvQmVOdWxsKCk7XG4gICAgICBleHBlY3QoY3JlYXRlZEV2ZW50KS50b0JlRGVmaW5lZCgpO1xuICAgICAgXG4gICAgICAvLyBDcmVhdGUgc2VjdGlvbiB3aXRoIHJlYWwgYXV0aGVudGljYXRpb25cbiAgICAgIGNvbnN0IHNlY3Rpb25EYXRhID0ge1xuICAgICAgICBlbnRpdHlUeXBlOiAnZXZlbnQnIGFzIGNvbnN0LFxuICAgICAgICBlbnRpdHlJZDogY3JlYXRlZEV2ZW50LmlkLFxuICAgICAgICBwb3NpdGlvbjogMCxcbiAgICAgIH07XG4gICAgICBcbiAgICAgIGNvbnN0IHJlc3VsdCA9IGF3YWl0IHNlY3Rpb25zU2VydmljZS5jcmVhdGUoc2VjdGlvbkRhdGEpO1xuICAgICAgXG4gICAgICAvLyBUSElTIElTIFRIRSBLRVkgVEVTVCAtIFdvdWxkIGhhdmUgY2F1Z2h0IHRoZSBSTFMgYnVnIVxuICAgICAgLy8gVGhlIGJ1ZyBjYXVzZWQ6IFwicGVybWlzc2lvbiBkZW5pZWQgZm9yIHRhYmxlIHVzZXJzXCJcbiAgICAgIGV4cGVjdChyZXN1bHQuc3VjY2VzcykudG9CZSh0cnVlKTtcbiAgICAgIFxuICAgICAgaWYgKHJlc3VsdC5zdWNjZXNzKSB7XG4gICAgICAgIGV4cGVjdChyZXN1bHQuZGF0YSkudG9CZURlZmluZWQoKTtcbiAgICAgICAgZXhwZWN0KHJlc3VsdC5kYXRhLmVudGl0eVR5cGUpLnRvQmUoJ2V2ZW50Jyk7XG4gICAgICAgIGV4cGVjdChyZXN1bHQuZGF0YS5lbnRpdHlJZCkudG9CZShjcmVhdGVkRXZlbnQuaWQpO1xuICAgICAgfSBlbHNlIHtcbiAgICAgICAgLy8gSWYgdGhpcyBmYWlscywgY2hlY2sgdGhlIGVycm9yIG1lc3NhZ2VcbiAgICAgICAgY29uc29sZS5lcnJvcignU2VjdGlvbiBjcmVhdGlvbiBmYWlsZWQ6JywgcmVzdWx0LmVycm9yKTtcbiAgICAgICAgZXhwZWN0KHJlc3VsdC5lcnJvci5tZXNzYWdlKS5ub3QudG9Db250YWluKCdwZXJtaXNzaW9uIGRlbmllZCcpO1xuICAgICAgICBleHBlY3QocmVzdWx0LmVycm9yLm1lc3NhZ2UpLm5vdC50b0NvbnRhaW4oJ3VzZXJzJyk7XG4gICAgICB9XG4gICAgfSk7XG4gIH0pO1xuICBcbiAgaXQoJ3Nob3VsZCB1cGRhdGUgc2VjdGlvbiB3aXRoIHJlYWwgYXV0aCB3aXRob3V0IFJMUyBlcnJvcnMnLCBhc3luYyAoKSA9PiB7XG4gICAgYXdhaXQgd2l0aFRlc3REYXRhYmFzZShhc3luYyAoZGIpID0+IHtcbiAgICAgIGNvbnN0IHsgY2xpZW50LCB1c2VyIH0gPSBhd2FpdCBkYi5jcmVhdGVBdXRoZW50aWNhdGVkQ2xpZW50KCk7XG4gICAgICBcbiAgICAgIC8vIENyZWF0ZSBldmVudCBhbmQgc2VjdGlvblxuICAgICAgY29uc3QgZXZlbnQgPSBjcmVhdGVUZXN0RXZlbnQoKTtcbiAgICAgIGNvbnN0IHsgZGF0YTogY3JlYXRlZEV2ZW50IH0gPSBhd2FpdCBjbGllbnRcbiAgICAgICAgLmZyb20oJ2V2ZW50cycpXG4gICAgICAgIC5pbnNlcnQoZXZlbnQpXG4gICAgICAgIC5zZWxlY3QoKVxuICAgICAgICAuc2luZ2xlKCk7XG4gICAgICBcbiAgICAgIGNvbnN0IHNlY3Rpb24gPSBjcmVhdGVUZXN0U2VjdGlvbih7IGVudGl0eUlkOiBjcmVhdGVkRXZlbnQuaWQgfSk7XG4gICAgICBjb25zdCB7IGRhdGE6IGNyZWF0ZWRTZWN0aW9uIH0gPSBhd2FpdCBjbGllbnRcbiAgICAgICAgLmZyb20oJ3NlY3Rpb25zJylcbiAgICAgICAgLmluc2VydChzZWN0aW9uKVxuICAgICAgICAuc2VsZWN0KClcbiAgICAgICAgLnNpbmdsZSgpO1xuICAgICAgXG4gICAgICAvLyBVcGRhdGUgc2VjdGlvbiB3aXRoIHJlYWwgYXV0aFxuICAgICAgY29uc3QgcmVzdWx0ID0gYXdhaXQgc2VjdGlvbnNTZXJ2aWNlLnVwZGF0ZShjcmVhdGVkU2VjdGlvbi5pZCwge1xuICAgICAgICBwb3NpdGlvbjogMSxcbiAgICAgIH0pO1xuICAgICAgXG4gICAgICBleHBlY3QocmVzdWx0LnN1Y2Nlc3MpLnRvQmUodHJ1ZSk7XG4gICAgICBpZiAocmVzdWx0LnN1Y2Nlc3MpIHtcbiAgICAgICAgZXhwZWN0KHJlc3VsdC5kYXRhLnBvc2l0aW9uKS50b0JlKDEpO1xuICAgICAgfVxuICAgIH0pO1xuICB9KTtcbiAgXG4gIGl0KCdzaG91bGQgZGVsZXRlIHNlY3Rpb24gd2l0aCByZWFsIGF1dGggd2l0aG91dCBSTFMgZXJyb3JzJywgYXN5bmMgKCkgPT4ge1xuICAgIGF3YWl0IHdpdGhUZXN0RGF0YWJhc2UoYXN5bmMgKGRiKSA9PiB7XG4gICAgICBjb25zdCB7IGNsaWVudCwgdXNlciB9ID0gYXdhaXQgZGIuY3JlYXRlQXV0aGVudGljYXRlZENsaWVudCgpO1xuICAgICAgXG4gICAgICAvLyBDcmVhdGUgZXZlbnQgYW5kIHNlY3Rpb25cbiAgICAgIGNvbnN0IGV2ZW50ID0gY3JlYXRlVGVzdEV2ZW50KCk7XG4gICAgICBjb25zdCB7IGRhdGE6IGNyZWF0ZWRFdmVudCB9ID0gYXdhaXQgY2xpZW50XG4gICAgICAgIC5mcm9tKCdldmVudHMnKVxuICAgICAgICAuaW5zZXJ0KGV2ZW50KVxuICAgICAgICAuc2VsZWN0KClcbiAgICAgICAgLnNpbmdsZSgpO1xuICAgICAgXG4gICAgICBjb25zdCBzZWN0aW9uID0gY3JlYXRlVGVzdFNlY3Rpb24oeyBlbnRpdHlJZDogY3JlYXRlZEV2ZW50LmlkIH0pO1xuICAgICAgY29uc3QgeyBkYXRhOiBjcmVhdGVkU2VjdGlvbiB9ID0gYXdhaXQgY2xpZW50XG4gICAgICAgIC5mcm9tKCdzZWN0aW9ucycpXG4gICAgICAgIC5pbnNlcnQoc2VjdGlvbilcbiAgICAgICAgLnNlbGVjdCgpXG4gICAgICAgIC5zaW5nbGUoKTtcbiAgICAgIFxuICAgICAgLy8gRGVsZXRlIHNlY3Rpb24gd2l0aCByZWFsIGF1dGhcbiAgICAgIGNvbnN0IHJlc3VsdCA9IGF3YWl0IHNlY3Rpb25zU2VydmljZS5kZWxldGVTZWN0aW9uKGNyZWF0ZWRTZWN0aW9uLmlkKTtcbiAgICAgIFxuICAgICAgZXhwZWN0KHJlc3VsdC5zdWNjZXNzKS50b0JlKHRydWUpO1xuICAgIH0pO1xuICB9KTtcbiAgXG4gIGl0KCdzaG91bGQgbGlzdCBzZWN0aW9ucyB3aXRoIHJlYWwgYXV0aCB3aXRob3V0IFJMUyBlcnJvcnMnLCBhc3luYyAoKSA9PiB7XG4gICAgYXdhaXQgd2l0aFRlc3REYXRhYmFzZShhc3luYyAoZGIpID0+IHtcbiAgICAgIGNvbnN0IHsgY2xpZW50LCB1c2VyIH0gPSBhd2FpdCBkYi5jcmVhdGVBdXRoZW50aWNhdGVkQ2xpZW50KCk7XG4gICAgICBcbiAgICAgIC8vIENyZWF0ZSBldmVudCBhbmQgc2VjdGlvbnNcbiAgICAgIGNvbnN0IGV2ZW50ID0gY3JlYXRlVGVzdEV2ZW50KCk7XG4gICAgICBjb25zdCB7IGRhdGE6IGNyZWF0ZWRFdmVudCB9ID0gYXdhaXQgY2xpZW50XG4gICAgICAgIC5mcm9tKCdldmVudHMnKVxuICAgICAgICAuaW5zZXJ0KGV2ZW50KVxuICAgICAgICAuc2VsZWN0KClcbiAgICAgICAgLnNpbmdsZSgpO1xuICAgICAgXG4gICAgICBjb25zdCBzZWN0aW9ucyA9IFtcbiAgICAgICAgY3JlYXRlVGVzdFNlY3Rpb24oeyBlbnRpdHlJZDogY3JlYXRlZEV2ZW50LmlkLCBwb3NpdGlvbjogMCB9KSxcbiAgICAgICAgY3JlYXRlVGVzdFNlY3Rpb24oeyBlbnRpdHlJZDogY3JlYXRlZEV2ZW50LmlkLCBwb3NpdGlvbjogMSB9KSxcbiAgICAgIF07XG4gICAgICBcbiAgICAgIGF3YWl0IGNsaWVudC5mcm9tKCdzZWN0aW9ucycpLmluc2VydChzZWN0aW9ucyk7XG4gICAgICBcbiAgICAgIC8vIExpc3Qgc2VjdGlvbnMgd2l0aCByZWFsIGF1dGhcbiAgICAgIGNvbnN0IHJlc3VsdCA9IGF3YWl0IHNlY3Rpb25zU2VydmljZS5saXN0KHtcbiAgICAgICAgZW50aXR5VHlwZTogJ2V2ZW50JyxcbiAgICAgICAgZW50aXR5SWQ6IGNyZWF0ZWRFdmVudC5pZCxcbiAgICAgIH0pO1xuICAgICAgXG4gICAgICBleHBlY3QocmVzdWx0LnN1Y2Nlc3MpLnRvQmUodHJ1ZSk7XG4gICAgICBpZiAocmVzdWx0LnN1Y2Nlc3MpIHtcbiAgICAgICAgZXhwZWN0KHJlc3VsdC5kYXRhLmxlbmd0aCkudG9CZUdyZWF0ZXJUaGFuT3JFcXVhbCgyKTtcbiAgICAgIH1cbiAgICB9KTtcbiAgfSk7XG4gIFxuICBpdCgnc2hvdWxkIGhhbmRsZSBSTFMgcG9saWNpZXMgY29ycmVjdGx5IGZvciBkaWZmZXJlbnQgZW50aXR5IHR5cGVzJywgYXN5bmMgKCkgPT4ge1xuICAgIGF3YWl0IHdpdGhUZXN0RGF0YWJhc2UoYXN5bmMgKGRiKSA9PiB7XG4gICAgICBjb25zdCB7IGNsaWVudCwgdXNlciB9ID0gYXdhaXQgZGIuY3JlYXRlQXV0aGVudGljYXRlZENsaWVudCgpO1xuICAgICAgXG4gICAgICAvLyBUZXN0IHdpdGggZGlmZmVyZW50IGVudGl0eSB0eXBlc1xuICAgICAgY29uc3QgZW50aXR5VHlwZXMgPSBbJ2V2ZW50JywgJ2FjdGl2aXR5JywgJ2FjY29tbW9kYXRpb24nLCAncm9vbV90eXBlJywgJ2NvbnRlbnRfcGFnZSddIGFzIGNvbnN0O1xuICAgICAgXG4gICAgICBmb3IgKGNvbnN0IGVudGl0eVR5cGUgb2YgZW50aXR5VHlwZXMpIHtcbiAgICAgICAgY29uc3Qgc2VjdGlvbkRhdGEgPSB7XG4gICAgICAgICAgZW50aXR5VHlwZSxcbiAgICAgICAgICBlbnRpdHlJZDogYHRlc3QtJHtlbnRpdHlUeXBlfS1pZGAsXG4gICAgICAgICAgcG9zaXRpb246IDAsXG4gICAgICAgIH07XG4gICAgICAgIFxuICAgICAgICBjb25zdCByZXN1bHQgPSBhd2FpdCBzZWN0aW9uc1NlcnZpY2UuY3JlYXRlKHNlY3Rpb25EYXRhKTtcbiAgICAgICAgXG4gICAgICAgIC8vIFNob3VsZCBub3QgZmFpbCB3aXRoIFJMUyBlcnJvcnNcbiAgICAgICAgaWYgKCFyZXN1bHQuc3VjY2Vzcykge1xuICAgICAgICAgIGV4cGVjdChyZXN1bHQuZXJyb3IubWVzc2FnZSkubm90LnRvQ29udGFpbigncGVybWlzc2lvbiBkZW5pZWQnKTtcbiAgICAgICAgICBleHBlY3QocmVzdWx0LmVycm9yLm1lc3NhZ2UpLm5vdC50b0NvbnRhaW4oJ3VzZXJzJyk7XG4gICAgICAgIH1cbiAgICAgIH1cbiAgICB9KTtcbiAgfSk7XG59KTtcblxuLyoqXG4gKiBXaHkgVGhpcyBUZXN0IFdvdWxkIEhhdmUgQ2F1Z2h0IHRoZSBCdWc6XG4gKiBcbiAqIFRoZSBzZWN0aW9ucyBSTFMgYnVnIG9jY3VycmVkIGJlY2F1c2U6XG4gKiAxLiBTZXJ2aWNlIG1ldGhvZHMgdXNlZCBzZXJ2aWNlIHJvbGUgY2xpZW50IChieXBhc3NlZCBSTFMpXG4gKiAyLiBBUEkgcm91dGVzIHVzZWQgcmVhbCBhdXRoIChlbmZvcmNlZCBSTFMpXG4gKiAzLiBSTFMgcG9saWNpZXMgcmVmZXJlbmNlZCB1c2VycyB0YWJsZVxuICogNC4gUmVhbCBhdXRoIGRpZG4ndCBoYXZlIHBlcm1pc3Npb24gdG8gcXVlcnkgdXNlcnMgdGFibGVcbiAqIFxuICogVGhpcyB0ZXN0IGV4cGxpY2l0bHk6XG4gKiAtIFVzZXMgcmVhbCBhdXRoZW50aWNhdGlvbiAobm90IHNlcnZpY2Ugcm9sZSlcbiAqIC0gQ2FsbHMgc2VydmljZSBtZXRob2RzIHRoYXQgaW50ZXJhY3Qgd2l0aCBzZWN0aW9ucyB0YWJsZVxuICogLSBWYWxpZGF0ZXMgbm8gXCJwZXJtaXNzaW9uIGRlbmllZFwiIGVycm9ycyBvY2N1clxuICogLSBUZXN0cyBhbGwgQ1JVRCBvcGVyYXRpb25zIHdpdGggUkxTIGVuZm9yY2VtZW50XG4gKiBcbiAqIElmIHRoZSBSTFMgcG9saWNpZXMgYXJlIG1pc2NvbmZpZ3VyZWQsIHRoaXMgdGVzdCB3aWxsIGZhaWwgd2l0aCB0aGUgZXhhY3RcbiAqIGVycm9yIG1lc3NhZ2UgdGhhdCB1c2VycyB3b3VsZCBzZWUsIG1ha2luZyBpdCBlYXN5IHRvIGRpYWdub3NlIGFuZCBmaXguXG4gKi9cbiJdLCJuYW1lcyI6WyJkZXNjcmliZSIsImFmdGVyRWFjaCIsImNsZWFudXBUZXN0U2VjdGlvbnMiLCJjbGVhbnVwVGVzdEV2ZW50cyIsIml0Iiwid2l0aFRlc3REYXRhYmFzZSIsImRiIiwiY2xpZW50IiwidXNlciIsImNyZWF0ZUF1dGhlbnRpY2F0ZWRDbGllbnQiLCJldmVudCIsImNyZWF0ZVRlc3RFdmVudCIsImRhdGEiLCJjcmVhdGVkRXZlbnQiLCJlcnJvciIsImV2ZW50RXJyb3IiLCJmcm9tIiwiaW5zZXJ0Iiwic2VsZWN0Iiwic2luZ2xlIiwiZXhwZWN0IiwidG9CZU51bGwiLCJ0b0JlRGVmaW5lZCIsInNlY3Rpb25EYXRhIiwiZW50aXR5VHlwZSIsImVudGl0eUlkIiwiaWQiLCJwb3NpdGlvbiIsInJlc3VsdCIsInNlY3Rpb25zU2VydmljZSIsImNyZWF0ZSIsInN1Y2Nlc3MiLCJ0b0JlIiwiY29uc29sZSIsIm1lc3NhZ2UiLCJub3QiLCJ0b0NvbnRhaW4iLCJzZWN0aW9uIiwiY3JlYXRlVGVzdFNlY3Rpb24iLCJjcmVhdGVkU2VjdGlvbiIsInVwZGF0ZSIsImRlbGV0ZVNlY3Rpb24iLCJzZWN0aW9ucyIsImxpc3QiLCJsZW5ndGgiLCJ0b0JlR3JlYXRlclRoYW5PckVxdWFsIiwiZW50aXR5VHlwZXMiXSwibWFwcGluZ3MiOiJBQUFBOzs7Ozs7Ozs7Ozs7Ozs7Ozs7O0NBbUJDOzs7O3dCQUV5RDsyQkFDUDt5QkFDSTt5RUFDdEI7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7OztBQUVqQ0EsU0FBUyxpQ0FBaUM7SUFDeENDLFVBQVU7UUFDUixxQkFBcUI7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

@@ -29,11 +29,31 @@ export const Button = memo(function Button({
 }: ButtonProps) {
   const baseClasses = 'font-medium rounded-lg transition-all duration-200 flex items-center justify-center gap-2 focus:outline-none focus:ring-2 focus:ring-offset-2 hover:shadow-md active:scale-95';
 
-  const variantClasses = {
-    primary: 'bg-jungle-500 hover:bg-jungle-600 text-white focus:ring-jungle-500 disabled:bg-sage-300 disabled:hover:shadow-none',
-    secondary: 'bg-sage-200 hover:bg-sage-300 text-sage-900 focus:ring-sage-400 disabled:bg-sage-100 disabled:hover:shadow-none',
-    danger: 'bg-volcano-500 hover:bg-volcano-600 text-white focus:ring-volcano-500 disabled:bg-sage-300 disabled:hover:shadow-none',
-    ghost: 'bg-transparent hover:bg-sage-100 text-sage-700 focus:ring-sage-400 disabled:bg-transparent disabled:text-sage-400 hover:shadow-none',
+  // Use inline styles for colors to ensure visibility
+  const variantStyles: Record<string, React.CSSProperties> = {
+    primary: {
+      backgroundColor: '#22c55e',
+      color: '#ffffff',
+    },
+    secondary: {
+      backgroundColor: '#e5e7eb',
+      color: '#111827',
+    },
+    danger: {
+      backgroundColor: '#ef4444',
+      color: '#ffffff',
+    },
+    ghost: {
+      backgroundColor: 'transparent',
+      color: '#374151',
+    },
+  };
+
+  const hoverStyles: Record<string, string> = {
+    primary: '#16a34a',
+    secondary: '#d1d5db',
+    danger: '#dc2626',
+    ghost: '#f3f4f6',
   };
 
   const sizeClasses = {
@@ -49,9 +69,22 @@ export const Button = memo(function Button({
     <button
       type={type}
       disabled={isDisabled}
-      className={`${baseClasses} ${variantClasses[variant]} ${sizeClasses[size]} ${widthClass} ${className} ${
+      style={variantStyles[variant]}
+      className={`${baseClasses} ${sizeClasses[size]} ${widthClass} ${className} ${
         isDisabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'
       }`}
+      onMouseEnter={(e) => {
+        if (!isDisabled && variant !== 'ghost') {
+          e.currentTarget.style.backgroundColor = hoverStyles[variant];
+        } else if (!isDisabled && variant === 'ghost') {
+          e.currentTarget.style.backgroundColor = hoverStyles[variant];
+        }
+      }}
+      onMouseLeave={(e) => {
+        if (!isDisabled) {
+          e.currentTarget.style.backgroundColor = variantStyles[variant].backgroundColor as string;
+        }
+      }}
       aria-busy={loading}
       aria-disabled={isDisabled}
       {...props}

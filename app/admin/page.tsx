@@ -252,7 +252,7 @@ export default function AdminDashboard() {
           />
           <MetricCard
             title="RSVP Response Rate"
-            value={`${metrics.rsvpResponseRate.toFixed(1)}%`}
+            value={`${(metrics.rsvpResponseRate ?? 0).toFixed(1)}%`}
             icon="✉️"
             color="ocean"
             href="/admin/rsvps"

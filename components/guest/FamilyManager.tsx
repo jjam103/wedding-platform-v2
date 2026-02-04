@@ -6,6 +6,7 @@ import type { Guest } from '@/types';
 interface FamilyManagerProps {
   currentGuest: Guest;
   familyMembers: Guest[];
+  rsvpsByGuest: Record<string, any[]>;
 }
 
 /**
@@ -17,17 +18,66 @@ interface FamilyManagerProps {
  * 
  * Requirements: 13.2, 13.3, 13.4
  */
-export function FamilyManager({ currentGuest, familyMembers }: FamilyManagerProps) {
+export function FamilyManager({ currentGuest, familyMembers, rsvpsByGuest }: FamilyManagerProps) {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editForm, setEditForm] = useState<Partial<Guest>>({});
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [expandedRsvps, setExpandedRsvps] = useState<Set<string>>(new Set());
 
   const isAdult = currentGuest.age_type === 'adult';
   const canEdit = (member: Guest) => {
     // Adults can edit all family members, children can only edit themselves
     return isAdult || member.id === currentGuest.id;
+  };
+
+  const toggleRsvpExpansion = (guestId: string) => {
+    const newExpanded = new Set(expandedRsvps);
+    if (newExpanded.has(guestId)) {
+      newExpanded.delete(guestId);
+    } else {
+      newExpanded.add(guestId);
+    }
+    setExpandedRsvps(newExpanded);
+  };
+
+  const getStatusBadgeColor = (status: string) => {
+    switch (status) {
+      case 'attending':
+        return 'bg-jungle-100 text-jungle-800 border-jungle-300';
+      case 'declined':
+        return 'bg-volcano-100 text-volcano-800 border-volcano-300';
+      case 'maybe':
+        return 'bg-sunset-100 text-sunset-800 border-sunset-300';
+      case 'pending':
+      default:
+        return 'bg-sage-100 text-sage-800 border-sage-300';
+    }
+  };
+
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case 'attending':
+        return '✓';
+      case 'declined':
+        return '✗';
+      case 'maybe':
+        return '?';
+      case 'pending':
+      default:
+        return '○';
+    }
+  };
+
+  const getRsvpSummary = (guestId: string) => {
+    const rsvps = rsvpsByGuest[guestId] || [];
+    const attending = rsvps.filter(r => r.status === 'attending').length;
+    const declined = rsvps.filter(r => r.status === 'declined').length;
+    const maybe = rsvps.filter(r => r.status === 'maybe').length;
+    const pending = rsvps.filter(r => r.status === 'pending').length;
+    
+    return { attending, declined, maybe, pending, total: rsvps.length };
   };
 
   const startEditing = (member: Guest) => {
@@ -326,6 +376,98 @@ export function FamilyManager({ currentGuest, familyMembers }: FamilyManagerProp
                               Dietary Restrictions:
                             </span>
                             <p className="mt-1 text-sage-600">{member.dietary_restrictions}</p>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* RSVP Status Section */}
+                      <div className="mt-6 pt-6 border-t border-sage-200">
+                        <div className="flex items-center justify-between mb-3">
+                          <h4 className="font-semibold text-sage-800">RSVP Status</h4>
+                          <button
+                            onClick={() => toggleRsvpExpansion(member.id)}
+                            className="text-ocean-600 hover:text-ocean-700 text-sm font-medium"
+                          >
+                            {expandedRsvps.has(member.id) ? 'Hide Details' : 'Show Details'}
+                          </button>
+                        </div>
+                        
+                        {(() => {
+                          const summary = getRsvpSummary(member.id);
+                          return (
+                            <div className="flex items-center space-x-4 text-sm">
+                              {summary.attending > 0 && (
+                                <span className="text-jungle-700">
+                                  ✓ {summary.attending} Attending
+                                </span>
+                              )}
+                              {summary.maybe > 0 && (
+                                <span className="text-sunset-700">
+                                  ? {summary.maybe} Maybe
+                                </span>
+                              )}
+                              {summary.declined > 0 && (
+                                <span className="text-volcano-700">
+                                  ✗ {summary.declined} Declined
+                                </span>
+                              )}
+                              {summary.pending > 0 && (
+                                <span className="text-sage-600">
+                                  ○ {summary.pending} Pending
+                                </span>
+                              )}
+                              {summary.total === 0 && (
+                                <span className="text-sage-500">No RSVPs yet</span>
+                              )}
+                            </div>
+                          );
+                        })()}
+
+                        {/* Expanded RSVP Details */}
+                        {expandedRsvps.has(member.id) && (
+                          <div className="mt-4 space-y-2">
+                            {(rsvpsByGuest[member.id] || []).map((rsvp) => (
+                              <div
+                                key={rsvp.id}
+                                className={`p-3 rounded-lg border ${getStatusBadgeColor(rsvp.status)}`}
+                              >
+                                <div className="flex items-start justify-between">
+                                  <div className="flex-1">
+                                    <div className="flex items-center space-x-2">
+                                      <span className="font-medium">
+                                        {getStatusIcon(rsvp.status)}
+                                      </span>
+                                      <span className="font-medium">
+                                        {rsvp.events?.name || rsvp.activities?.name || 'Unknown'}
+                                      </span>
+                                    </div>
+                                    {rsvp.guest_count && (
+                                      <p className="text-sm mt-1">
+                                        Guest Count: {rsvp.guest_count}
+                                      </p>
+                                    )}
+                                    {rsvp.dietary_notes && (
+                                      <p className="text-sm mt-1">
+                                        Dietary Notes: {rsvp.dietary_notes}
+                                      </p>
+                                    )}
+                                  </div>
+                                  {canEditMember && (
+                                    <a
+                                      href={`/guest/rsvp?highlight=${rsvp.id}`}
+                                      className="text-sm text-ocean-600 hover:text-ocean-700 font-medium ml-4"
+                                    >
+                                      Edit
+                                    </a>
+                                  )}
+                                </div>
+                              </div>
+                            ))}
+                            {(rsvpsByGuest[member.id] || []).length === 0 && (
+                              <p className="text-sm text-sage-500 italic">
+                                No RSVPs recorded yet. Visit the Events or Activities page to RSVP.
+                              </p>
+                            )}
                           </div>
                         )}
                       </div>

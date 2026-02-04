@@ -23,7 +23,7 @@ CREATE POLICY "hosts_manage_content_pages"
 ON content_pages FOR ALL
 USING (
   EXISTS (
-    SELECT 1 FROM users 
+    SELECT 1 FROM profiles 
     WHERE id = auth.uid() 
     AND role IN ('super_admin', 'host')
   )

@@ -58,6 +58,81 @@ if (typeof global.Headers === 'undefined') {
     has(name) {
       return name.toLowerCase() in this._headers;
     }
+    
+    append(name, value) {
+      this._headers[name.toLowerCase()] = value;
+    }
+    
+    delete(name) {
+      delete this._headers[name.toLowerCase()];
+    }
+    
+    entries() {
+      return Object.entries(this._headers);
+    }
+    
+    keys() {
+      return Object.keys(this._headers);
+    }
+    
+    values() {
+      return Object.values(this._headers);
+    }
+  };
+}
+
+// Polyfill Response for Node.js test environment (needed for Next.js API routes)
+if (typeof global.Response === 'undefined') {
+  global.Response = class MockResponse {
+    constructor(body, init = {}) {
+      this.body = body;
+      this.status = init.status || 200;
+      this.statusText = init.statusText || 'OK';
+      this.headers = new Headers(init.headers);
+      this.ok = this.status >= 200 && this.status < 300;
+    }
+    
+    async json() {
+      if (typeof this.body === 'string') {
+        return JSON.parse(this.body);
+      }
+      return this.body;
+    }
+    
+    async text() {
+      if (typeof this.body === 'string') {
+        return this.body;
+      }
+      return JSON.stringify(this.body);
+    }
+    
+    async arrayBuffer() {
+      const text = await this.text();
+      return new TextEncoder().encode(text).buffer;
+    }
+    
+    async blob() {
+      return new Blob([await this.text()]);
+    }
+    
+    clone() {
+      return new MockResponse(this.body, {
+        status: this.status,
+        statusText: this.statusText,
+        headers: this.headers,
+      });
+    }
+    
+    // Static method for creating JSON responses (used by Next.js)
+    static json(data, init = {}) {
+      return new MockResponse(JSON.stringify(data), {
+        ...init,
+        headers: {
+          'Content-Type': 'application/json',
+          ...init.headers,
+        },
+      });
+    }
   };
 }
 

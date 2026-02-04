@@ -59,12 +59,15 @@ describe('HomePageEditorPage', () => {
   });
 
   describe('Loading State', () => {
-    it('should display loading skeleton while fetching config', () => {
+    it('should display loading skeleton while fetching config', async () => {
       (global.fetch as jest.Mock).mockImplementation(() => new Promise(() => {}));
       
-      render(<HomePageEditorPage />);
+      const { container } = render(<HomePageEditorPage />);
       
-      expect(screen.getByText(/home page editor/i)).toBeInTheDocument();
+      await waitFor(() => {
+        const skeleton = container.querySelector('.animate-pulse');
+        expect(skeleton).toBeInTheDocument();
+      });
     });
   });
 

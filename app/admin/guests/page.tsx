@@ -2,7 +2,7 @@
 
 export const dynamic = 'force-dynamic';
 
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo, lazy, Suspense } from 'react';
 import { createClient } from '@supabase/supabase-js';
 import { DataTableWithSuspense as DataTable, type ColumnDef } from '@/components/ui/DataTableWithSuspense';
 import { CollapsibleForm } from '@/components/admin/CollapsibleForm';
@@ -12,8 +12,13 @@ import { useToast } from '@/components/ui/ToastContext';
 import { ComponentErrorBoundary } from '@/components/ui/ErrorBoundary';
 import type { Guest } from '@/schemas/guestSchemas';
 import { createGuestSchema, updateGuestSchema } from '@/schemas/guestSchemas';
-import { createGroupSchema, updateGroupSchema } from '@/schemas/groupSchemas';
 import { exportToCSV as exportGuestsToCSV, importFromCSV as importGuestsFromCSV } from '@/services/guestService';
+import { Loader2 } from 'lucide-react';
+
+// Lazy load InlineRSVPEditor for better performance
+const InlineRSVPEditor = lazy(() => 
+  import('@/components/admin/InlineRSVPEditor').then(mod => ({ default: mod.InlineRSVPEditor }))
+);
 
 interface Group {
   id: string;
@@ -25,19 +30,6 @@ interface Group {
 interface Activity {
   id: string;
   name: string;
-}
-
-interface RSVP {
-  id: string;
-  guest_id: string;
-  event_id?: string;
-  activity_id?: string;
-  status: 'pending' | 'attending' | 'declined' | 'maybe';
-}
-
-interface GuestWithRSVPs extends Guest {
-  rsvps?: RSVP[];
-  rsvpExpanded?: boolean;
 }
 
 interface GuestFormField {
@@ -65,7 +57,7 @@ export default function GuestsPage() {
   const { addToast } = useToast();
   
   // State management
-  const [guests, setGuests] = useState<GuestWithRSVPs[]>([]);
+  const [guests, setGuests] = useState<Guest[]>([]);
   const [groups, setGroups] = useState<Group[]>([]);
   const [activities, setActivities] = useState<Activity[]>([]);
   const [loading, setLoading] = useState(true);
@@ -117,27 +109,7 @@ export default function GuestsPage() {
 
       const result = await response.json();
       if (result.success) {
-        // Fetch RSVPs for each guest
-        const guestsWithRSVPs = await Promise.all(
-          (result.data.guests || []).map(async (guest: Guest) => {
-            try {
-              const rsvpResponse = await fetch(`/api/admin/rsvps?guest_id=${guest.id}`);
-              if (rsvpResponse.ok) {
-                const rsvpResult = await rsvpResponse.json();
-                return {
-                  ...guest,
-                  rsvps: rsvpResult.success ? rsvpResult.data : [],
-                  rsvpExpanded: false,
-                };
-              }
-            } catch {
-              // Silently fail for RSVPs
-            }
-            return { ...guest, rsvps: [], rsvpExpanded: false };
-          })
-        );
-        
-        setGuests(guestsWithRSVPs);
+        setGuests(result.data.guests || []);
       } else {
         addToast({
           type: 'error',
@@ -283,41 +255,6 @@ export default function GuestsPage() {
       return newSet;
     });
   }, []);
-
-  /**
-   * Handle RSVP status update
-   */
-  const handleRSVPUpdate = useCallback(async (rsvpId: string, newStatus: string) => {
-    try {
-      const response = await fetch(`/api/admin/rsvps/${rsvpId}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status: newStatus }),
-      });
-
-      const result = await response.json();
-
-      if (result.success) {
-        addToast({
-          type: 'success',
-          message: 'RSVP updated successfully',
-        });
-        
-        // Refresh guest list to update RSVPs
-        await fetchGuests();
-      } else {
-        addToast({
-          type: 'error',
-          message: result.error?.message || 'Failed to update RSVP',
-        });
-      }
-    } catch (error) {
-      addToast({
-        type: 'error',
-        message: error instanceof Error ? error.message : 'Failed to update RSVP',
-      });
-    }
-  }, [addToast, fetchGuests]);
 
   /**
    * Handle add guest button click
@@ -663,7 +600,7 @@ export default function GuestsPage() {
   }, [groupToDelete, addToast, fetchGroups]);
 
   // Define table columns
-  const columns: ColumnDef<GuestWithRSVPs>[] = [
+  const columns: ColumnDef<Guest>[] = [
     {
       key: 'rsvpExpand',
       label: '',
@@ -1240,7 +1177,7 @@ export default function GuestsPage() {
           onDelete={handleDeleteClick}
           totalCount={guests.length}
           currentPage={1}
-          pageSize={25}
+          pageSize={50}
           idField="id"
           selectable={true}
           onBulkDelete={handleBulkDelete}
@@ -1248,38 +1185,35 @@ export default function GuestsPage() {
           showBulkEmail={true}
         />
         
-        {/* RSVP Management Expansion */}
+        {/* Inline RSVP Management */}
         {guests.map(guest => (
           expandedGuestIds.has(guest.id) && (
             <div key={`rsvp-${guest.id}`} className="mt-2 p-4 bg-sage-50 rounded-lg border border-sage-200">
-              <h3 className="text-lg font-semibold text-sage-900 mb-3">
-                RSVP Management for {guest.firstName} {guest.lastName}
-              </h3>
-              {guest.rsvps && guest.rsvps.length > 0 ? (
-                <div className="space-y-2">
-                  {guest.rsvps.map(rsvp => (
-                    <div key={rsvp.id} className="flex items-center justify-between p-3 bg-white rounded border border-sage-200">
-                      <div className="flex-1">
-                        <span className="text-sm font-medium text-sage-700">
-                          {rsvp.event_id ? 'Event' : 'Activity'} RSVP
-                        </span>
-                      </div>
-                      <select
-                        value={rsvp.status}
-                        onChange={(e) => handleRSVPUpdate(rsvp.id, e.target.value)}
-                        className="px-3 py-1 border border-sage-300 rounded-md focus:outline-none focus:ring-2 focus:ring-ocean-500"
-                      >
-                        <option value="pending">Pending</option>
-                        <option value="attending">Attending</option>
-                        <option value="declined">Declined</option>
-                        <option value="maybe">Maybe</option>
-                      </select>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <p className="text-sm text-sage-600">No RSVPs found for this guest.</p>
-              )}
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold text-sage-900">
+                  RSVP Management for {guest.firstName} {guest.lastName}
+                </h3>
+                <button
+                  onClick={() => toggleRSVPExpansion(guest.id)}
+                  className="text-sm text-sage-600 hover:text-sage-900"
+                  aria-label="Close RSVP management"
+                >
+                  Close
+                </button>
+              </div>
+              <Suspense 
+                fallback={
+                  <div className="flex items-center justify-center py-8">
+                    <Loader2 className="w-6 h-6 text-emerald-600 animate-spin" />
+                    <span className="ml-2 text-gray-600">Loading RSVP editor...</span>
+                  </div>
+                }
+              >
+                <InlineRSVPEditor 
+                  guestId={guest.id} 
+                  onUpdate={fetchGuests}
+                />
+              </Suspense>
             </div>
           )
         ))}

@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import * as guestService from '@/services/guestService';
-import { createAuthenticatedClient } from '@/lib/supabaseServer';
+import { createAuthenticatedClient, createServiceRoleClient } from '@/lib/supabaseServer';
 
 /**
  * GET /api/admin/guests

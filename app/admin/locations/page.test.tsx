@@ -66,6 +66,8 @@ global.fetch = jest.fn();
 describe('LocationManagementPage', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    // Reset fetch mock to ensure clean state
+    (global.fetch as jest.Mock) = jest.fn();
   });
 
   const mockLocations = [
@@ -106,26 +108,33 @@ describe('LocationManagementPage', () => {
   describe('Tree View Rendering', () => {
     it('should render location hierarchy', async () => {
       (global.fetch as jest.Mock).mockResolvedValueOnce({
+        ok: true,
+        status: 200,
         json: async () => ({ success: true, data: mockLocations }),
-      });
+      } as Response);
 
       render(<LocationManagementPage />);
 
+      // Wait for the location name to appear (it appears in both select and tree)
       await waitFor(() => {
-        expect(screen.getAllByText('Costa Rica').length).toBeGreaterThan(0);
-      });
+        const costaRicaElements = screen.getAllByText('Costa Rica');
+        expect(costaRicaElements.length).toBeGreaterThan(0);
+      }, { timeout: 5000 });
     });
 
     it('should expand and collapse nodes', async () => {
       (global.fetch as jest.Mock).mockResolvedValueOnce({
+        ok: true,
+        status: 200,
         json: async () => ({ success: true, data: mockLocations }),
-      });
+      } as Response);
 
       render(<LocationManagementPage />);
 
       await waitFor(() => {
-        expect(screen.getAllByText('Costa Rica').length).toBeGreaterThan(0);
-      });
+        const costaRicaElements = screen.getAllByText('Costa Rica');
+        expect(costaRicaElements.length).toBeGreaterThan(0);
+      }, { timeout: 5000 });
 
       // Click expand button
       const expandButton = screen.getByLabelText('Expand');
@@ -338,21 +347,23 @@ describe('LocationManagementPage', () => {
 
     it('should show no results message when search has no matches', async () => {
       (global.fetch as jest.Mock).mockResolvedValueOnce({
+        ok: true,
+        status: 200,
         json: async () => ({ success: true, data: mockLocations }),
-      });
+      } as Response);
 
       render(<LocationManagementPage />);
 
       await waitFor(() => {
         expect(screen.getAllByText('Costa Rica').length).toBeGreaterThan(0);
-      });
+      }, { timeout: 3000 });
 
       const searchInput = screen.getByPlaceholderText('Search locations...');
       fireEvent.change(searchInput, { target: { value: 'NonexistentLocation' } });
 
       await waitFor(() => {
         expect(screen.getByText('No locations match your search')).toBeInTheDocument();
-      });
+      }, { timeout: 3000 });
     });
   });
 

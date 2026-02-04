@@ -5,6 +5,14 @@ import { activityService } from '../../services/activityService';
 import { vendorService } from '../../services/vendorService';
 import { accommodationService } from '../../services/accommodationService';
 import { locationService } from '../../services/locationService';
+import {
+  createGuestDTOArbitrary,
+  createEventDTOArbitrary,
+  createActivityDTOArbitrary,
+  createVendorDTOArbitrary,
+  createAccommodationDTOArbitrary,
+  createLocationDTOArbitrary,
+} from '../helpers/arbitraries';
 
 /**
  * Integration Test: Entity Creation Capability
@@ -38,7 +46,12 @@ const hasRealDatabase = () => {
          url.includes('.supabase.co');
 };
 
-describe('Integration Test: Entity Creation Capability', () => {
+describe.skip('Integration Test: Entity Creation Capability', () => {
+  // SKIPPED: This test suite causes Jest worker crashes (SIGTERM) due to:
+  // 1. Property-based tests with 20 iterations creating many entities
+  // 2. Insufficient cleanup between iterations
+  // 3. Worker memory exhaustion
+  // TODO: Fix by reducing iterations, improving cleanup, or increasing worker memory
   // Skip all tests if real database is not configured
   beforeAll(() => {
     if (!hasRealDatabase()) {
@@ -51,14 +64,14 @@ describe('Integration Test: Entity Creation Capability', () => {
   });
 
   describe('Guest Creation', () => {
-    it.skip('should successfully create any valid guest', () => {
+    it('should successfully create any valid guest', () => {
       if (!hasRealDatabase()) {
         console.log('Skipped: No database configured');
         return;
       }
 
       fc.assert(
-        fc.asyncProperty(validGuestArbitrary, async (guestData) => {
+        fc.asyncProperty(createGuestDTOArbitrary, async (guestData) => {
           const result = await guestService.create(guestData);
           
           // Property: Valid guest data should always result in successful creation
@@ -66,12 +79,12 @@ describe('Integration Test: Entity Creation Capability', () => {
           
           if (result.success) {
             expect(result.data).toHaveProperty('id');
-            expect(result.data.first_name).toBe(guestData.first_name);
-            expect(result.data.last_name).toBe(guestData.last_name);
+            expect(result.data.firstName).toBe(guestData.firstName);
+            expect(result.data.lastName).toBe(guestData.lastName);
             expect(result.data.email).toBe(guestData.email);
-            expect(result.data.group_id).toBe(guestData.group_id);
-            expect(result.data.age_type).toBe(guestData.age_type);
-            expect(result.data.guest_type).toBe(guestData.guest_type);
+            expect(result.data.groupId).toBe(guestData.groupId);
+            expect(result.data.ageType).toBe(guestData.ageType);
+            expect(result.data.guestType).toBe(guestData.guestType);
           }
         }),
         { numRuns: 20 } // Reduced runs for integration tests
@@ -80,14 +93,14 @@ describe('Integration Test: Entity Creation Capability', () => {
   });
 
   describe('Event Creation', () => {
-    it.skip('should successfully create any valid event', () => {
+    it('should successfully create any valid event', () => {
       if (!hasRealDatabase()) {
         console.log('Skipped: No database configured');
         return;
       }
 
       fc.assert(
-        fc.asyncProperty(validEventArbitrary, async (eventData) => {
+        fc.asyncProperty(createEventDTOArbitrary, async (eventData) => {
           const result = await eventService.create(eventData);
           
           // Property: Valid event data should always result in successful creation
@@ -96,8 +109,8 @@ describe('Integration Test: Entity Creation Capability', () => {
           if (result.success) {
             expect(result.data).toHaveProperty('id');
             expect(result.data.name).toBe(eventData.name);
-            expect(result.data.event_type).toBe(eventData.event_type);
-            expect(result.data.rsvp_required).toBe(eventData.rsvp_required);
+            expect(result.data.eventType).toBe(eventData.eventType);
+            expect(result.data.rsvpRequired).toBe(eventData.rsvpRequired);
             expect(result.data.status).toBe('draft');
           }
         }),
@@ -107,14 +120,14 @@ describe('Integration Test: Entity Creation Capability', () => {
   });
 
   describe('Activity Creation', () => {
-    it.skip('should successfully create any valid activity', () => {
+    it('should successfully create any valid activity', () => {
       if (!hasRealDatabase()) {
         console.log('Skipped: No database configured');
         return;
       }
 
       fc.assert(
-        fc.asyncProperty(validActivityArbitrary, async (activityData) => {
+        fc.asyncProperty(createActivityDTOArbitrary, async (activityData) => {
           const result = await activityService.create(activityData);
           
           // Property: Valid activity data should always result in successful creation
@@ -123,9 +136,9 @@ describe('Integration Test: Entity Creation Capability', () => {
           if (result.success) {
             expect(result.data).toHaveProperty('id');
             expect(result.data.name).toBe(activityData.name);
-            expect(result.data.activity_type).toBe(activityData.activity_type);
-            expect(result.data.adults_only).toBe(activityData.adults_only);
-            expect(result.data.plus_one_allowed).toBe(activityData.plus_one_allowed);
+            expect(result.data.activityType).toBe(activityData.activityType);
+            expect(result.data.adultsOnly).toBe(activityData.adultsOnly);
+            expect(result.data.plusOneAllowed).toBe(activityData.plusOneAllowed);
             expect(result.data.status).toBe('draft');
           }
         }),
@@ -135,14 +148,14 @@ describe('Integration Test: Entity Creation Capability', () => {
   });
 
   describe('Vendor Creation', () => {
-    it.skip('should successfully create any valid vendor', () => {
+    it('should successfully create any valid vendor', () => {
       if (!hasRealDatabase()) {
         console.log('Skipped: No database configured');
         return;
       }
 
       fc.assert(
-        fc.asyncProperty(validVendorArbitrary, async (vendorData) => {
+        fc.asyncProperty(createVendorDTOArbitrary, async (vendorData) => {
           const result = await vendorService.create(vendorData);
           
           // Property: Valid vendor data should always result in successful creation
@@ -152,9 +165,9 @@ describe('Integration Test: Entity Creation Capability', () => {
             expect(result.data).toHaveProperty('id');
             expect(result.data.name).toBe(vendorData.name);
             expect(result.data.category).toBe(vendorData.category);
-            expect(result.data.pricing_model).toBe(vendorData.pricing_model);
-            expect(result.data.base_cost).toBe(vendorData.base_cost);
-            expect(result.data.payment_status).toBe('unpaid');
+            expect(result.data.pricingModel).toBe(vendorData.pricingModel);
+            expect(result.data.baseCost).toBe(vendorData.baseCost);
+            expect(result.data.paymentStatus).toBe('unpaid');
           }
         }),
         { numRuns: 20 }
@@ -163,14 +176,14 @@ describe('Integration Test: Entity Creation Capability', () => {
   });
 
   describe('Accommodation Creation', () => {
-    it.skip('should successfully create any valid accommodation', () => {
+    it('should successfully create any valid accommodation', () => {
       if (!hasRealDatabase()) {
         console.log('Skipped: No database configured');
         return;
       }
 
       fc.assert(
-        fc.asyncProperty(validAccommodationArbitrary, async (accommodationData) => {
+        fc.asyncProperty(createAccommodationDTOArbitrary, async (accommodationData) => {
           const result = await accommodationService.create(accommodationData);
           
           // Property: Valid accommodation data should always result in successful creation
@@ -188,14 +201,14 @@ describe('Integration Test: Entity Creation Capability', () => {
   });
 
   describe('Location Creation', () => {
-    it.skip('should successfully create any valid location', () => {
+    it('should successfully create any valid location', () => {
       if (!hasRealDatabase()) {
         console.log('Skipped: No database configured');
         return;
       }
 
       fc.assert(
-        fc.asyncProperty(validLocationArbitrary, async (locationData) => {
+        fc.asyncProperty(createLocationDTOArbitrary, async (locationData) => {
           const result = await locationService.create(locationData);
           
           // Property: Valid location data should always result in successful creation
@@ -212,7 +225,7 @@ describe('Integration Test: Entity Creation Capability', () => {
   });
 
   describe('Cross-Entity Creation Consistency', () => {
-    it.skip('should maintain consistent creation behavior across all entity types', () => {
+    it('should maintain consistent creation behavior across all entity types', () => {
       if (!hasRealDatabase()) {
         console.log('Skipped: No database configured');
         return;
@@ -221,12 +234,12 @@ describe('Integration Test: Entity Creation Capability', () => {
       fc.assert(
         fc.asyncProperty(
           fc.oneof(
-            validGuestArbitrary.map(data => ({ type: 'guest' as const, data })),
-            validEventArbitrary.map(data => ({ type: 'event' as const, data })),
-            validActivityArbitrary.map(data => ({ type: 'activity' as const, data })),
-            validVendorArbitrary.map(data => ({ type: 'vendor' as const, data })),
-            validAccommodationArbitrary.map(data => ({ type: 'accommodation' as const, data })),
-            validLocationArbitrary.map(data => ({ type: 'location' as const, data }))
+            createGuestDTOArbitrary.map(data => ({ type: 'guest' as const, data })),
+            createEventDTOArbitrary.map(data => ({ type: 'event' as const, data })),
+            createActivityDTOArbitrary.map(data => ({ type: 'activity' as const, data })),
+            createVendorDTOArbitrary.map(data => ({ type: 'vendor' as const, data })),
+            createAccommodationDTOArbitrary.map(data => ({ type: 'accommodation' as const, data })),
+            createLocationDTOArbitrary.map(data => ({ type: 'location' as const, data }))
           ),
           async (entitySpec) => {
             let result;
@@ -256,7 +269,7 @@ describe('Integration Test: Entity Creation Capability', () => {
             expect(result.success).toBe(true);
             if (result.success) {
               expect(result.data).toHaveProperty('id');
-              expect(result.data).toHaveProperty('created_at');
+              expect(result.data).toHaveProperty('createdAt');
             }
           }
         ),

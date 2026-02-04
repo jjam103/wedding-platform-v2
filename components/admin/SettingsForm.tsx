@@ -44,6 +44,11 @@ export default function SettingsForm({ initialSettings }: SettingsFormProps) {
     initialSettings?.max_photos_per_guest ?? 20
   );
 
+  // Guest authentication settings
+  const [defaultAuthMethod, setDefaultAuthMethod] = useState<'email_matching' | 'magic_link'>(
+    initialSettings?.default_auth_method || 'email_matching'
+  );
+
   const handleSubmit = useCallback(
     async (e: React.FormEvent) => {
       e.preventDefault();
@@ -67,6 +72,7 @@ export default function SettingsForm({ initialSettings }: SettingsFormProps) {
             require_photo_moderation: requirePhotoModeration,
             max_photos_per_guest: maxPhotosPerGuest,
             allowed_photo_formats: ['jpg', 'jpeg', 'png', 'heic'],
+            default_auth_method: defaultAuthMethod,
           }),
         });
 
@@ -102,6 +108,7 @@ export default function SettingsForm({ initialSettings }: SettingsFormProps) {
       reminderDaysBefore,
       requirePhotoModeration,
       maxPhotosPerGuest,
+      defaultAuthMethod,
       router,
     ]
   );
@@ -305,6 +312,47 @@ export default function SettingsForm({ initialSettings }: SettingsFormProps) {
             <div>
               <p className="text-sm text-sage-600">
                 Allowed photo formats: JPG, JPEG, PNG, HEIC
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Guest Authentication Settings */}
+        <div className="bg-white rounded-lg shadow-md p-6">
+          <h2 className="text-xl font-semibold text-sage-900 mb-4">Guest Authentication</h2>
+          <div className="space-y-4">
+            <div>
+              <label htmlFor="defaultAuthMethod" className="block text-sm font-medium text-sage-700 mb-2">
+                Default Authentication Method
+              </label>
+              <select
+                id="defaultAuthMethod"
+                value={defaultAuthMethod}
+                onChange={(e) => setDefaultAuthMethod(e.target.value as 'email_matching' | 'magic_link')}
+                className="w-full px-4 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-jungle-500 focus:border-transparent"
+              >
+                <option value="email_matching">Email Matching</option>
+                <option value="magic_link">Magic Link (Passwordless)</option>
+              </select>
+              <p className="mt-2 text-sm text-sage-600">
+                {defaultAuthMethod === 'email_matching' 
+                  ? 'Guests log in by entering their email address. The system matches it to their guest record.'
+                  : 'Guests request a one-time login link sent to their email address.'}
+              </p>
+            </div>
+
+            <div className="bg-ocean-50 border border-ocean-200 rounded-lg p-4">
+              <h3 className="text-sm font-semibold text-ocean-900 mb-2">Authentication Methods</h3>
+              <ul className="text-sm text-ocean-800 space-y-2">
+                <li>
+                  <strong>Email Matching:</strong> Simple and fast. Guests enter their email and are logged in immediately if it matches their guest record.
+                </li>
+                <li>
+                  <strong>Magic Link:</strong> More secure. Guests request a login link sent to their email. The link expires after 15 minutes and can only be used once.
+                </li>
+              </ul>
+              <p className="mt-3 text-sm text-ocean-700">
+                You can override the authentication method for individual guests in the Guest List.
               </p>
             </div>
           </div>

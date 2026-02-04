@@ -5,6 +5,7 @@ export const dynamic = 'force-dynamic';
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { DataTableWithSuspense as DataTable, type ColumnDef } from '@/components/ui/DataTableWithSuspense';
 import { CollapsibleForm } from '@/components/admin/CollapsibleForm';
+import { InlineSectionEditor } from '@/components/admin/InlineSectionEditor';
 import { LocationSelector } from '@/components/admin/LocationSelector';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { Button } from '@/components/ui/Button';
@@ -18,6 +19,12 @@ interface Location {
   id: string;
   name: string;
   parentLocationId?: string | null;
+}
+
+interface Event {
+  id: string;
+  name: string;
+  slug?: string | null;
 }
 
 /**
@@ -43,6 +50,7 @@ export default function AccommodationsPage() {
   // State management
   const [accommodations, setAccommodations] = useState<Accommodation[]>([]);
   const [locations, setLocations] = useState<Location[]>([]);
+  const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -96,7 +104,7 @@ export default function AccommodationsPage() {
 
       const result = await response.json();
       if (result.success) {
-        setLocations(result.data.locations || []);
+        setLocations(result.data || []);
       }
     } catch (error) {
       // Silently fail for locations - not critical
@@ -104,11 +112,32 @@ export default function AccommodationsPage() {
     }
   }, []);
 
+  /**
+   * Fetch events for dropdown
+   */
+  const fetchEvents = useCallback(async () => {
+    try {
+      const response = await fetch('/api/admin/events');
+      if (!response.ok) {
+        return;
+      }
+
+      const result = await response.json();
+      if (result.success) {
+        setEvents(result.data.events || []);
+      }
+    } catch (error) {
+      // Silently fail for events - not critical
+      console.error('Failed to fetch events:', error);
+    }
+  }, []);
+
   // Load data on mount
   useEffect(() => {
     fetchAccommodations();
     fetchLocations();
-  }, [fetchAccommodations, fetchLocations]);
+    fetchEvents();
+  }, [fetchAccommodations, fetchLocations, fetchEvents]);
 
   /**
    * Handle row click - open edit form
@@ -142,14 +171,6 @@ export default function AccommodationsPage() {
   const handleRoomTypes = useCallback((accommodation: Accommodation) => {
     // Navigate to room types page for this accommodation
     router.push(`/admin/accommodations/${accommodation.id}/room-types`);
-  }, [router]);
-
-  /**
-   * Handle manage sections button click
-   */
-  const handleManageSections = useCallback((accommodation: Accommodation) => {
-    // Navigate to section editor for this accommodation
-    router.push(`/admin/accommodations/${accommodation.id}/sections`);
   }, [router]);
 
   /**
@@ -288,6 +309,16 @@ export default function AccommodationsPage() {
       },
     },
     {
+      key: 'eventId',
+      label: 'Event',
+      sortable: true,
+      render: (value) => {
+        if (!value) return '-';
+        const event = events.find(e => e.id === value);
+        return event?.name || '-';
+      },
+    },
+    {
       key: 'checkInDate',
       label: 'Check-in',
       sortable: true,
@@ -331,40 +362,35 @@ export default function AccommodationsPage() {
       key: 'actions',
       label: 'Actions',
       sortable: false,
-      render: (_, row) => (
-        <div className="flex gap-2">
-          <Button
-            variant="secondary"
-            size="sm"
-            onClick={(e) => {
-              e.stopPropagation();
-              window.location.href = `/guest/accommodation/${(row as Accommodation).id}`;
-            }}
-          >
-            View
-          </Button>
-          <Button
-            variant="secondary"
-            size="sm"
-            onClick={(e) => {
-              e.stopPropagation();
-              handleRoomTypes(row as Accommodation);
-            }}
-          >
-            Room Types
-          </Button>
-          <Button
-            variant="secondary"
-            size="sm"
-            onClick={(e) => {
-              e.stopPropagation();
-              handleManageSections(row as Accommodation);
-            }}
-          >
-            Manage Sections
-          </Button>
-        </div>
-      ),
+      render: (_, row) => {
+        const accommodation = row as Accommodation;
+        
+        return (
+          <div className="flex gap-2">
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={(e) => {
+                e.stopPropagation();
+                window.open(`/accommodation/${accommodation.slug || accommodation.id}`, '_blank');
+              }}
+              title="View accommodation detail page"
+            >
+              View
+            </Button>
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={(e) => {
+                e.stopPropagation();
+                handleRoomTypes(accommodation);
+              }}
+            >
+              Room Types
+            </Button>
+          </div>
+        );
+      },
     },
   ];
 
@@ -474,6 +500,16 @@ export default function AccommodationsPage() {
           </p>
         </div>
       </CollapsibleForm>
+
+      {/* Inline Section Editor - Shows when editing an existing accommodation */}
+      {isFormOpen && selectedAccommodation && (
+        <InlineSectionEditor
+          pageType="accommodation"
+          pageId={selectedAccommodation.id}
+          entityName={selectedAccommodation.name}
+          defaultExpanded={false}
+        />
+      )}
 
       {/* Data Table */}
       <DataTable

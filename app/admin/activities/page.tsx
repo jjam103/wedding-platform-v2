@@ -5,6 +5,7 @@ export const dynamic = 'force-dynamic';
 import { useState, useEffect, useCallback } from 'react';
 import { DataTableWithSuspense as DataTable, type ColumnDef } from '@/components/ui/DataTableWithSuspense';
 import { CollapsibleForm } from '@/components/admin/CollapsibleForm';
+import { SectionEditor } from '@/components/admin/SectionEditor';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { Button } from '@/components/ui/Button';
 import { StatusBadge } from '@/components/ui/StatusBadge';
@@ -57,6 +58,9 @@ export default function ActivitiesPage() {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [selectedActivity, setSelectedActivity] = useState<ActivityWithCapacity | null>(null);
   const [activityToDelete, setActivityToDelete] = useState<ActivityWithCapacity | null>(null);
+  const [expandedActivityId, setExpandedActivityId] = useState<string | null>(null);
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [isBulkDeleteDialogOpen, setIsBulkDeleteDialogOpen] = useState(false);
 
   /**
    * Fetch activities from API with capacity information
@@ -163,6 +167,13 @@ export default function ActivitiesPage() {
   }, [fetchActivities, fetchLocations]); // Removed fetchEvents from dependencies
 
   /**
+   * Handle toggle sections
+   */
+  const handleToggleSections = useCallback((activityId: string) => {
+    setExpandedActivityId(prev => prev === activityId ? null : activityId);
+  }, []);
+
+  /**
    * Handle row click - open edit form
    */
   const handleRowClick = useCallback((activity: ActivityWithCapacity) => {
@@ -177,13 +188,6 @@ export default function ActivitiesPage() {
     setSelectedActivity(null);
     setIsFormOpen(true);
   }, []);
-
-  /**
-   * Handle manage sections button click
-   */
-  const handleManageSections = useCallback((activity: ActivityWithCapacity) => {
-    router.push(`/admin/activities/${activity.id}/sections`);
-  }, [router]);
 
   /**
    * Handle delete button click
@@ -284,6 +288,49 @@ export default function ActivitiesPage() {
   }, [activityToDelete, addToast, fetchActivities]);
 
   /**
+   * Handle bulk delete
+   */
+  const handleBulkDelete = useCallback(async (ids: string[]) => {
+    if (!ids || ids.length === 0) return;
+
+    try {
+      const response = await fetch('/api/admin/activities/bulk-delete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ids }),
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        addToast({
+          type: 'success',
+          message: result.data.message || `Successfully deleted ${ids.length} activity/activities`,
+        });
+        
+        // Clear selection
+        setSelectedIds([]);
+        
+        // Refresh activity list
+        await fetchActivities();
+        
+        // Close dialog
+        setIsBulkDeleteDialogOpen(false);
+      } else {
+        addToast({
+          type: 'error',
+          message: result.error?.message || 'Failed to delete activities',
+        });
+      }
+    } catch (error) {
+      addToast({
+        type: 'error',
+        message: error instanceof Error ? error.message : 'Failed to delete activities',
+      });
+    }
+  }, [addToast, fetchActivities]);
+
+  /**
    * Format date for display
    */
   const formatDate = (dateString: string) => {
@@ -348,7 +395,7 @@ export default function ActivitiesPage() {
       render: (value, row) => {
         if (value === null || value === undefined) return 'Unlimited';
         const current = row.currentRsvps || 0;
-        const percentage = row.utilizationPercentage || 0;
+        const percentage = row.utilizationPercentage ?? 0;
         
         // Determine capacity status badge
         let capacityStatus: 'capacity-normal' | 'capacity-warning' | 'capacity-alert' = 'capacity-normal';
@@ -360,7 +407,7 @@ export default function ActivitiesPage() {
         
         return (
           <div className="flex items-center gap-2">
-            <span>{current}/{value} ({percentage.toFixed(0)}%)</span>
+            <span>{current}/{value} ({(percentage ?? 0).toFixed(0)}%)</span>
             {percentage >= 90 && <StatusBadge status={capacityStatus} />}
           </div>
         );
@@ -398,30 +445,35 @@ export default function ActivitiesPage() {
       key: 'actions',
       label: 'Actions',
       sortable: false,
-      render: (_, row) => (
-        <div className="flex gap-2">
-          <Button
-            variant="secondary"
-            size="sm"
-            onClick={(e) => {
-              e.stopPropagation();
-              window.location.href = `/guest/activities/${(row as ActivityWithCapacity).id}`;
-            }}
-          >
-            View
-          </Button>
-          <Button
-            variant="secondary"
-            size="sm"
-            onClick={(e) => {
-              e.stopPropagation();
-              handleManageSections(row as ActivityWithCapacity);
-            }}
-          >
-            Manage Sections
-          </Button>
-        </div>
-      ),
+      render: (_, row) => {
+        const activity = row as Activity;
+        return (
+          <div className="flex gap-2">
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={(e) => {
+                e.stopPropagation();
+                const slug = activity.slug || activity.id;
+                window.open(`/activity/${slug}`, '_blank');
+              }}
+              title="View activity detail page"
+            >
+              View
+            </Button>
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={(e) => {
+                e.stopPropagation();
+                handleToggleSections(activity.id);
+              }}
+            >
+              {expandedActivityId === activity.id ? 'Hide Sections' : 'Sections'}
+            </Button>
+          </div>
+        );
+      },
     },
   ];
 
@@ -494,8 +546,8 @@ export default function ActivitiesPage() {
       type: 'number',
       required: false,
       placeholder: 'Leave empty for unlimited',
-      helpText: selectedActivity && selectedActivity.utilizationPercentage !== undefined
-        ? `Current utilization: ${selectedActivity.utilizationPercentage.toFixed(0)}% (${selectedActivity.currentRsvps || 0} RSVPs)`
+      helpText: selectedActivity && selectedActivity.utilizationPercentage !== undefined && selectedActivity.utilizationPercentage !== null
+        ? `Current utilization: ${(selectedActivity.utilizationPercentage ?? 0).toFixed(0)}% (${selectedActivity.currentRsvps || 0} RSVPs)`
         : undefined,
     },
     {
@@ -565,25 +617,168 @@ export default function ActivitiesPage() {
         submitLabel={selectedActivity ? 'Update Activity' : 'Create Activity'}
       />
 
-      {/* Data Table */}
-      <DataTable
-        data={activities}
-        columns={columns}
-        loading={loading}
-        onRowClick={handleRowClick}
-        onDelete={handleDeleteClick}
-        totalCount={activities.length}
-        currentPage={1}
-        pageSize={25}
-        idField="id"
-        rowClassName={(row) => {
-          // Highlight rows at 90%+ capacity in warning color
-          if (row.utilizationPercentage && row.utilizationPercentage >= 90) {
-            return 'bg-volcano-50 hover:bg-volcano-100';
-          }
-          return '';
-        }}
-      />
+      {/* Bulk Actions */}
+      {selectedIds.length > 0 && (
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 flex items-center justify-between">
+          <div className="text-sm text-blue-800">
+            {selectedIds.length} activity/activities selected
+          </div>
+          <div className="flex gap-2">
+            <Button
+              size="sm"
+              variant="secondary"
+              onClick={() => setSelectedIds([])}
+            >
+              Clear Selection
+            </Button>
+            <Button
+              size="sm"
+              variant="danger"
+              onClick={() => setIsBulkDeleteDialogOpen(true)}
+            >
+              Delete Selected
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {/* Bulk Actions */}
+      {selectedIds.length > 0 && (
+        <div className="bg-jungle-50 border border-jungle-200 rounded-lg p-4 flex items-center justify-between">
+          <div className="text-sm text-jungle-800">
+            {selectedIds.length} {selectedIds.length === 1 ? 'activity' : 'activities'} selected
+          </div>
+          <div className="flex gap-2">
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => setSelectedIds([])}
+            >
+              Clear Selection
+            </Button>
+            <Button
+              variant="danger"
+              size="sm"
+              onClick={() => setIsBulkDeleteDialogOpen(true)}
+            >
+              Delete Selected
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {/* Activities List with Inline Sections */}
+      {loading ? (
+        <div className="text-center py-12">
+          <div className="text-gray-500">Loading activities...</div>
+        </div>
+      ) : activities.length === 0 ? (
+        <div className="text-center py-12 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
+          <p className="text-gray-500 mb-4">No activities yet</p>
+          <Button onClick={handleAddActivity} variant="primary" size="sm">
+            Create First Activity
+          </Button>
+        </div>
+      ) : (
+        <div className="space-y-4">
+          {activities.map((activity) => {
+            const event = events.find(e => e.id === activity.eventId);
+            const utilizationPercentage = activity.utilizationPercentage ?? 0;
+            
+            return (
+              <div key={activity.id} className="border border-gray-200 rounded-lg overflow-hidden bg-white">
+                {/* Activity row */}
+                <div className="p-4 flex items-center justify-between hover:bg-gray-50">
+                  <div className="flex items-center gap-4 flex-1">
+                    {/* Checkbox for bulk selection */}
+                    <input
+                      type="checkbox"
+                      checked={selectedIds.includes(activity.id)}
+                      onChange={(e) => {
+                        if (e.target.checked) {
+                          setSelectedIds([...selectedIds, activity.id]);
+                        } else {
+                          setSelectedIds(selectedIds.filter(id => id !== activity.id));
+                        }
+                      }}
+                      className="h-4 w-4 text-jungle-600 focus:ring-jungle-500 border-gray-300 rounded"
+                      onClick={(e) => e.stopPropagation()}
+                    />
+                    <div className="flex-1">
+                      <div className="font-medium text-gray-900">{activity.name}</div>
+                      <div className="text-sm text-gray-500 mt-1">
+                        {event?.name || 'No event'} • {formatDate(activity.startTime)} at {formatTime(activity.startTime)}
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-4">
+                      {activity.capacity && (
+                        <div className="text-sm">
+                          <span className={utilizationPercentage >= 90 ? 'text-volcano-700 font-medium' : 'text-gray-600'}>
+                            {activity.currentRsvps || 0}/{activity.capacity} ({(utilizationPercentage ?? 0).toFixed(0)}%)
+                          </span>
+                        </div>
+                      )}
+                      <span
+                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                          activity.status === 'published'
+                            ? 'bg-jungle-100 text-jungle-800'
+                            : 'bg-sage-100 text-sage-800'
+                        }`}
+                      >
+                        {activity.status === 'published' ? 'Published' : 'Draft'}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="flex gap-2 ml-4">
+                    <Button
+                      size="sm"
+                      variant="secondary"
+                      onClick={() => {
+                        const slug = activity.slug || activity.id;
+                        window.open(`/activity/${slug}`, '_blank');
+                      }}
+                      title="View activity detail page"
+                    >
+                      View
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="secondary"
+                      onClick={() => handleRowClick(activity)}
+                    >
+                      Edit
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="secondary"
+                      onClick={() => handleToggleSections(activity.id)}
+                    >
+                      {expandedActivityId === activity.id ? '▼ Hide Sections' : '▶ Sections'}
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="danger"
+                      onClick={() => handleDeleteClick(activity)}
+                    >
+                      Delete
+                    </Button>
+                  </div>
+                </div>
+
+                {/* Sections editor - appears inline below the activity row */}
+                {expandedActivityId === activity.id && (
+                  <div className="border-t border-gray-200 bg-gray-50 p-6">
+                    <SectionEditor
+                      pageType="activity"
+                      pageId={activity.id}
+                    />
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
 
       {/* Delete Confirmation Dialog */}
       <ConfirmDialog
@@ -596,6 +791,18 @@ export default function ActivitiesPage() {
         title="Delete Activity"
         message={`Are you sure you want to delete "${activityToDelete?.name}"? This action cannot be undone.`}
         confirmLabel="Delete"
+        cancelLabel="Cancel"
+        variant="danger"
+      />
+
+      {/* Bulk Delete Confirmation Dialog */}
+      <ConfirmDialog
+        isOpen={isBulkDeleteDialogOpen}
+        onClose={() => setIsBulkDeleteDialogOpen(false)}
+        onConfirm={() => handleBulkDelete(selectedIds)}
+        title="Delete Multiple Activities"
+        message={`Are you sure you want to delete ${selectedIds.length} activity/activities? This action cannot be undone.`}
+        confirmLabel="Delete All"
         cancelLabel="Cancel"
         variant="danger"
       />

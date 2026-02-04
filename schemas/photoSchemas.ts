@@ -9,6 +9,7 @@ export const createPhotoSchema = z.object({
   caption: z.string().max(500).optional(),
   alt_text: z.string().max(200).optional(),
   display_order: z.number().int().min(0).optional(),
+  moderation_status: z.enum(['pending', 'approved', 'rejected']).optional(),
 });
 
 export const updatePhotoSchema = createPhotoSchema.partial().extend({

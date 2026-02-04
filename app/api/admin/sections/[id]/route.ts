@@ -24,9 +24,12 @@ export async function PUT(
 
     // 2. Parse and validate request body
     const body = await request.json();
+    console.log('[Section Update] Request body:', JSON.stringify(body, null, 2));
+    
     const validation = validateBody(body, updateSectionSchema);
 
     if (!validation.success) {
+      console.error('[Section Update] Validation failed:', JSON.stringify(validation.error, null, 2));
       return errorResponse(
         validation.error.code,
         validation.error.message,
@@ -35,6 +38,8 @@ export async function PUT(
       );
     }
 
+    console.log('[Section Update] Validation passed, updating section...');
+
     // 3. Update section
     const resolvedParams = await params;
 
@@ -42,6 +47,7 @@ export async function PUT(
 
     // 4. Return response
     if (!result.success) {
+      console.error('[Section Update] Service error:', result.error);
       const statusCode = result.error.code === 'NOT_FOUND' ? 404 : 500;
       return errorResponse(
         result.error.code,
@@ -51,8 +57,10 @@ export async function PUT(
       );
     }
 
+    console.log('[Section Update] Success');
     return successResponse(result.data);
   } catch (error) {
+    console.error('[Section Update] Unexpected error:', error);
     return errorResponse(
       'INTERNAL_ERROR',
       error instanceof Error ? error.message : 'Unknown error',

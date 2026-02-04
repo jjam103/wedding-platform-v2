@@ -1,18 +1,17 @@
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
-import { z } from 'zod';
-
-const driverSheetsSchema = z.object({
-  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
-  type: z.enum(['arrivals', 'departures']),
-});
 
 /**
- * POST /api/admin/transportation/driver-sheets
- * Generate driver sheets for a specific date
+ * GET /api/admin/transportation/driver-sheets
+ * Generate printable driver sheet with guest details for a specific shuttle
+ * 
+ * Query params:
+ * - shuttleId: string - Shuttle identifier
+ * - date: YYYY-MM-DD format
+ * - type: 'arrival' | 'departure'
  */
-export async function POST(request: Request) {
+export async function GET(request: Request) {
   try {
     // 1. Auth check
     const cookieStore = await cookies();
@@ -32,6 +31,7 @@ export async function POST(request: Request) {
         },
       }
     );
+    
     const {
       data: { session },
       error: authError,
@@ -47,153 +47,178 @@ export async function POST(request: Request) {
       );
     }
 
-    // 2. Parse and validate request body
-    const body = await request.json();
-    const validation = driverSheetsSchema.safeParse(body);
+    // 2. Parse query parameters
+    const { searchParams } = new URL(request.url);
+    const shuttleId = searchParams.get('shuttleId');
+    const date = searchParams.get('date');
+    const type = searchParams.get('type');
 
-    if (!validation.success) {
+    if (!shuttleId || !date || !type) {
       return NextResponse.json(
         {
           success: false,
           error: {
             code: 'VALIDATION_ERROR',
-            message: 'Invalid request data',
-            details: validation.error.issues,
+            message: 'shuttleId, date, and type parameters are required',
           },
         },
         { status: 400 }
       );
     }
 
-    const { date, type } = validation.data;
-
-    // 3. Query guests
-    const dateField = type === 'arrivals' ? 'arrival_date' : 'departure_date';
-    const timeField = type === 'arrivals' ? 'arrival_time' : 'departure_time';
-
-    const { data: guests, error } = await supabase
-      .from('guests')
-      .select(`id, first_name, last_name, ${timeField}, airport_code, flight_number, phone, shuttle_assignment`)
-      .eq(dateField, date)
-      .not('airport_code', 'is', null)
-      .order(timeField);
-
-    if (error) {
+    if (!['arrival', 'departure'].includes(type)) {
       return NextResponse.json(
         {
           success: false,
-          error: { code: 'DATABASE_ERROR', message: error.message, details: error },
+          error: {
+            code: 'VALIDATION_ERROR',
+            message: 'type must be arrival or departure',
+          },
+        },
+        { status: 400 }
+      );
+    }
+
+    // 3. Use service role for database operations
+    const serviceRoleSupabase = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!,
+      {
+        cookies: {
+          getAll() {
+            return cookieStore.getAll();
+          },
+          setAll(cookiesToSet) {
+            cookiesToSet.forEach(({ name, value }) => {
+              cookieStore.set(name, value);
+            });
+          },
+        },
+      }
+    );
+
+    // 4. Query guests assigned to this shuttle
+    const dateField = type === 'arrival' ? 'arrival_date' : 'departure_date';
+    const shuttleField = type === 'arrival' ? 'arrival_shuttle' : 'departure_shuttle';
+    const timeField = type === 'arrival' ? 'arrival_time' : 'departure_time';
+    const airportField = type === 'arrival' ? 'arrival_airport' : 'departure_airport';
+    const flightField = type === 'arrival' ? 'arrival_flight' : 'departure_flight';
+
+    const { data: guests, error: guestError } = await serviceRoleSupabase
+      .from('guests')
+      .select(`
+        id,
+        first_name,
+        last_name,
+        email,
+        phone,
+        ${timeField},
+        ${airportField},
+        ${flightField},
+        accommodation_id,
+        accommodations (
+          name,
+          address
+        )
+      `)
+      .eq(shuttleField, shuttleId)
+      .eq(dateField, date)
+      .order('last_name', { ascending: true });
+
+    if (guestError) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: {
+            code: 'DATABASE_ERROR',
+            message: 'Failed to fetch guests for shuttle',
+            details: guestError,
+          },
         },
         { status: 500 }
       );
     }
 
-    // 4. Group by shuttle assignment
-    const shuttleGroups = new Map<string, any[]>();
-    
-    guests?.forEach((guest: any) => {
-      const shuttle = guest.shuttle_assignment || 'Unassigned';
-      if (!shuttleGroups.has(shuttle)) {
-        shuttleGroups.set(shuttle, []);
-      }
-      shuttleGroups.get(shuttle)!.push(guest);
-    });
+    if (!guests || guests.length === 0) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: {
+            code: 'NOT_FOUND',
+            message: 'No guests found for this shuttle',
+          },
+        },
+        { status: 404 }
+      );
+    }
 
-    // 5. Generate HTML for driver sheets
-    const html = generateDriverSheetsHTML(shuttleGroups, date, type);
+    // 5. Format data for driver sheet
+    const driverSheet = {
+      shuttleId,
+      date,
+      type,
+      guestCount: guests.length,
+      guests: guests.map(guest => ({
+        id: guest.id,
+        name: `${guest.first_name} ${guest.last_name}`,
+        email: guest.email,
+        phone: guest.phone,
+        time: (guest as any)[timeField],
+        airport: (guest as any)[airportField],
+        flight: (guest as any)[flightField],
+        accommodation: guest.accommodations ? {
+          name: (guest.accommodations as any).name,
+          address: (guest.accommodations as any).address,
+        } : null,
+      })),
+      // Group by time for easier scheduling
+      byTime: guests.reduce((acc: any, guest: any) => {
+        const time = guest[timeField] || 'No time specified';
+        if (!acc[time]) {
+          acc[time] = [];
+        }
+        acc[time].push({
+          name: `${guest.first_name} ${guest.last_name}`,
+          airport: guest[airportField],
+          flight: guest[flightField],
+          accommodation: guest.accommodations?.name || 'Not specified',
+        });
+        return acc;
+      }, {} as Record<string, any[]>),
+      // Group by airport for route planning
+      byAirport: guests.reduce((acc: any, guest: any) => {
+        const airport = guest[airportField] || 'No airport specified';
+        if (!acc[airport]) {
+          acc[airport] = [];
+        }
+        acc[airport].push({
+          name: `${guest.first_name} ${guest.last_name}`,
+          time: guest[timeField],
+          flight: guest[flightField],
+        });
+        return acc;
+      }, {} as Record<string, any[]>),
+    };
 
-    return NextResponse.json({
-      success: true,
-      data: { html },
-    });
+    // 6. Return formatted driver sheet
+    return NextResponse.json(
+      {
+        success: true,
+        data: driverSheet,
+      },
+      { status: 200 }
+    );
   } catch (error) {
+    console.error('GET /api/admin/transportation/driver-sheets error:', error);
     return NextResponse.json(
       {
         success: false,
         error: {
-          code: 'UNKNOWN_ERROR',
-          message: error instanceof Error ? error.message : 'Unknown error',
+          code: 'INTERNAL_ERROR',
+          message: 'Failed to generate driver sheet',
         },
       },
       { status: 500 }
     );
   }
-}
-
-function generateDriverSheetsHTML(
-  shuttleGroups: Map<string, any[]>,
-  date: string,
-  type: string
-): string {
-  const title = type === 'arrivals' ? 'Arrival' : 'Departure';
-  
-  let html = `
-    <!DOCTYPE html>
-    <html>
-    <head>
-      <title>Driver Sheets - ${title} - ${date}</title>
-      <style>
-        body { font-family: Arial, sans-serif; margin: 20px; }
-        h1 { text-align: center; }
-        .shuttle-group { page-break-after: always; margin-bottom: 40px; }
-        .shuttle-group:last-child { page-break-after: auto; }
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
-        th { background-color: #f2f2f2; }
-        .summary { margin-top: 20px; font-weight: bold; }
-        @media print {
-          .shuttle-group { page-break-after: always; }
-        }
-      </style>
-    </head>
-    <body>
-      <h1>${title} Driver Sheets - ${date}</h1>
-  `;
-
-  for (const [shuttle, guests] of shuttleGroups.entries()) {
-    html += `
-      <div class="shuttle-group">
-        <h2>Shuttle: ${shuttle}</h2>
-        <p class="summary">Total Guests: ${guests.length}</p>
-        <table>
-          <thead>
-            <tr>
-              <th>Guest Name</th>
-              <th>Flight</th>
-              <th>Time</th>
-              <th>Airport</th>
-              <th>Phone</th>
-            </tr>
-          </thead>
-          <tbody>
-    `;
-
-    guests.forEach((guest: any) => {
-      const timeField = type === 'arrivals' ? 'arrival_time' : 'departure_time';
-      const time = guest[timeField] ? guest[timeField].substring(0, 5) : '-';
-      
-      html += `
-        <tr>
-          <td>${guest.first_name} ${guest.last_name}</td>
-          <td>${guest.flight_number || '-'}</td>
-          <td>${time}</td>
-          <td>${guest.airport_code || '-'}</td>
-          <td>${guest.phone || '-'}</td>
-        </tr>
-      `;
-    });
-
-    html += `
-          </tbody>
-        </table>
-      </div>
-    `;
-  }
-
-  html += `
-    </body>
-    </html>
-  `;
-
-  return html;
 }

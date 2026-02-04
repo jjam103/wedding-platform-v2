@@ -1,0 +1,126 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e1]:
+  - link "Skip to main content" [ref=e2] [cursor=pointer]:
+    - /url: "#main-content"
+  - link "Skip to main content" [ref=e3] [cursor=pointer]:
+    - /url: "#main-content"
+  - generic [ref=e4]:
+    - navigation "Main navigation" [ref=e5]:
+      - generic [ref=e6]:
+        - generic [ref=e7]:
+          - link "Admin" [ref=e8] [cursor=pointer]:
+            - /url: /admin
+            - generic [ref=e9]: 🌴
+            - generic [ref=e10]: Admin
+          - button "Content" [ref=e11]:
+            - generic [ref=e12]: 📝
+            - generic [ref=e13]: Content
+          - button "Guests" [ref=e14]:
+            - generic [ref=e15]: 👥
+            - generic [ref=e16]: Guests
+          - button "RSVPs" [ref=e17]:
+            - generic [ref=e18]: ✓
+            - generic [ref=e19]: RSVPs
+          - button "Logistics" [ref=e20]:
+            - generic [ref=e21]: 🚗
+            - generic [ref=e22]: Logistics
+          - button "Admin" [ref=e23]:
+            - generic [ref=e24]: ⚙️
+            - generic [ref=e25]: Admin
+        - generic [ref=e26]:
+          - link "Home Page" [ref=e27] [cursor=pointer]:
+            - /url: /admin/home-page
+          - link "Activities" [active] [ref=e28] [cursor=pointer]:
+            - /url: /admin/activities
+          - link "Events" [ref=e29] [cursor=pointer]:
+            - /url: /admin/events
+          - link "Content Pages" [ref=e30] [cursor=pointer]:
+            - /url: /admin/content-pages
+          - link "Locations" [ref=e31] [cursor=pointer]:
+            - /url: /admin/locations
+          - link "Photos" [ref=e32] [cursor=pointer]:
+            - /url: /admin/photos
+    - banner [ref=e33]:
+      - generic [ref=e34]:
+        - heading "Wedding Admin" [level=1] [ref=e36]
+        - toolbar "User actions" [ref=e37]:
+          - button "Notifications (coming soon)" [ref=e38]: 🔔
+          - button "User menu" [ref=e40]:
+            - generic [ref=e41]: A
+            - generic [ref=e42]: Admin
+            - generic [ref=e43]: ▼
+    - main [ref=e44]:
+      - generic [ref=e46]:
+        - generic [ref=e48]:
+          - heading "Activity Management" [level=1] [ref=e49]
+          - paragraph [ref=e50]: Manage your wedding activities
+        - generic [ref=e51]:
+          - button "Add Activity" [ref=e52]:
+            - generic [ref=e53]: Add Activity
+            - generic [ref=e54]: ▼
+          - generic [ref=e55]:
+            - generic [ref=e56]:
+              - generic [ref=e57]:
+                - generic [ref=e58]: Activity Name*
+                - textbox [ref=e59]:
+                  - /placeholder: Enter activity name
+              - generic [ref=e60]:
+                - generic [ref=e61]: Activity Type*
+                - combobox [ref=e62]
+              - generic [ref=e63]:
+                - generic [ref=e64]: Description
+                - textbox [ref=e65]:
+                  - /placeholder: Enter activity description
+              - generic [ref=e66]:
+                - generic [ref=e67]: Event
+                - combobox [ref=e68]
+              - generic [ref=e69]:
+                - generic [ref=e70]: Start Date & Time*
+                - textbox [ref=e71]
+              - generic [ref=e72]:
+                - generic [ref=e73]: End Date & Time
+                - textbox [ref=e74]
+              - generic [ref=e75]:
+                - generic [ref=e76]: Location
+                - combobox [ref=e77]
+              - generic [ref=e78]:
+                - generic [ref=e79]: Capacity
+                - spinbutton [ref=e80]
+              - generic [ref=e81]:
+                - generic [ref=e82]: Cost Per Person ($)
+                - spinbutton [ref=e83]
+              - generic [ref=e84]:
+                - generic [ref=e85]: Host Subsidy ($)
+                - spinbutton [ref=e86]
+              - generic [ref=e87]:
+                - generic [ref=e88]: Adults Only
+                - checkbox [ref=e89]
+              - generic [ref=e90]:
+                - generic [ref=e91]: Plus-One Allowed
+                - checkbox [ref=e92]
+              - generic [ref=e93]:
+                - generic [ref=e94]: Status*
+                - combobox [ref=e95]
+            - generic [ref=e96]:
+              - button [ref=e97]: Create Activity
+              - button [ref=e98]: Cancel
+        - generic [ref=e101]:
+          - generic [ref=e102]:
+            - checkbox [ref=e103]
+            - generic [ref=e104]:
+              - generic [ref=e105]: Test Beach Volleyball
+              - generic [ref=e106]: No event • Jun 14, 2024 at 07:00 AM
+            - generic [ref=e107]:
+              - generic [ref=e109]: 0/20 (0%)
+              - generic [ref=e110]: Draft
+          - generic [ref=e111]:
+            - button "View" [ref=e112] [cursor=pointer]
+            - button "Edit" [ref=e113] [cursor=pointer]
+            - button "▶ Sections" [ref=e114] [cursor=pointer]
+            - button "Delete" [ref=e115] [cursor=pointer]
+  - button "Open Next.js Dev Tools" [ref=e121] [cursor=pointer]:
+    - img [ref=e122]
+  - alert [ref=e125]
+```

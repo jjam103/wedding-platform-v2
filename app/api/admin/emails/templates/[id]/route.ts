@@ -1,127 +1,66 @@
-import { createAuthenticatedClient } from '@/lib/supabaseServer';
 import { NextResponse } from 'next/server';
-import { getTemplate, updateTemplate, deleteTemplate } from '@/services/emailService';
+import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
+import { cookies } from 'next/headers';
+import * as emailService from '@/services/emailService';
 import { updateEmailTemplateSchema } from '@/schemas/emailSchemas';
 
 /**
- * GET /api/admin/emails/templates/[id]
- * Fetches a specific email template by ID.
- * Requirements: 8.4
- */
-export async function GET(
-  request: Request,
-  { params }: { params: Promise<{ id: string }> }
-) {
-  try {
-    // 1. Auth check
-    const supabase = await createAuthenticatedClient();
-    const {
-      data: { session },
-      error: authError,
-    } = await supabase.auth.getSession();
-
-    if (authError || !session) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: { code: 'UNAUTHORIZED', message: 'Authentication required' },
-        },
-        { status: 401 }
-      );
-    }
-
-    // 2. Get template ID from params
-    const { id } = await params;
-
-    // 3. Fetch template
-    const result = await getTemplate(id);
-
-    if (!result.success) {
-      const status = result.error.code === 'NOT_FOUND' ? 404 : 500;
-      return NextResponse.json(result, { status });
-    }
-
-    return NextResponse.json(result, { status: 200 });
-  } catch (error) {
-    return NextResponse.json(
-      {
-        success: false,
-        error: {
-          code: 'UNKNOWN_ERROR',
-          message: error instanceof Error ? error.message : 'Unknown error',
-        },
-      },
-      { status: 500 }
-    );
-  }
-}
-
-/**
  * PUT /api/admin/emails/templates/[id]
- * Updates a specific email template.
- * Requirements: 8.4
+ * Updates an email template
+ * Requirements: 17.4
  */
 export async function PUT(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    // Await params for Next.js 15+
+    const { id } = await params;
+    
     // 1. Auth check
-    const supabase = await createAuthenticatedClient();
-    const {
-      data: { session },
-      error: authError,
-    } = await supabase.auth.getSession();
-
+    const supabase = createRouteHandlerClient({ cookies });
+    const { data: { session }, error: authError } = await supabase.auth.getSession();
+    
     if (authError || !session) {
       return NextResponse.json(
-        {
-          success: false,
-          error: { code: 'UNAUTHORIZED', message: 'Authentication required' },
-        },
+        { success: false, error: { code: 'UNAUTHORIZED', message: 'Authentication required' } },
         { status: 401 }
       );
     }
 
-    // 2. Get template ID from params
-    const { id } = await params;
-
-    // 3. Parse and validate
+    // 2. Parse and validate
     const body = await request.json();
     const validation = updateEmailTemplateSchema.safeParse(body);
-
+    
     if (!validation.success) {
       return NextResponse.json(
-        {
-          success: false,
-          error: {
-            code: 'VALIDATION_ERROR',
-            message: 'Invalid request',
-            details: validation.error.issues,
-          },
+        { 
+          success: false, 
+          error: { 
+            code: 'VALIDATION_ERROR', 
+            message: 'Invalid request', 
+            details: validation.error.issues 
+          } 
         },
         { status: 400 }
       );
     }
 
-    // 4. Update template
-    const result = await updateTemplate(id, validation.data);
+    // 3. Call service
+    const result = await emailService.updateTemplate(id, validation.data);
 
-    if (!result.success) {
-      const status = result.error.code === 'NOT_FOUND' ? 404 : 500;
-      return NextResponse.json(result, { status });
+    // 4. Return response
+    if (result.success) {
+      return NextResponse.json(result, { status: 200 });
+    } else {
+      const statusCode = result.error.code === 'VALIDATION_ERROR' ? 400 
+                       : result.error.code === 'NOT_FOUND' ? 404 
+                       : 500;
+      return NextResponse.json(result, { status: statusCode });
     }
-
-    return NextResponse.json(result, { status: 200 });
   } catch (error) {
     return NextResponse.json(
-      {
-        success: false,
-        error: {
-          code: 'UNKNOWN_ERROR',
-          message: error instanceof Error ? error.message : 'Unknown error',
-        },
-      },
+      { success: false, error: { code: 'INTERNAL_ERROR', message: 'Internal server error' } },
       { status: 500 }
     );
   }
@@ -129,52 +68,69 @@ export async function PUT(
 
 /**
  * DELETE /api/admin/emails/templates/[id]
- * Deletes a specific email template.
- * Requirements: 8.4
+ * Deletes an email template
+ * Requirements: 17.7, 17.8
  */
 export async function DELETE(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    // Await params for Next.js 15+
+    const { id } = await params;
+    
     // 1. Auth check
-    const supabase = await createAuthenticatedClient();
-    const {
-      data: { session },
-      error: authError,
-    } = await supabase.auth.getSession();
-
+    const supabase = createRouteHandlerClient({ cookies });
+    const { data: { session }, error: authError } = await supabase.auth.getSession();
+    
     if (authError || !session) {
       return NextResponse.json(
-        {
-          success: false,
-          error: { code: 'UNAUTHORIZED', message: 'Authentication required' },
-        },
+        { success: false, error: { code: 'UNAUTHORIZED', message: 'Authentication required' } },
         { status: 401 }
       );
     }
 
-    // 2. Get template ID from params
-    const { id } = await params;
+    // 2. Check if template is in use (prevent deletion)
+    // This would require checking email_history table for references
+    const { data: emailsUsingTemplate, error: checkError } = await supabase
+      .from('email_logs')
+      .select('id')
+      .eq('template_id', id)
+      .limit(1);
 
-    // 3. Delete template
-    const result = await deleteTemplate(id);
-
-    if (!result.success) {
-      const status = result.error.code === 'NOT_FOUND' ? 404 : 500;
-      return NextResponse.json(result, { status });
+    if (checkError) {
+      return NextResponse.json(
+        { success: false, error: { code: 'DATABASE_ERROR', message: checkError.message } },
+        { status: 500 }
+      );
     }
 
-    return NextResponse.json(result, { status: 200 });
+    if (emailsUsingTemplate && emailsUsingTemplate.length > 0) {
+      return NextResponse.json(
+        { 
+          success: false, 
+          error: { 
+            code: 'TEMPLATE_IN_USE', 
+            message: 'Cannot delete template that has been used to send emails' 
+          } 
+        },
+        { status: 409 }
+      );
+    }
+
+    // 3. Call service
+    const result = await emailService.deleteTemplate(id);
+
+    // 4. Return response
+    if (result.success) {
+      return NextResponse.json(result, { status: 200 });
+    } else {
+      const statusCode = result.error.code === 'NOT_FOUND' ? 404 : 500;
+      return NextResponse.json(result, { status: statusCode });
+    }
   } catch (error) {
     return NextResponse.json(
-      {
-        success: false,
-        error: {
-          code: 'UNKNOWN_ERROR',
-          message: error instanceof Error ? error.message : 'Unknown error',
-        },
-      },
+      { success: false, error: { code: 'INTERNAL_ERROR', message: 'Internal server error' } },
       { status: 500 }
     );
   }

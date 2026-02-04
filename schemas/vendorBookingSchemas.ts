@@ -8,6 +8,12 @@ const baseVendorBookingSchema = z.object({
   activityId: z.string().uuid('Invalid activity ID format').nullable().optional(),
   eventId: z.string().uuid('Invalid event ID format').nullable().optional(),
   bookingDate: z.string(),
+  baseCost: z.number().min(0, 'Base cost must be non-negative'),
+  guestCount: z.number().int().min(0, 'Guest count must be non-negative').nullable().optional(),
+  pricingModel: z.enum(['flat_rate', 'per_guest'], {
+    errorMap: () => ({ message: 'Pricing model must be flat_rate or per_guest' }),
+  }).default('flat_rate'),
+  hostSubsidy: z.number().min(0, 'Host subsidy must be non-negative').default(0),
   notes: z.string().max(2000, 'Notes must be 2000 characters or less').nullable().optional(),
 });
 
@@ -15,16 +21,35 @@ const baseVendorBookingSchema = z.object({
  * Schema for creating a new vendor booking.
  * All required fields must be provided.
  */
-export const createVendorBookingSchema = baseVendorBookingSchema.refine(
-  (data) => {
-    // Must have either activityId or eventId, but not both
-    return (data.activityId && !data.eventId) || (!data.activityId && data.eventId);
-  },
-  {
-    message: 'Must specify either activityId or eventId, but not both',
-    path: ['activityId'],
-  }
-);
+export const createVendorBookingSchema = baseVendorBookingSchema
+  .refine(
+    (data) => {
+      // If per-guest pricing, guest count is required
+      if (data.pricingModel === 'per_guest' && !data.guestCount) {
+        return false;
+      }
+      return true;
+    },
+    {
+      message: 'Guest count is required for per-guest pricing',
+      path: ['guestCount'],
+    }
+  )
+  .refine(
+    (data) => {
+      // Calculate total cost
+      const totalCost = data.pricingModel === 'per_guest' 
+        ? data.baseCost * (data.guestCount || 0)
+        : data.baseCost;
+      
+      // Host subsidy cannot exceed total cost
+      return data.hostSubsidy <= totalCost;
+    },
+    {
+      message: 'Host subsidy cannot exceed total cost',
+      path: ['hostSubsidy'],
+    }
+  );
 
 /**
  * Schema for updating an existing vendor booking.
@@ -32,15 +57,30 @@ export const createVendorBookingSchema = baseVendorBookingSchema.refine(
  */
 export const updateVendorBookingSchema = baseVendorBookingSchema.partial().refine(
   (data) => {
-    // If both are provided, must have either activityId or eventId, but not both
-    if (data.activityId !== undefined && data.eventId !== undefined) {
-      return (data.activityId && !data.eventId) || (!data.activityId && data.eventId);
+    // If per-guest pricing, guest count is required
+    if (data.pricingModel === 'per_guest' && data.guestCount === undefined) {
+      return false;
     }
     return true;
   },
   {
-    message: 'Must specify either activityId or eventId, but not both',
-    path: ['activityId'],
+    message: 'Guest count is required for per-guest pricing',
+    path: ['guestCount'],
+  }
+).refine(
+  (data) => {
+    // Host subsidy cannot exceed total cost (if both provided)
+    if (data.hostSubsidy !== undefined && data.baseCost !== undefined) {
+      const totalCost = data.pricingModel === 'per_guest' 
+        ? data.baseCost * (data.guestCount || 0)
+        : data.baseCost;
+      return data.hostSubsidy <= totalCost;
+    }
+    return true;
+  },
+  {
+    message: 'Host subsidy cannot exceed total cost',
+    path: ['hostSubsidy'],
   }
 );
 
@@ -71,6 +111,11 @@ export interface VendorBooking {
   activityId: string | null;
   eventId: string | null;
   bookingDate: string;
+  baseCost: number;
+  guestCount: number | null;
+  pricingModel: 'flat_rate' | 'per_guest';
+  totalCost: number;
+  hostSubsidy: number;
   notes: string | null;
   createdAt: string;
 }
@@ -99,6 +144,11 @@ export interface VendorBookingWithDetails {
   eventId: string | null;
   eventName: string | null;
   bookingDate: string;
+  baseCost: number;
+  guestCount: number | null;
+  pricingModel: 'flat_rate' | 'per_guest';
+  totalCost: number;
+  hostSubsidy: number;
   notes: string | null;
   createdAt: string;
 }

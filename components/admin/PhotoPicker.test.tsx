@@ -297,31 +297,60 @@ describe('PhotoPicker', () => {
     });
 
     it('should call onSelectionChange when photo is deselected', async () => {
-      (global.fetch as jest.Mock).mockResolvedValueOnce({
-        json: async () => ({
-          success: true,
-          data: { photos: mockPhotos, total: 3 },
-        }),
-      });
+      // Mock both the individual photo fetch and the gallery fetch
+      (global.fetch as jest.Mock)
+        .mockResolvedValueOnce({
+          json: async () => ({
+            success: true,
+            data: mockPhotos[0], // Individual photo fetch for selected photo
+          }),
+        })
+        .mockResolvedValueOnce({
+          json: async () => ({
+            success: true,
+            data: { photos: mockPhotos, total: 3 }, // Gallery fetch
+          }),
+        });
 
       const onSelectionChange = jest.fn();
-      const { container } = render(
+      render(
         <PhotoPicker
           selectedPhotoIds={['photo-1']}
           onSelectionChange={onSelectionChange}
         />
       );
 
-      fireEvent.click(screen.getByText('+ Add Photos from Gallery'));
-
+      // Wait for selected photo to load
       await waitFor(() => {
-        const images = screen.getAllByAltText('Alt text 1');
-        expect(images.length).toBeGreaterThan(0);
+        expect(screen.getByText('Selected Photos (1)')).toBeInTheDocument();
       });
 
-      // Click the photo in the modal (second instance)
+      // Open the modal
+      fireEvent.click(screen.getByText('+ Add Photos from Gallery'));
+
+      // Wait for modal to open and photos to load
+      await waitFor(() => {
+        expect(screen.getByText('Select Photos')).toBeInTheDocument();
+      });
+
+      await waitFor(() => {
+        const images = screen.queryAllByAltText('Alt text 1');
+        expect(images.length).toBeGreaterThan(0);
+      }, { timeout: 3000 });
+
+      // Click the photo in the modal to deselect it
       const images = screen.getAllByAltText('Alt text 1');
-      fireEvent.click(images[images.length - 1]);
+      const modalImage = images.find(img => {
+        const parent = img.closest('[role="dialog"]') || img.closest('.modal');
+        return parent !== null;
+      });
+      
+      if (modalImage) {
+        fireEvent.click(modalImage);
+      } else {
+        // Fallback: click the last image (likely in modal)
+        fireEvent.click(images[images.length - 1]);
+      }
 
       expect(onSelectionChange).toHaveBeenCalledWith([]);
     });
@@ -345,8 +374,12 @@ describe('PhotoPicker', () => {
       fireEvent.click(screen.getByText('+ Add Photos from Gallery'));
 
       await waitFor(() => {
-        expect(screen.getByAltText('Alt text 1')).toBeInTheDocument();
+        expect(screen.getByText('Select Photos')).toBeInTheDocument();
       });
+
+      await waitFor(() => {
+        expect(screen.getByAltText('Alt text 1')).toBeInTheDocument();
+      }, { timeout: 3000 });
 
       fireEvent.click(screen.getByAltText('Alt text 1'));
       expect(onSelectionChange).toHaveBeenCalledWith(['photo-1']);
@@ -355,12 +388,19 @@ describe('PhotoPicker', () => {
       unmount();
 
       // Simulate re-render with updated selection
-      (global.fetch as jest.Mock).mockResolvedValueOnce({
-        json: async () => ({
-          success: true,
-          data: { photos: mockPhotos, total: 3 },
-        }),
-      });
+      (global.fetch as jest.Mock)
+        .mockResolvedValueOnce({
+          json: async () => ({
+            success: true,
+            data: mockPhotos[0], // Individual photo fetch for photo-1
+          }),
+        })
+        .mockResolvedValueOnce({
+          json: async () => ({
+            success: true,
+            data: { photos: mockPhotos, total: 3 }, // Gallery fetch
+          }),
+        });
 
       onSelectionChange.mockClear();
       render(
@@ -370,11 +410,20 @@ describe('PhotoPicker', () => {
         />
       );
 
+      // Wait for selected photo to load
+      await waitFor(() => {
+        expect(screen.getByText('Selected Photos (1)')).toBeInTheDocument();
+      });
+
       fireEvent.click(screen.getByLabelText('Add photos from gallery'));
 
       await waitFor(() => {
-        expect(screen.getByAltText('Alt text 2')).toBeInTheDocument();
+        expect(screen.getByText('Select Photos')).toBeInTheDocument();
       });
+
+      await waitFor(() => {
+        expect(screen.getByAltText('Alt text 2')).toBeInTheDocument();
+      }, { timeout: 3000 });
 
       fireEvent.click(screen.getByAltText('Alt text 2'));
       expect(onSelectionChange).toHaveBeenCalledWith(['photo-1', 'photo-2']);

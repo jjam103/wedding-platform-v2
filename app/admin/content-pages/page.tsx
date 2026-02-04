@@ -3,6 +3,7 @@
 import { useState, useCallback } from 'react';
 import dynamic from 'next/dynamic';
 import { DataTable } from '@/components/ui/DataTable';
+import { SectionEditor } from '@/components/admin/SectionEditor';
 import { Button } from '@/components/ui/Button';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { useContentPages } from '@/hooks/useContentPages';
@@ -37,6 +38,7 @@ export default function ContentPagesPage() {
   const { showToast } = useToast();
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingPage, setEditingPage] = useState<ContentPage | null>(null);
+  const [expandedPageId, setExpandedPageId] = useState<string | null>(null);
   const [deleteConfirmPage, setDeleteConfirmPage] = useState<ContentPage | null>(null);
 
   const handleCreate = useCallback(async (data: ContentPageFormData) => {
@@ -87,9 +89,8 @@ export default function ContentPagesPage() {
     setIsFormOpen(false);
   }, []);
 
-  const handleManageSections = useCallback((page: ContentPage) => {
-    // TODO: Navigate to section editor
-    window.location.href = `/admin/content-pages/${page.id}/sections`;
+  const handleToggleSections = useCallback((pageId: string) => {
+    setExpandedPageId(prev => prev === pageId ? null : pageId);
   }, []);
 
   const columns = [
@@ -126,7 +127,7 @@ export default function ContentPagesPage() {
           <Button
             size="sm"
             variant="secondary"
-            onClick={() => window.location.href = `/${page.slug}`}
+            onClick={() => window.open(`/custom/${page.slug}`, '_blank')}
             aria-label={`View ${page.title} as guest`}
           >
             View
@@ -142,10 +143,10 @@ export default function ContentPagesPage() {
           <Button
             size="sm"
             variant="secondary"
-            onClick={() => handleManageSections(page)}
-            aria-label={`Manage sections for ${page.title}`}
+            onClick={() => handleToggleSections(page.id)}
+            aria-label={`${expandedPageId === page.id ? 'Hide' : 'Show'} sections for ${page.title}`}
           >
-            Sections
+            {expandedPageId === page.id ? 'Hide Sections' : 'Sections'}
           </Button>
           <Button
             size="sm"
@@ -204,10 +205,79 @@ export default function ContentPagesPage() {
       />
 
       <div className="mt-6">
-        <DataTable
-          data={pages || []}
-          columns={columns}
-        />
+        {pages && pages.length > 0 ? (
+          <div className="space-y-4">
+            {pages.map((page) => (
+              <div key={page.id} className="border border-gray-200 rounded-lg overflow-hidden">
+                {/* Page row */}
+                <div className="bg-white p-4 flex items-center justify-between hover:bg-gray-50">
+                  <div className="flex items-center gap-4 flex-1">
+                    <div className="flex-1">
+                      <div className="font-medium text-gray-900">{page.title}</div>
+                      <code className="text-sm bg-gray-100 px-2 py-1 rounded">/{page.slug}</code>
+                    </div>
+                    <div>
+                      <StatusBadge 
+                        status={page.status === 'published' ? 'page-published' : 'page-draft'} 
+                      />
+                    </div>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button
+                      size="sm"
+                      variant="secondary"
+                      onClick={() => window.open(`/custom/${page.slug}`, '_blank')}
+                      aria-label={`View ${page.title} as guest`}
+                    >
+                      View
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="secondary"
+                      onClick={() => handleEdit(page)}
+                      aria-label={`Edit ${page.title}`}
+                    >
+                      Edit
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="secondary"
+                      onClick={() => handleToggleSections(page.id)}
+                      aria-label={`${expandedPageId === page.id ? 'Hide' : 'Show'} sections for ${page.title}`}
+                    >
+                      {expandedPageId === page.id ? '▼ Hide Sections' : '▶ Sections'}
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="danger"
+                      onClick={() => setDeleteConfirmPage(page)}
+                      aria-label={`Delete ${page.title}`}
+                    >
+                      Delete
+                    </Button>
+                  </div>
+                </div>
+
+                {/* Sections editor - appears inline below the page row */}
+                {expandedPageId === page.id && (
+                  <div className="border-t border-gray-200 bg-gray-50 p-6">
+                    <SectionEditor
+                      pageType="custom"
+                      pageId={page.id}
+                    />
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-12 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
+            <p className="text-gray-500 mb-4">No content pages yet</p>
+            <Button onClick={() => setIsFormOpen(true)} variant="primary" size="sm">
+              Create First Page
+            </Button>
+          </div>
+        )}
       </div>
 
       {deleteConfirmPage && (

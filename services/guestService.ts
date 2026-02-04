@@ -54,7 +54,15 @@ export async function create(data: CreateGuestDTO): Promise<Result<Guest>> {
       return validationError('Validation failed', validation.error.issues);
     }
 
-    // 2. Sanitize user input
+    // 2. Get default auth method if not provided
+    // Import settingsService dynamically to avoid circular dependencies
+    const { getDefaultAuthMethod } = await import('./settingsService');
+    const defaultAuthResult = await getDefaultAuthMethod();
+    const authMethod = defaultAuthResult.success 
+      ? defaultAuthResult.data 
+      : 'email_matching'; // Fallback to email_matching if settings fetch fails
+
+    // 3. Sanitize user input
     const sanitized = {
       group_id: validation.data.groupId,
       first_name: sanitizeInput(validation.data.firstName),
@@ -80,9 +88,10 @@ export async function create(data: CreateGuestDTO): Promise<Result<Guest>> {
       invitation_sent_date: validation.data.invitationSentDate ?? null,
       rsvp_deadline: validation.data.rsvpDeadline ?? null,
       notes: validation.data.notes ? sanitizeInput(validation.data.notes) : null,
+      auth_method: authMethod, // Set auth method from system settings
     };
 
-    // 3. Database operation
+    // 4. Database operation
     const { data: result, error } = await getSupabase()
       .from('guests')
       .insert(sanitized)
@@ -408,6 +417,7 @@ function mapDatabaseToGuest(dbGuest: any): Guest {
     invitationSentDate: dbGuest.invitation_sent_date,
     rsvpDeadline: dbGuest.rsvp_deadline,
     notes: dbGuest.notes,
+    authMethod: dbGuest.auth_method || 'email_matching', // Default to email_matching if not set
     createdAt: dbGuest.created_at,
     updatedAt: dbGuest.updated_at,
   };
@@ -441,6 +451,13 @@ export async function bulkCreate(guestsData: CreateGuestDTO[]): Promise<Result<G
     if (!Array.isArray(guestsData) || guestsData.length === 0) {
       return validationError('Guests data array is required and must not be empty');
     }
+
+    // Get default auth method once for all guests
+    const { getDefaultAuthMethod } = await import('./settingsService');
+    const defaultAuthResult = await getDefaultAuthMethod();
+    const authMethod = defaultAuthResult.success 
+      ? defaultAuthResult.data 
+      : 'email_matching'; // Fallback to email_matching if settings fetch fails
 
     // Validate and sanitize all guests first
     const sanitizedGuests: any[] = [];
@@ -485,6 +502,7 @@ export async function bulkCreate(guestsData: CreateGuestDTO[]): Promise<Result<G
         invitation_sent_date: validation.data.invitationSentDate ?? null,
         rsvp_deadline: validation.data.rsvpDeadline ?? null,
         notes: validation.data.notes ? sanitizeInput(validation.data.notes) : null,
+        auth_method: authMethod, // Set auth method from system settings
       };
 
       sanitizedGuests.push(sanitized);

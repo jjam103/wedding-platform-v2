@@ -94,6 +94,7 @@ export interface Activity {
   id: string;
   eventId: string | null;
   name: string;
+  slug: string;
   description: string | null;
   activityType: string;
   locationId: string | null;

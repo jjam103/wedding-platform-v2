@@ -224,7 +224,13 @@ export function CollapsibleForm<T extends z.ZodTypeAny>({
             type={field.type}
             name={field.name}
             value={value}
-            onChange={(e) => handleFieldChange(field.name, e.target.value)}
+            onChange={(e) => {
+              // Convert number inputs to actual numbers
+              const newValue = field.type === 'number' 
+                ? (e.target.value === '' ? '' : Number(e.target.value))
+                : e.target.value;
+              handleFieldChange(field.name, newValue);
+            }}
             placeholder={field.placeholder}
             required={field.required}
             className={baseInputClasses}
@@ -303,7 +309,8 @@ export function CollapsibleForm<T extends z.ZodTypeAny>({
             <button
               type="submit"
               disabled={isSubmitting}
-              className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
+              style={{ backgroundColor: '#22c55e', color: '#ffffff' }}
+              className="px-4 py-2 rounded-lg hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
             >
               {isSubmitting ? 'Submitting...' : submitLabel}
             </button>
@@ -311,7 +318,8 @@ export function CollapsibleForm<T extends z.ZodTypeAny>({
               type="button"
               onClick={handleCancel}
               disabled={isSubmitting}
-              className="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
+              style={{ backgroundColor: '#e5e7eb', color: '#111827' }}
+              className="px-4 py-2 rounded-lg hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
             >
               {cancelLabel}
             </button>

@@ -124,7 +124,7 @@ function setupFetchMocks(activities: any[] = []) {
         ok: true,
         json: () => Promise.resolve({
           success: true,
-          data: { locations: [] },
+          data: [],
         }),
       });
     }

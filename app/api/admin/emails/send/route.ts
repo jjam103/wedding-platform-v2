@@ -1,28 +1,23 @@
-import { createAuthenticatedClient } from '@/lib/supabaseServer';
 import { NextResponse } from 'next/server';
-import { sendBulkEmail } from '@/services/emailService';
+import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
+import { cookies } from 'next/headers';
+import * as emailService from '@/services/emailService';
 import { sendBulkEmailSchema } from '@/schemas/emailSchemas';
 
 /**
  * POST /api/admin/emails/send
- * Sends bulk emails to multiple recipients.
- * Requirements: 8.3, 8.7
+ * Sends email to multiple recipients
+ * Requirements: 4.1, 4.2, 4.3
  */
 export async function POST(request: Request) {
   try {
     // 1. Auth check
-    const supabase = await createAuthenticatedClient();
-    const {
-      data: { session },
-      error: authError,
-    } = await supabase.auth.getSession();
-
+    const supabase = createRouteHandlerClient({ cookies });
+    const { data: { session }, error: authError } = await supabase.auth.getSession();
+    
     if (authError || !session) {
       return NextResponse.json(
-        {
-          success: false,
-          error: { code: 'UNAUTHORIZED', message: 'Authentication required' },
-        },
+        { success: false, error: { code: 'UNAUTHORIZED', message: 'Authentication required' } },
         { status: 401 }
       );
     }
@@ -30,38 +25,36 @@ export async function POST(request: Request) {
     // 2. Parse and validate
     const body = await request.json();
     const validation = sendBulkEmailSchema.safeParse(body);
-
+    
     if (!validation.success) {
       return NextResponse.json(
-        {
-          success: false,
-          error: {
-            code: 'VALIDATION_ERROR',
-            message: 'Invalid request',
-            details: validation.error.issues,
-          },
+        { 
+          success: false, 
+          error: { 
+            code: 'VALIDATION_ERROR', 
+            message: 'Invalid request', 
+            details: validation.error.issues 
+          } 
         },
         { status: 400 }
       );
     }
 
-    // 3. Send emails
-    const result = await sendBulkEmail(validation.data);
+    // 3. Call service
+    const result = await emailService.sendBulkEmail(validation.data);
 
-    if (!result.success) {
-      return NextResponse.json(result, { status: 500 });
+    // 4. Return response
+    if (result.success) {
+      return NextResponse.json(result, { status: 200 });
+    } else {
+      const statusCode = result.error.code === 'VALIDATION_ERROR' ? 400 
+                       : result.error.code === 'NOT_FOUND' ? 404 
+                       : 500;
+      return NextResponse.json(result, { status: statusCode });
     }
-
-    return NextResponse.json(result, { status: 200 });
   } catch (error) {
     return NextResponse.json(
-      {
-        success: false,
-        error: {
-          code: 'UNKNOWN_ERROR',
-          message: error instanceof Error ? error.message : 'Unknown error',
-        },
-      },
+      { success: false, error: { code: 'INTERNAL_ERROR', message: 'Internal server error' } },
       { status: 500 }
     );
   }

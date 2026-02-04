@@ -66,14 +66,24 @@ export async function create(data: CreateVendorBookingDTO): Promise<Result<Vendo
       notes: validation.data.notes ? sanitizeInput(validation.data.notes) : null,
     };
 
-    // 3. Database operation
+    // 3. Calculate total cost based on pricing model
+    const totalCost = sanitized.pricingModel === 'per_guest'
+      ? sanitized.baseCost * (sanitized.guestCount || 0)
+      : sanitized.baseCost;
+
+    // 4. Database operation
     const { data: booking, error } = await supabase
       .from('vendor_bookings')
       .insert({
         vendor_id: sanitized.vendorId,
-        activity_id: sanitized.activityId,
-        event_id: sanitized.eventId,
+        activity_id: sanitized.activityId || null,
+        event_id: sanitized.eventId || null,
         booking_date: sanitized.bookingDate,
+        base_cost: sanitized.baseCost,
+        guest_count: sanitized.guestCount || null,
+        pricing_model: sanitized.pricingModel,
+        total_cost: totalCost,
+        host_subsidy: sanitized.hostSubsidy,
         notes: sanitized.notes,
       })
       .select()
@@ -176,7 +186,13 @@ export async function update(id: string, data: UpdateVendorBookingDTO): Promise<
       };
     }
 
-    // 2. Sanitize user input
+    // 2. Get current booking to calculate total cost if needed
+    const currentBooking = await get(id);
+    if (!currentBooking.success) {
+      return currentBooking;
+    }
+
+    // 3. Sanitize user input and prepare update data
     const sanitized: Record<string, unknown> = {};
     if (validation.data.notes !== undefined) {
       sanitized.notes = validation.data.notes ? sanitizeInput(validation.data.notes) : null;
@@ -185,16 +201,39 @@ export async function update(id: string, data: UpdateVendorBookingDTO): Promise<
       sanitized.vendor_id = validation.data.vendorId;
     }
     if (validation.data.activityId !== undefined) {
-      sanitized.activity_id = validation.data.activityId;
+      sanitized.activity_id = validation.data.activityId || null;
     }
     if (validation.data.eventId !== undefined) {
-      sanitized.event_id = validation.data.eventId;
+      sanitized.event_id = validation.data.eventId || null;
     }
     if (validation.data.bookingDate !== undefined) {
       sanitized.booking_date = validation.data.bookingDate;
     }
+    if (validation.data.baseCost !== undefined) {
+      sanitized.base_cost = validation.data.baseCost;
+    }
+    if (validation.data.guestCount !== undefined) {
+      sanitized.guest_count = validation.data.guestCount || null;
+    }
+    if (validation.data.pricingModel !== undefined) {
+      sanitized.pricing_model = validation.data.pricingModel;
+    }
+    if (validation.data.hostSubsidy !== undefined) {
+      sanitized.host_subsidy = validation.data.hostSubsidy;
+    }
 
-    // 3. Database operation
+    // 4. Calculate total cost if pricing-related fields changed
+    const baseCost = validation.data.baseCost ?? currentBooking.data.baseCost;
+    const guestCount = validation.data.guestCount ?? currentBooking.data.guestCount;
+    const pricingModel = validation.data.pricingModel ?? currentBooking.data.pricingModel;
+    
+    const totalCost = pricingModel === 'per_guest'
+      ? baseCost * (guestCount || 0)
+      : baseCost;
+    
+    sanitized.total_cost = totalCost;
+
+    // 5. Database operation
     const { data: booking, error } = await supabase
       .from('vendor_bookings')
       .update(sanitized)
@@ -417,6 +456,11 @@ export async function listWithDetails(filters: VendorBookingFilterDTO = {}): Pro
       eventId: booking.event_id,
       eventName: booking.events?.name || null,
       bookingDate: booking.booking_date,
+      baseCost: booking.base_cost,
+      guestCount: booking.guest_count,
+      pricingModel: booking.pricing_model,
+      totalCost: booking.total_cost,
+      hostSubsidy: booking.host_subsidy,
       notes: booking.notes,
       createdAt: booking.created_at,
     }));
@@ -509,6 +553,11 @@ function mapBookingFromDb(dbBooking: any): VendorBooking {
     activityId: dbBooking.activity_id,
     eventId: dbBooking.event_id,
     bookingDate: dbBooking.booking_date,
+    baseCost: dbBooking.base_cost,
+    guestCount: dbBooking.guest_count,
+    pricingModel: dbBooking.pricing_model,
+    totalCost: dbBooking.total_cost,
+    hostSubsidy: dbBooking.host_subsidy,
     notes: dbBooking.notes,
     createdAt: dbBooking.created_at,
   };

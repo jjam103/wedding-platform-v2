@@ -19,6 +19,9 @@ export const systemSettingsSchema = z.object({
   max_photos_per_guest: z.number().int().min(1).max(100).default(20),
   allowed_photo_formats: z.array(z.string()).default(['jpg', 'jpeg', 'png', 'heic']),
   
+  // Guest authentication settings
+  default_auth_method: z.enum(['email_matching', 'magic_link']).default('email_matching'),
+  
   // Home page configuration
   home_page_title: z.string().min(1).max(200).nullable(),
   home_page_subtitle: z.string().max(500).nullable(),
@@ -35,3 +38,13 @@ export type SystemSettings = z.infer<typeof systemSettingsSchema> & {
 };
 
 export type UpdateSystemSettingsDTO = z.infer<typeof updateSystemSettingsSchema>;
+
+// Home page configuration schema
+export const homePageConfigSchema = z.object({
+  title: z.string().min(1).max(200).nullable().optional(),
+  subtitle: z.string().max(500).nullable().optional(),
+  welcomeMessage: z.string().nullable().optional(), // Rich text HTML
+  heroImageUrl: z.string().url().nullable().optional(),
+});
+
+export type HomePageConfig = z.infer<typeof homePageConfigSchema>;

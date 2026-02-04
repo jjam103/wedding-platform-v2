@@ -85,6 +85,7 @@ export interface Guest {
   invitationSentDate: string | null;
   rsvpDeadline: string | null;
   notes: string | null;
+  authMethod: 'email_matching' | 'magic_link';
   createdAt: string;
   updatedAt: string;
 }

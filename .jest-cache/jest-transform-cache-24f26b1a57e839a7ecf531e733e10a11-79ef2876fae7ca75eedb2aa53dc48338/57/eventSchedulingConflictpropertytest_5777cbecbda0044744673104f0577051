@@ -1,0 +1,383 @@
+49217e23f29608d286a9985d28425042
+"use strict";
+/**
+ * Property-Based Test: Event Scheduling Conflict Detection
+ * 
+ * Feature: destination-wedding-platform
+ * Property 8: Event Scheduling Conflict Detection
+ * Validates: Requirements 6.3
+ * 
+ * This test validates that the system correctly detects scheduling conflicts
+ * when events overlap at the same location.
+ * 
+ * Property: For any two events at the same location, if their time ranges overlap,
+ * the system SHALL detect a conflict.
+ * 
+ * Overlap condition: (StartA <= EndB) AND (EndA >= StartB)
+ */ // Mock Supabase
+jest.mock('@supabase/supabase-js', ()=>({
+        createClient: jest.fn()
+    }));
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+const _fastcheck = /*#__PURE__*/ _interop_require_wildcard(require("fast-check"));
+const _eventService = require("./eventService");
+const _supabasejs = require("@supabase/supabase-js");
+function _getRequireWildcardCache(nodeInterop) {
+    if (typeof WeakMap !== "function") return null;
+    var cacheBabelInterop = new WeakMap();
+    var cacheNodeInterop = new WeakMap();
+    return (_getRequireWildcardCache = function(nodeInterop) {
+        return nodeInterop ? cacheNodeInterop : cacheBabelInterop;
+    })(nodeInterop);
+}
+function _interop_require_wildcard(obj, nodeInterop) {
+    if (!nodeInterop && obj && obj.__esModule) {
+        return obj;
+    }
+    if (obj === null || typeof obj !== "object" && typeof obj !== "function") {
+        return {
+            default: obj
+        };
+    }
+    var cache = _getRequireWildcardCache(nodeInterop);
+    if (cache && cache.has(obj)) {
+        return cache.get(obj);
+    }
+    var newObj = {
+        __proto__: null
+    };
+    var hasPropertyDescriptor = Object.defineProperty && Object.getOwnPropertyDescriptor;
+    for(var key in obj){
+        if (key !== "default" && Object.prototype.hasOwnProperty.call(obj, key)) {
+            var desc = hasPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : null;
+            if (desc && (desc.get || desc.set)) {
+                Object.defineProperty(newObj, key, desc);
+            } else {
+                newObj[key] = obj[key];
+            }
+        }
+    }
+    newObj.default = obj;
+    if (cache) {
+        cache.set(obj, newObj);
+    }
+    return newObj;
+}
+describe('Feature: destination-wedding-platform, Property 8: Event Scheduling Conflict Detection', ()=>{
+    let mockSupabase;
+    beforeEach(()=>{
+        mockSupabase = {
+            from: jest.fn().mockReturnThis(),
+            select: jest.fn().mockReturnThis(),
+            eq: jest.fn().mockReturnThis(),
+            neq: jest.fn().mockReturnThis()
+        };
+        _supabasejs.createClient.mockReturnValue(mockSupabase);
+    });
+    afterEach(()=>{
+        jest.clearAllMocks();
+    });
+    /**
+   * Arbitrary for generating valid date ranges
+   */ const dateRangeArbitrary = _fastcheck.record({
+        startDate: _fastcheck.date({
+            min: new Date('2025-01-01'),
+            max: new Date('2025-12-31')
+        }),
+        durationHours: _fastcheck.integer({
+            min: 1,
+            max: 8
+        })
+    }).map(({ startDate, durationHours })=>{
+        const endDate = new Date(startDate.getTime() + durationHours * 60 * 60 * 1000);
+        return {
+            startDate: startDate.toISOString(),
+            endDate: endDate.toISOString()
+        };
+    });
+    /**
+   * Arbitrary for generating overlapping events
+   * Two events overlap if: (StartA <= EndB) AND (EndA >= StartB)
+   */ const overlappingEventsArbitrary = _fastcheck.tuple(dateRangeArbitrary, _fastcheck.integer({
+        min: 1,
+        max: 4
+    }) // Overlap duration in hours
+    ).map(([event1, overlapHours])=>{
+        const event1Start = new Date(event1.startDate);
+        const event1End = new Date(event1.endDate);
+        const event1Duration = (event1End.getTime() - event1Start.getTime()) / (60 * 60 * 1000);
+        // Create event2 that starts before event1 ends (ensuring overlap)
+        // Start event2 somewhere in the middle of event1
+        const offsetHours = Math.min(overlapHours, event1Duration - 0.5);
+        const event2Start = new Date(event1Start.getTime() + offsetHours * 60 * 60 * 1000);
+        // Event2 ends after it starts, ensuring it overlaps with event1
+        const event2End = new Date(event2Start.getTime() + overlapHours * 60 * 60 * 1000);
+        return {
+            event1: {
+                startDate: event1.startDate,
+                endDate: event1.endDate
+            },
+            event2: {
+                startDate: event2Start.toISOString(),
+                endDate: event2End.toISOString()
+            }
+        };
+    });
+    /**
+   * Arbitrary for generating non-overlapping events
+   */ const nonOverlappingEventsArbitrary = _fastcheck.tuple(dateRangeArbitrary, _fastcheck.integer({
+        min: 9,
+        max: 24
+    }) // Gap in hours (at least 9 hours apart)
+    ).map(([event1, gapHours])=>{
+        const event1End = new Date(event1.endDate);
+        // Create event2 that starts after event1 ends
+        const event2Start = new Date(event1End.getTime() + gapHours * 60 * 60 * 1000);
+        const event2End = new Date(event2Start.getTime() + 2 * 60 * 60 * 1000); // 2 hour duration
+        return {
+            event1: {
+                startDate: event1.startDate,
+                endDate: event1.endDate
+            },
+            event2: {
+                startDate: event2Start.toISOString(),
+                endDate: event2End.toISOString()
+            }
+        };
+    });
+    it('should detect conflicts when events overlap at the same location', async ()=>{
+        await _fastcheck.assert(_fastcheck.asyncProperty(overlappingEventsArbitrary, _fastcheck.uuid(), async ({ event1, event2 }, locationId)=>{
+            // Setup: Mock existing event at location
+            mockSupabase.from.mockReturnValue({
+                select: jest.fn().mockReturnValue({
+                    eq: jest.fn().mockReturnValue({
+                        data: [
+                            {
+                                id: 'existing-event-id',
+                                name: 'Existing Event',
+                                start_date: event1.startDate,
+                                end_date: event1.endDate
+                            }
+                        ],
+                        error: null
+                    })
+                })
+            });
+            // Act: Check for conflicts with overlapping event
+            const result = await (0, _eventService.checkSchedulingConflicts)({
+                locationId,
+                startDate: event2.startDate,
+                endDate: event2.endDate
+            });
+            // Assert: Should detect conflict
+            expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.hasConflict).toBe(true);
+                expect(result.data.conflictingEvents).toHaveLength(1);
+                expect(result.data.conflictingEvents[0].id).toBe('existing-event-id');
+            }
+        }), {
+            numRuns: 100
+        });
+    });
+    it('should not detect conflicts when events do not overlap at the same location', async ()=>{
+        await _fastcheck.assert(_fastcheck.asyncProperty(nonOverlappingEventsArbitrary, _fastcheck.uuid(), async ({ event1, event2 }, locationId)=>{
+            // Setup: Mock existing event at location
+            mockSupabase.from.mockReturnValue({
+                select: jest.fn().mockReturnValue({
+                    eq: jest.fn().mockReturnValue({
+                        data: [
+                            {
+                                id: 'existing-event-id',
+                                name: 'Existing Event',
+                                start_date: event1.startDate,
+                                end_date: event1.endDate
+                            }
+                        ],
+                        error: null
+                    })
+                })
+            });
+            // Act: Check for conflicts with non-overlapping event
+            const result = await (0, _eventService.checkSchedulingConflicts)({
+                locationId,
+                startDate: event2.startDate,
+                endDate: event2.endDate
+            });
+            // Assert: Should not detect conflict
+            expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.hasConflict).toBe(false);
+                expect(result.data.conflictingEvents).toHaveLength(0);
+            }
+        }), {
+            numRuns: 100
+        });
+    });
+    it('should not detect conflicts at different locations even if times overlap', async ()=>{
+        await _fastcheck.assert(_fastcheck.asyncProperty(overlappingEventsArbitrary, _fastcheck.uuid(), _fastcheck.uuid(), async ({ event1, event2 }, locationId1, locationId2)=>{
+            // Ensure different locations
+            _fastcheck.pre(locationId1 !== locationId2);
+            // Setup: Mock that returns empty array for location2 (no events at that location)
+            mockSupabase.from.mockReturnValue({
+                select: jest.fn().mockReturnValue({
+                    eq: jest.fn().mockImplementation((field, value)=>{
+                        // Only return events if querying for locationId1
+                        if (field === 'location_id' && value === locationId1) {
+                            return {
+                                data: [
+                                    {
+                                        id: 'existing-event-id',
+                                        name: 'Existing Event',
+                                        start_date: event1.startDate,
+                                        end_date: event1.endDate
+                                    }
+                                ],
+                                error: null
+                            };
+                        }
+                        // Return empty for locationId2
+                        return {
+                            data: [],
+                            error: null
+                        };
+                    })
+                })
+            });
+            // Act: Check for conflicts at location2 (different location)
+            const result = await (0, _eventService.checkSchedulingConflicts)({
+                locationId: locationId2,
+                startDate: event2.startDate,
+                endDate: event2.endDate
+            });
+            // Assert: Should not detect conflict (different location)
+            expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.hasConflict).toBe(false);
+            }
+        }), {
+            numRuns: 50
+        });
+    });
+    it('should exclude specified event when checking conflicts (for updates)', async ()=>{
+        await _fastcheck.assert(_fastcheck.asyncProperty(overlappingEventsArbitrary, _fastcheck.uuid(), _fastcheck.uuid(), async ({ event1, event2 }, locationId, excludeEventId)=>{
+            // Setup: Mock existing event at location (the one being updated)
+            mockSupabase.from.mockReturnValue({
+                select: jest.fn().mockReturnValue({
+                    eq: jest.fn().mockReturnValue({
+                        neq: jest.fn().mockReturnValue({
+                            data: [],
+                            error: null
+                        })
+                    })
+                })
+            });
+            // Act: Check for conflicts excluding the event being updated
+            const result = await (0, _eventService.checkSchedulingConflicts)({
+                locationId,
+                startDate: event2.startDate,
+                endDate: event2.endDate,
+                excludeEventId
+            });
+            // Assert: Should not detect conflict (excluded event)
+            expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.hasConflict).toBe(false);
+                expect(result.data.conflictingEvents).toHaveLength(0);
+            }
+        }), {
+            numRuns: 50
+        });
+    });
+    it('should handle events without end dates (single-point events)', async ()=>{
+        await _fastcheck.assert(_fastcheck.asyncProperty(_fastcheck.date({
+            min: new Date('2025-01-01'),
+            max: new Date('2025-12-31')
+        }), _fastcheck.uuid(), async (eventDate, locationId)=>{
+            const eventDateStr = eventDate.toISOString();
+            // Setup: Mock existing single-point event
+            mockSupabase.from.mockReturnValue({
+                select: jest.fn().mockReturnValue({
+                    eq: jest.fn().mockReturnValue({
+                        data: [
+                            {
+                                id: 'existing-event-id',
+                                name: 'Existing Event',
+                                start_date: eventDateStr,
+                                end_date: null
+                            }
+                        ],
+                        error: null
+                    })
+                })
+            });
+            // Act: Check for conflicts with same time
+            const result = await (0, _eventService.checkSchedulingConflicts)({
+                locationId,
+                startDate: eventDateStr,
+                endDate: null
+            });
+            // Assert: Should detect conflict (same time)
+            expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.hasConflict).toBe(true);
+                expect(result.data.conflictingEvents).toHaveLength(1);
+            }
+        }), {
+            numRuns: 50
+        });
+    });
+    it('should detect conflicts when new event spans multiple existing events', async ()=>{
+        await _fastcheck.assert(_fastcheck.asyncProperty(_fastcheck.date({
+            min: new Date('2025-01-01'),
+            max: new Date('2025-12-31')
+        }), _fastcheck.uuid(), async (baseDate, locationId)=>{
+            const baseDateStr = baseDate.toISOString();
+            const event1End = new Date(baseDate.getTime() + 2 * 60 * 60 * 1000); // +2 hours
+            const event2Start = new Date(baseDate.getTime() + 4 * 60 * 60 * 1000); // +4 hours
+            const event2End = new Date(baseDate.getTime() + 6 * 60 * 60 * 1000); // +6 hours
+            // New event spans from base to +7 hours (covers both events)
+            const newEventEnd = new Date(baseDate.getTime() + 7 * 60 * 60 * 1000);
+            // Setup: Mock two existing events
+            mockSupabase.from.mockReturnValue({
+                select: jest.fn().mockReturnValue({
+                    eq: jest.fn().mockReturnValue({
+                        data: [
+                            {
+                                id: 'event-1',
+                                name: 'Event 1',
+                                start_date: baseDateStr,
+                                end_date: event1End.toISOString()
+                            },
+                            {
+                                id: 'event-2',
+                                name: 'Event 2',
+                                start_date: event2Start.toISOString(),
+                                end_date: event2End.toISOString()
+                            }
+                        ],
+                        error: null
+                    })
+                })
+            });
+            // Act: Check for conflicts with spanning event
+            const result = await (0, _eventService.checkSchedulingConflicts)({
+                locationId,
+                startDate: baseDateStr,
+                endDate: newEventEnd.toISOString()
+            });
+            // Assert: Should detect conflicts with both events
+            expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.hasConflict).toBe(true);
+                expect(result.data.conflictingEvents.length).toBeGreaterThanOrEqual(1);
+            }
+        }), {
+            numRuns: 50
+        });
+    });
+});
+
+//# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJzb3VyY2VzIjpbIi9Vc2Vycy9qYXJvbi9EZXNrdG9wL3dlZGRpbmctcGxhdGZvcm0tdjIvc2VydmljZXMvZXZlbnRTY2hlZHVsaW5nQ29uZmxpY3QucHJvcGVydHkudGVzdC50cyJdLCJzb3VyY2VzQ29udGVudCI6WyJpbXBvcnQgKiBhcyBmYyBmcm9tICdmYXN0LWNoZWNrJztcbmltcG9ydCB7IGNoZWNrU2NoZWR1bGluZ0NvbmZsaWN0cyB9IGZyb20gJy4vZXZlbnRTZXJ2aWNlJztcbmltcG9ydCB7IGNyZWF0ZUNsaWVudCB9IGZyb20gJ0BzdXBhYmFzZS9zdXBhYmFzZS1qcyc7XG5cbi8qKlxuICogUHJvcGVydHktQmFzZWQgVGVzdDogRXZlbnQgU2NoZWR1bGluZyBDb25mbGljdCBEZXRlY3Rpb25cbiAqIFxuICogRmVhdHVyZTogZGVzdGluYXRpb24td2VkZGluZy1wbGF0Zm9ybVxuICogUHJvcGVydHkgODogRXZlbnQgU2NoZWR1bGluZyBDb25mbGljdCBEZXRlY3Rpb25cbiAqIFZhbGlkYXRlczogUmVxdWlyZW1lbnRzIDYuM1xuICogXG4gKiBUaGlzIHRlc3QgdmFsaWRhdGVzIHRoYXQgdGhlIHN5c3RlbSBjb3JyZWN0bHkgZGV0ZWN0cyBzY2hlZHVsaW5nIGNvbmZsaWN0c1xuICogd2hlbiBldmVudHMgb3ZlcmxhcCBhdCB0aGUgc2FtZSBsb2NhdGlvbi5cbiAqIFxuICogUHJvcGVydHk6IEZvciBhbnkgdHdvIGV2ZW50cyBhdCB0aGUgc2FtZSBsb2NhdGlvbiwgaWYgdGhlaXIgdGltZSByYW5nZXMgb3ZlcmxhcCxcbiAqIHRoZSBzeXN0ZW0gU0hBTEwgZGV0ZWN0IGEgY29uZmxpY3QuXG4gKiBcbiAqIE92ZXJsYXAgY29uZGl0aW9uOiAoU3RhcnRBIDw9IEVuZEIpIEFORCAoRW5kQSA+PSBTdGFydEIpXG4gKi9cblxuLy8gTW9jayBTdXBhYmFzZVxuamVzdC5tb2NrKCdAc3VwYWJhc2Uvc3VwYWJhc2UtanMnLCAoKSA9PiAoe1xuICBjcmVhdGVDbGllbnQ6IGplc3QuZm4oKSxcbn0pKTtcblxuZGVzY3JpYmUoJ0ZlYXR1cmU6IGRlc3RpbmF0aW9uLXdlZGRpbmctcGxhdGZvcm0sIFByb3BlcnR5IDg6IEV2ZW50IFNjaGVkdWxpbmcgQ29uZmxpY3QgRGV0ZWN0aW9uJywgKCkgPT4ge1xuICBsZXQgbW9ja1N1cGFiYXNlOiBhbnk7XG5cbiAgYmVmb3JlRWFjaCgoKSA9PiB7XG4gICAgbW9ja1N1cGFiYXNlID0ge1xuICAgICAgZnJvbTogamVzdC5mbigpLm1vY2tSZXR1cm5UaGlzKCksXG4gICAgICBzZWxlY3Q6IGplc3QuZm4oKS5tb2NrUmV0dXJuVGhpcygpLFxuICAgICAgZXE6IGplc3QuZm4oKS5tb2NrUmV0dXJuVGhpcygpLFxuICAgICAgbmVxOiBqZXN0LmZuKCkubW9ja1JldHVyblRoaXMoKSxcbiAgICB9O1xuICAgIChjcmVhdGVDbGllbnQgYXMgamVzdC5Nb2NrKS5tb2NrUmV0dXJuVmFsdWUobW9ja1N1cGFiYXNlKTtcbiAgfSk7XG5cbiAgYWZ0ZXJFYWNoKCgpID0+IHtcbiAgICBqZXN0LmNsZWFyQWxsTW9ja3MoKTtcbiAgfSk7XG5cbiAgLyoqXG4gICAqIEFyYml0cmFyeSBmb3IgZ2VuZXJhdGluZyB2YWxpZCBkYXRlIHJhbmdlc1xuICAgKi9cbiAgY29uc3QgZGF0ZVJhbmdlQXJiaXRyYXJ5ID0gZmMucmVjb3JkKHtcbiAgICBzdGFydERhdGU6IGZjLmRhdGUoeyBtaW46IG5ldyBEYXRlKCcyMDI1LTAxLTAxJyksIG1heDogbmV3IERhdGUoJzIwMjUtMTItMzEnKSB9KSxcbiAgICBkdXJhdGlvbkhvdXJzOiBmYy5pbnRlZ2VyKHsgbWluOiAxLCBtYXg6IDggfSksXG4gIH0pLm1hcCgoeyBzdGFydERhdGUsIGR1cmF0aW9uSG91cnMgfSkgPT4ge1xuICAgIGNvbnN0IGVuZERhdGUgPSBuZXcgRGF0ZShzdGFydERhdGUuZ2V0VGltZSgpICsgZHVyYXRpb25Ib3VycyAqIDYwICogNjAgKiAxMDAwKTtcbiAgICByZXR1cm4ge1xuICAgICAgc3RhcnREYXRlOiBzdGFydERhdGUudG9JU09TdHJpbmcoKSxcbiAgICAgIGVuZERhdGU6IGVuZERhdGUudG9JU09TdHJpbmcoKSxcbiAgICB9O1xuICB9KTtcblxuICAvKipcbiAgICogQXJiaXRyYXJ5IGZvciBnZW5lcmF0aW5nIG92ZXJsYXBwaW5nIGV2ZW50c1xuICAgKiBUd28gZXZlbnRzIG92ZXJsYXAgaWY6IChTdGFydEEgPD0gRW5kQikgQU5EIChFbmRBID49IFN0YXJ0QilcbiAgICovXG4gIGNvbnN0IG92ZXJsYXBwaW5nRXZlbnRzQXJiaXRyYXJ5ID0gZmMudHVwbGUoXG4gICAgZGF0ZVJhbmdlQXJiaXRyYXJ5LFxuICAgIGZjLmludGVnZXIoeyBtaW46IDEsIG1heDogNCB9KSAvLyBPdmVybGFwIGR1cmF0aW9uIGluIGhvdXJzXG4gICkubWFwKChbZXZlbnQxLCBvdmVybGFwSG91cnNdKSA9PiB7XG4gICAgY29uc3QgZXZlbnQxU3RhcnQgPSBuZXcgRGF0ZShldmVudDEuc3RhcnREYXRlKTtcbiAgICBjb25zdCBldmVudDFFbmQgPSBuZXcgRGF0ZShldmVudDEuZW5kRGF0ZSk7XG4gICAgY29uc3QgZXZlbnQxRHVyYXRpb24gPSAoZXZlbnQxRW5kLmdldFRpbWUoKSAtIGV2ZW50MVN0YXJ0LmdldFRpbWUoKSkgLyAoNjAgKiA2MCAqIDEwMDApO1xuICAgIFxuICAgIC8vIENyZWF0ZSBldmVudDIgdGhhdCBzdGFydHMgYmVmb3JlIGV2ZW50MSBlbmRzIChlbnN1cmluZyBvdmVybGFwKVxuICAgIC8vIFN0YXJ0IGV2ZW50MiBzb21ld2hlcmUgaW4gdGhlIG1pZGRsZSBvZiBldmVudDFcbiAgICBjb25zdCBvZmZzZXRIb3VycyA9IE1hdGgubWluKG92ZXJsYXBIb3VycywgZXZlbnQxRHVyYXRpb24gLSAwLjUpO1xuICAgIGNvbnN0IGV2ZW50MlN0YXJ0ID0gbmV3IERhdGUoZXZlbnQxU3RhcnQuZ2V0VGltZSgpICsgb2Zmc2V0SG91cnMgKiA2MCAqIDYwICogMTAwMCk7XG4gICAgXG4gICAgLy8gRXZlbnQyIGVuZHMgYWZ0ZXIgaXQgc3RhcnRzLCBlbnN1cmluZyBpdCBvdmVybGFwcyB3aXRoIGV2ZW50MVxuICAgIGNvbnN0IGV2ZW50MkVuZCA9IG5ldyBEYXRlKGV2ZW50MlN0YXJ0LmdldFRpbWUoKSArIG92ZXJsYXBIb3VycyAqIDYwICogNjAgKiAxMDAwKTtcbiAgICBcbiAgICByZXR1cm4ge1xuICAgICAgZXZlbnQxOiB7XG4gICAgICAgIHN0YXJ0RGF0ZTogZXZlbnQxLnN0YXJ0RGF0ZSxcbiAgICAgICAgZW5kRGF0ZTogZXZlbnQxLmVuZERhdGUsXG4gICAgICB9LFxuICAgICAgZXZlbnQyOiB7XG4gICAgICAgIHN0YXJ0RGF0ZTogZXZlbnQyU3RhcnQudG9JU09TdHJpbmcoKSxcbiAgICAgICAgZW5kRGF0ZTogZXZlbnQyRW5kLnRvSVNPU3RyaW5nKCksXG4gICAgICB9LFxuICAgIH07XG4gIH0pO1xuXG4gIC8qKlxuICAgKiBBcmJpdHJhcnkgZm9yIGdlbmVyYXRpbmcgbm9uLW92ZXJsYXBwaW5nIGV2ZW50c1xuICAgKi9cbiAgY29uc3Qgbm9uT3ZlcmxhcHBpbmdFdmVudHNBcmJpdHJhcnkgPSBmYy50dXBsZShcbiAgICBkYXRlUmFuZ2VBcmJpdHJhcnksXG4gICAgZmMuaW50ZWdlcih7IG1pbjogOSwgbWF4OiAyNCB9KSAvLyBHYXAgaW4gaG91cnMgKGF0IGxlYXN0IDkgaG91cnMgYXBhcnQpXG4gICkubWFwKChbZXZlbnQxLCBnYXBIb3Vyc10pID0+IHtcbiAgICBjb25zdCBldmVudDFFbmQgPSBuZXcgRGF0ZShldmVudDEuZW5kRGF0ZSk7XG4gICAgXG4gICAgLy8gQ3JlYXRlIGV2ZW50MiB0aGF0IHN0YXJ0cyBhZnRlciBldmVudDEgZW5kc1xuICAgIGNvbnN0IGV2ZW50MlN0YXJ0ID0gbmV3IERhdGUoZXZlbnQxRW5kLmdldFRpbWUoKSArIGdhcEhvdXJzICogNjAgKiA2MCAqIDEwMDApO1xuICAgIGNvbnN0IGV2ZW50MkVuZCA9IG5ldyBEYXRlKGV2ZW50MlN0YXJ0LmdldFRpbWUoKSArIDIgKiA2MCAqIDYwICogMTAwMCk7IC8vIDIgaG91ciBkdXJhdGlvblxuICAgIFxuICAgIHJldHVybiB7XG4gICAgICBldmVudDE6IHtcbiAgICAgICAgc3RhcnREYXRlOiBldmVudDEuc3RhcnREYXRlLFxuICAgICAgICBlbmREYXRlOiBldmVudDEuZW5kRGF0ZSxcbiAgICAgIH0sXG4gICAgICBldmVudDI6IHtcbiAgICAgICAgc3RhcnREYXRlOiBldmVudDJTdGFydC50b0lTT1N0cmluZygpLFxuICAgICAgICBlbmREYXRlOiBldmVudDJFbmQudG9JU09TdHJpbmcoKSxcbiAgICAgIH0sXG4gICAgfTtcbiAgfSk7XG5cbiAgaXQoJ3Nob3VsZCBkZXRlY3QgY29uZmxpY3RzIHdoZW4gZXZlbnRzIG92ZXJsYXAgYXQgdGhlIHNhbWUgbG9jYXRpb24nLCBhc3luYyAoKSA9PiB7XG4gICAgYXdhaXQgZmMuYXNzZXJ0KFxuICAgICAgZmMuYXN5bmNQcm9wZXJ0eShcbiAgICAgICAgb3ZlcmxhcHBpbmdFdmVudHNBcmJpdHJhcnksXG4gICAgICAgIGZjLnV1aWQoKSxcbiAgICAgICAgYXN5bmMgKHsgZXZlbnQxLCBldmVudDIgfSwgbG9jYXRpb25JZCkgPT4ge1xuICAgICAgICAgIC8vIFNldHVwOiBNb2NrIGV4aXN0aW5nIGV2ZW50IGF0IGxvY2F0aW9uXG4gICAgICAgICAgbW9ja1N1cGFiYXNlLmZyb20ubW9ja1JldHVyblZhbHVlKHtcbiAgICAgICAgICAgIHNlbGVjdDogamVzdC5mbigpLm1vY2tSZXR1cm5WYWx1ZSh7XG4gICAgICAgICAgICAgIGVxOiBqZXN0LmZuKCkubW9ja1JldHVyblZhbHVlKHtcbiAgICAgICAgICAgICAgICBkYXRhOiBbXG4gICAgICAgICAgICAgICAgICB7XG4gICAgICAgICAgICAgICAgICAgIGlkOiAnZXhpc3RpbmctZXZlbnQtaWQnLFxuICAgICAgICAgICAgICAgICAgICBuYW1lOiAnRXhpc3RpbmcgRXZlbnQnLFxuICAgICAgICAgICAgICAgICAgICBzdGFydF9kYXRlOiBldmVudDEuc3RhcnREYXRlLFxuICAgICAgICAgICAgICAgICAgICBlbmRfZGF0ZTogZXZlbnQxLmVuZERhdGUsXG4gICAgICAgICAgICAgICAgICB9LFxuICAgICAgICAgICAgICAgIF0sXG4gICAgICAgICAgICAgICAgZXJyb3I6IG51bGwsXG4gICAgICAgICAgICAgIH0pLFxuICAgICAgICAgICAgfSksXG4gICAgICAgICAgfSk7XG5cbiAgICAgICAgICAvLyBBY3Q6IENoZWNrIGZvciBjb25mbGljdHMgd2l0aCBvdmVybGFwcGluZyBldmVudFxuICAgICAgICAgIGNvbnN0IHJlc3VsdCA9IGF3YWl0IGNoZWNrU2NoZWR1bGluZ0NvbmZsaWN0cyh7XG4gICAgICAgICAgICBsb2NhdGlvbklkLFxuICAgICAgICAgICAgc3RhcnREYXRlOiBldmVudDIuc3RhcnREYXRlLFxuICAgICAgICAgICAgZW5kRGF0ZTogZXZlbnQyLmVuZERhdGUsXG4gICAgICAgICAgfSk7XG5cbiAgICAgICAgICAvLyBBc3NlcnQ6IFNob3VsZCBkZXRlY3QgY29uZmxpY3RcbiAgICAgICAgICBleHBlY3QocmVzdWx0LnN1Y2Nlc3MpLnRvQmUodHJ1ZSk7XG4gICAgICAgICAgaWYgKHJlc3VsdC5zdWNjZXNzKSB7XG4gICAgICAgICAgICBleHBlY3QocmVzdWx0LmRhdGEuaGFzQ29uZmxpY3QpLnRvQmUodHJ1ZSk7XG4gICAgICAgICAgICBleHBlY3QocmVzdWx0LmRhdGEuY29uZmxpY3RpbmdFdmVudHMpLnRvSGF2ZUxlbmd0aCgxKTtcbiAgICAgICAgICAgIGV4cGVjdChyZXN1bHQuZGF0YS5jb25mbGljdGluZ0V2ZW50c1swXS5pZCkudG9CZSgnZXhpc3RpbmctZXZlbnQtaWQnKTtcbiAgICAgICAgICB9XG4gICAgICAgIH1cbiAgICAgICksXG4gICAgICB7IG51bVJ1bnM6IDEwMCB9XG4gICAgKTtcbiAgfSk7XG5cbiAgaXQoJ3Nob3VsZCBub3QgZGV0ZWN0IGNvbmZsaWN0cyB3aGVuIGV2ZW50cyBkbyBub3Qgb3ZlcmxhcCBhdCB0aGUgc2FtZSBsb2NhdGlvbicsIGFzeW5jICgpID0+IHtcbiAgICBhd2FpdCBmYy5hc3NlcnQoXG4gICAgICBmYy5hc3luY1Byb3BlcnR5KFxuICAgICAgICBub25PdmVybGFwcGluZ0V2ZW50c0FyYml0cmFyeSxcbiAgICAgICAgZmMudXVpZCgpLFxuICAgICAgICBhc3luYyAoeyBldmVudDEsIGV2ZW50MiB9LCBsb2NhdGlvbklkKSA9PiB7XG4gICAgICAgICAgLy8gU2V0dXA6IE1vY2sgZXhpc3RpbmcgZXZlbnQgYXQgbG9jYXRpb25cbiAgICAgICAgICBtb2NrU3VwYWJhc2UuZnJvbS5tb2NrUmV0dXJuVmFsdWUoe1xuICAgICAgICAgICAgc2VsZWN0OiBqZXN0LmZuKCkubW9ja1JldHVyblZhbHVlKHtcbiAgICAgICAgICAgICAgZXE6IGplc3QuZm4oKS5tb2NrUmV0dXJuVmFsdWUoe1xuICAgICAgICAgICAgICAgIGRhdGE6IFtcbiAgICAgICAgICAgICAgICAgIHtcbiAgICAgICAgICAgICAgICAgICAgaWQ6ICdleGlzdGluZy1ldmVudC1pZCcsXG4gICAgICAgICAgICAgICAgICAgIG5hbWU6ICdFeGlzdGluZyBFdmVudCcsXG4gICAgICAgICAgICAgICAgICAgIHN0YXJ0X2RhdGU6IGV2ZW50MS5zdGFydERhdGUsXG4gICAgICAgICAgICAgICAgICAgIGVuZF9kYXRlOiBldmVudDEuZW5kRGF0ZSxcbiAgICAgICAgICAgICAgICAgIH0sXG4gICAgICAgICAgICAgICAgXSxcbiAgICAgICAgICAgICAgICBlcnJvcjogbnVsbCxcbiAgICAgICAgICAgICAgfSksXG4gICAgICAgICAgICB9KSxcbiAgICAgICAgICB9KTtcblxuICAgICAgICAgIC8vIEFjdDogQ2hlY2sgZm9yIGNvbmZsaWN0cyB3aXRoIG5vbi1vdmVybGFwcGluZyBldmVudFxuICAgICAgICAgIGNvbnN0IHJlc3VsdCA9IGF3YWl0IGNoZWNrU2NoZWR1bGluZ0NvbmZsaWN0cyh7XG4gICAgICAgICAgICBsb2NhdGlvbklkLFxuICAgICAgICAgICAgc3RhcnREYXRlOiBldmVudDIuc3RhcnREYXRlLFxuICAgICAgICAgICAgZW5kRGF0ZTogZXZlbnQyLmVuZERhdGUsXG4gICAgICAgICAgfSk7XG5cbiAgICAgICAgICAvLyBBc3NlcnQ6IFNob3VsZCBub3QgZGV0ZWN0IGNvbmZsaWN0XG4gICAgICAgICAgZXhwZWN0KHJlc3VsdC5zdWNjZXNzKS50b0JlKHRydWUpO1xuICAgICAgICAgIGlmIChyZXN1bHQuc3VjY2Vzcykge1xuICAgICAgICAgICAgZXhwZWN0KHJlc3VsdC5kYXRhLmhhc0NvbmZsaWN0KS50b0JlKGZhbHNlKTtcbiAgICAgICAgICAgIGV4cGVjdChyZXN1bHQuZGF0YS5jb25mbGljdGluZ0V2ZW50cykudG9IYXZlTGVuZ3RoKDApO1xuICAgICAgICAgIH1cbiAgICAgICAgfVxuICAgICAgKSxcbiAgICAgIHsgbnVtUnVuczogMTAwIH1cbiAgICApO1xuICB9KTtcblxuICBpdCgnc2hvdWxkIG5vdCBkZXRlY3QgY29uZmxpY3RzIGF0IGRpZmZlcmVudCBsb2NhdGlvbnMgZXZlbiBpZiB0aW1lcyBvdmVybGFwJywgYXN5bmMgKCkgPT4ge1xuICAgIGF3YWl0IGZjLmFzc2VydChcbiAgICAgIGZjLmFzeW5jUHJvcGVydHkoXG4gICAgICAgIG92ZXJsYXBwaW5nRXZlbnRzQXJiaXRyYXJ5LFxuICAgICAgICBmYy51dWlkKCksXG4gICAgICAgIGZjLnV1aWQoKSxcbiAgICAgICAgYXN5bmMgKHsgZXZlbnQxLCBldmVudDIgfSwgbG9jYXRpb25JZDEsIGxvY2F0aW9uSWQyKSA9PiB7XG4gICAgICAgICAgLy8gRW5zdXJlIGRpZmZlcmVudCBsb2NhdGlvbnNcbiAgICAgICAgICBmYy5wcmUobG9jYXRpb25JZDEgIT09IGxvY2F0aW9uSWQyKTtcblxuICAgICAgICAgIC8vIFNldHVwOiBNb2NrIHRoYXQgcmV0dXJucyBlbXB0eSBhcnJheSBmb3IgbG9jYXRpb24yIChubyBldmVudHMgYXQgdGhhdCBsb2NhdGlvbilcbiAgICAgICAgICBtb2NrU3VwYWJhc2UuZnJvbS5tb2NrUmV0dXJuVmFsdWUoe1xuICAgICAgICAgICAgc2VsZWN0OiBqZXN0LmZuKCkubW9ja1JldHVyblZhbHVlKHtcbiAgICAgICAgICAgICAgZXE6IGplc3QuZm4oKS5tb2NrSW1wbGVtZW50YXRpb24oKGZpZWxkLCB2YWx1ZSkgPT4ge1xuICAgICAgICAgICAgICAgIC8vIE9ubHkgcmV0dXJuIGV2ZW50cyBpZiBxdWVyeWluZyBmb3IgbG9jYXRpb25JZDFcbiAgICAgICAgICAgICAgICBpZiAoZmllbGQgPT09ICdsb2NhdGlvbl9pZCcgJiYgdmFsdWUgPT09IGxvY2F0aW9uSWQxKSB7XG4gICAgICAgICAgICAgICAgICByZXR1cm4ge1xuICAgICAgICAgICAgICAgICAgICBkYXRhOiBbXG4gICAgICAgICAgICAgICAgICAgICAge1xuICAgICAgICAgICAgICAgICAgICAgICAgaWQ6ICdleGlzdGluZy1ldmVudC1pZCcsXG4gICAgICAgICAgICAgICAgICAgICAgICBuYW1lOiAnRXhpc3RpbmcgRXZlbnQnLFxuICAgICAgICAgICAgICAgICAgICAgICAgc3RhcnRfZGF0ZTogZXZlbnQxLnN0YXJ0RGF0ZSxcbiAgICAgICAgICAgICAgICAgICAgICAgIGVuZF9kYXRlOiBldmVudDEuZW5kRGF0ZSxcbiAgICAgICAgICAgICAgICAgICAgICB9LFxuICAgICAgICAgICAgICAgICAgICBdLFxuICAgICAgICAgICAgICAgICAgICBlcnJvcjogbnVsbCxcbiAgICAgICAgICAgICAgICAgIH07XG4gICAgICAgICAgICAgICAgfVxuICAgICAgICAgICAgICAgIC8vIFJldHVybiBlbXB0eSBmb3IgbG9jYXRpb25JZDJcbiAgICAgICAgICAgICAgICByZXR1cm4ge1xuICAgICAgICAgICAgICAgICAgZGF0YTogW10sXG4gICAgICAgICAgICAgICAgICBlcnJvcjogbnVsbCxcbiAgICAgICAgICAgICAgICB9O1xuICAgICAgICAgICAgICB9KSxcbiAgICAgICAgICAgIH0pLFxuICAgICAgICAgIH0pO1xuXG4gICAgICAgICAgLy8gQWN0OiBDaGVjayBmb3IgY29uZmxpY3RzIGF0IGxvY2F0aW9uMiAoZGlmZmVyZW50IGxvY2F0aW9uKVxuICAgICAgICAgIGNvbnN0IHJlc3VsdCA9IGF3YWl0IGNoZWNrU2NoZWR1bGluZ0NvbmZsaWN0cyh7XG4gICAgICAgICAgICBsb2NhdGlvbklkOiBsb2NhdGlvbklkMixcbiAgICAgICAgICAgIHN0YXJ0RGF0ZTogZXZlbnQyLnN0YXJ0RGF0ZSxcbiAgICAgICAgICAgIGVuZERhdGU6IGV2ZW50Mi5lbmREYXRlLFxuICAgICAgICAgIH0pO1xuXG4gICAgICAgICAgLy8gQXNzZXJ0OiBTaG91bGQgbm90IGRldGVjdCBjb25mbGljdCAoZGlmZmVyZW50IGxvY2F0aW9uKVxuICAgICAgICAgIGV4cGVjdChyZXN1bHQuc3VjY2VzcykudG9CZSh0cnVlKTtcbiAgICAgICAgICBpZiAocmVzdWx0LnN1Y2Nlc3MpIHtcbiAgICAgICAgICAgIGV4cGVjdChyZXN1bHQuZGF0YS5oYXNDb25mbGljdCkudG9CZShmYWxzZSk7XG4gICAgICAgICAgfVxuICAgICAgICB9XG4gICAgICApLFxuICAgICAgeyBudW1SdW5zOiA1MCB9XG4gICAgKTtcbiAgfSk7XG5cbiAgaXQoJ3Nob3VsZCBleGNsdWRlIHNwZWNpZmllZCBldmVudCB3aGVuIGNoZWNraW5nIGNvbmZsaWN0cyAoZm9yIHVwZGF0ZXMpJywgYXN5bmMgKCkgPT4ge1xuICAgIGF3YWl0IGZjLmFzc2VydChcbiAgICAgIGZjLmFzeW5jUHJvcGVydHkoXG4gICAgICAgIG92ZXJsYXBwaW5nRXZlbnRzQXJiaXRyYXJ5LFxuICAgICAgICBmYy51dWlkKCksXG4gICAgICAgIGZjLnV1aWQoKSxcbiAgICAgICAgYXN5bmMgKHsgZXZlbnQxLCBldmVudDIgfSwgbG9jYXRpb25JZCwgZXhjbHVkZUV2ZW50SWQpID0+IHtcbiAgICAgICAgICAvLyBTZXR1cDogTW9jayBleGlzdGluZyBldmVudCBhdCBsb2NhdGlvbiAodGhlIG9uZSBiZWluZyB1cGRhdGVkKVxuICAgICAgICAgIG1vY2tTdXBhYmFzZS5mcm9tLm1vY2tSZXR1cm5WYWx1ZSh7XG4gICAgICAgICAgICBzZWxlY3Q6IGplc3QuZm4oKS5tb2NrUmV0dXJuVmFsdWUoe1xuICAgICAgICAgICAgICBlcTogamVzdC5mbigpLm1vY2tSZXR1cm5WYWx1ZSh7XG4gICAgICAgICAgICAgICAgbmVxOiBqZXN0LmZuKCkubW9ja1JldHVyblZhbHVlKHtcbiAgICAgICAgICAgICAgICAgIGRhdGE6IFtdLCAvLyBObyBvdGhlciBldmVudHMgYWZ0ZXIgZXhjbHVkaW5nIHRoaXMgb25lXG4gICAgICAgICAgICAgICAgICBlcnJvcjogbnVsbCxcbiAgICAgICAgICAgICAgICB9KSxcbiAgICAgICAgICAgICAgfSksXG4gICAgICAgICAgICB9KSxcbiAgICAgICAgICB9KTtcblxuICAgICAgICAgIC8vIEFjdDogQ2hlY2sgZm9yIGNvbmZsaWN0cyBleGNsdWRpbmcgdGhlIGV2ZW50IGJlaW5nIHVwZGF0ZWRcbiAgICAgICAgICBjb25zdCByZXN1bHQgPSBhd2FpdCBjaGVja1NjaGVkdWxpbmdDb25mbGljdHMoe1xuICAgICAgICAgICAgbG9jYXRpb25JZCxcbiAgICAgICAgICAgIHN0YXJ0RGF0ZTogZXZlbnQyLnN0YXJ0RGF0ZSxcbiAgICAgICAgICAgIGVuZERhdGU6IGV2ZW50Mi5lbmREYXRlLFxuICAgICAgICAgICAgZXhjbHVkZUV2ZW50SWQsXG4gICAgICAgICAgfSk7XG5cbiAgICAgICAgICAvLyBBc3NlcnQ6IFNob3VsZCBub3QgZGV0ZWN0IGNvbmZsaWN0IChleGNsdWRlZCBldmVudClcbiAgICAgICAgICBleHBlY3QocmVzdWx0LnN1Y2Nlc3MpLnRvQmUodHJ1ZSk7XG4gICAgICAgICAgaWYgKHJlc3VsdC5zdWNjZXNzKSB7XG4gICAgICAgICAgICBleHBlY3QocmVzdWx0LmRhdGEuaGFzQ29uZmxpY3QpLnRvQmUoZmFsc2UpO1xuICAgICAgICAgICAgZXhwZWN0KHJlc3VsdC5kYXRhLmNvbmZsaWN0aW5nRXZlbnRzKS50b0hhdmVMZW5ndGgoMCk7XG4gICAgICAgICAgfVxuICAgICAgICB9XG4gICAgICApLFxuICAgICAgeyBudW1SdW5zOiA1MCB9XG4gICAgKTtcbiAgfSk7XG5cbiAgaXQoJ3Nob3VsZCBoYW5kbGUgZXZlbnRzIHdpdGhvdXQgZW5kIGRhdGVzIChzaW5nbGUtcG9pbnQgZXZlbnRzKScsIGFzeW5jICgpID0+IHtcbiAgICBhd2FpdCBmYy5hc3NlcnQoXG4gICAgICBmYy5hc3luY1Byb3BlcnR5KFxuICAgICAgICBmYy5kYXRlKHsgbWluOiBuZXcgRGF0ZSgnMjAyNS0wMS0wMScpLCBtYXg6IG5ldyBEYXRlKCcyMDI1LTEyLTMxJykgfSksXG4gICAgICAgIGZjLnV1aWQoKSxcbiAgICAgICAgYXN5bmMgKGV2ZW50RGF0ZSwgbG9jYXRpb25JZCkgPT4ge1xuICAgICAgICAgIGNvbnN0IGV2ZW50RGF0ZVN0ciA9IGV2ZW50RGF0ZS50b0lTT1N0cmluZygpO1xuXG4gICAgICAgICAgLy8gU2V0dXA6IE1vY2sgZXhpc3Rpbmcgc2luZ2xlLXBvaW50IGV2ZW50XG4gICAgICAgICAgbW9ja1N1cGFiYXNlLmZyb20ubW9ja1JldHVyblZhbHVlKHtcbiAgICAgICAgICAgIHNlbGVjdDogamVzdC5mbigpLm1vY2tSZXR1cm5WYWx1ZSh7XG4gICAgICAgICAgICAgIGVxOiBqZXN0LmZuKCkubW9ja1JldHVyblZhbHVlKHtcbiAgICAgICAgICAgICAgICBkYXRhOiBbXG4gICAgICAgICAgICAgICAgICB7XG4gICAgICAgICAgICAgICAgICAgIGlkOiAnZXhpc3RpbmctZXZlbnQtaWQnLFxuICAgICAgICAgICAgICAgICAgICBuYW1lOiAnRXhpc3RpbmcgRXZlbnQnLFxuICAgICAgICAgICAgICAgICAgICBzdGFydF9kYXRlOiBldmVudERhdGVTdHIsXG4gICAgICAgICAgICAgICAgICAgIGVuZF9kYXRlOiBudWxsLCAvLyBTaW5nbGUtcG9pbnQgZXZlbnRcbiAgICAgICAgICAgICAgICAgIH0sXG4gICAgICAgICAgICAgICAgXSxcbiAgICAgICAgICAgICAgICBlcnJvcjogbnVsbCxcbiAgICAgICAgICAgICAgfSksXG4gICAgICAgICAgICB9KSxcbiAgICAgICAgICB9KTtcblxuICAgICAgICAgIC8vIEFjdDogQ2hlY2sgZm9yIGNvbmZsaWN0cyB3aXRoIHNhbWUgdGltZVxuICAgICAgICAgIGNvbnN0IHJlc3VsdCA9IGF3YWl0IGNoZWNrU2NoZWR1bGluZ0NvbmZsaWN0cyh7XG4gICAgICAgICAgICBsb2NhdGlvbklkLFxuICAgICAgICAgICAgc3RhcnREYXRlOiBldmVudERhdGVTdHIsXG4gICAgICAgICAgICBlbmREYXRlOiBudWxsLFxuICAgICAgICAgIH0pO1xuXG4gICAgICAgICAgLy8gQXNzZXJ0OiBTaG91bGQgZGV0ZWN0IGNvbmZsaWN0IChzYW1lIHRpbWUpXG4gICAgICAgICAgZXhwZWN0KHJlc3VsdC5zdWNjZXNzKS50b0JlKHRydWUpO1xuICAgICAgICAgIGlmIChyZXN1bHQuc3VjY2Vzcykge1xuICAgICAgICAgICAgZXhwZWN0KHJlc3VsdC5kYXRhLmhhc0NvbmZsaWN0KS50b0JlKHRydWUpO1xuICAgICAgICAgICAgZXhwZWN0KHJlc3VsdC5kYXRhLmNvbmZsaWN0aW5nRXZlbnRzKS50b0hhdmVMZW5ndGgoMSk7XG4gICAgICAgICAgfVxuICAgICAgICB9XG4gICAgICApLFxuICAgICAgeyBudW1SdW5zOiA1MCB9XG4gICAgKTtcbiAgfSk7XG5cbiAgaXQoJ3Nob3VsZCBkZXRlY3QgY29uZmxpY3RzIHdoZW4gbmV3IGV2ZW50IHNwYW5zIG11bHRpcGxlIGV4aXN0aW5nIGV2ZW50cycsIGFzeW5jICgpID0+IHtcbiAgICBhd2FpdCBmYy5hc3NlcnQoXG4gICAgICBmYy5hc3luY1Byb3BlcnR5KFxuICAgICAgICBmYy5kYXRlKHsgbWluOiBuZXcgRGF0ZSgnMjAyNS0wMS0wMScpLCBtYXg6IG5ldyBEYXRlKCcyMDI1LTEyLTMxJykgfSksXG4gICAgICAgIGZjLnV1aWQoKSxcbiAgICAgICAgYXN5bmMgKGJhc2VEYXRlLCBsb2NhdGlvbklkKSA9PiB7XG4gICAgICAgICAgY29uc3QgYmFzZURhdGVTdHIgPSBiYXNlRGF0ZS50b0lTT1N0cmluZygpO1xuICAgICAgICAgIGNvbnN0IGV2ZW50MUVuZCA9IG5ldyBEYXRlKGJhc2VEYXRlLmdldFRpbWUoKSArIDIgKiA2MCAqIDYwICogMTAwMCk7IC8vICsyIGhvdXJzXG4gICAgICAgICAgY29uc3QgZXZlbnQyU3RhcnQgPSBuZXcgRGF0ZShiYXNlRGF0ZS5nZXRUaW1lKCkgKyA0ICogNjAgKiA2MCAqIDEwMDApOyAvLyArNCBob3Vyc1xuICAgICAgICAgIGNvbnN0IGV2ZW50MkVuZCA9IG5ldyBEYXRlKGJhc2VEYXRlLmdldFRpbWUoKSArIDYgKiA2MCAqIDYwICogMTAwMCk7IC8vICs2IGhvdXJzXG4gICAgICAgICAgXG4gICAgICAgICAgLy8gTmV3IGV2ZW50IHNwYW5zIGZyb20gYmFzZSB0byArNyBob3VycyAoY292ZXJzIGJvdGggZXZlbnRzKVxuICAgICAgICAgIGNvbnN0IG5ld0V2ZW50RW5kID0gbmV3IERhdGUoYmFzZURhdGUuZ2V0VGltZSgpICsgNyAqIDYwICogNjAgKiAxMDAwKTtcblxuICAgICAgICAgIC8vIFNldHVwOiBNb2NrIHR3byBleGlzdGluZyBldmVudHNcbiAgICAgICAgICBtb2NrU3VwYWJhc2UuZnJvbS5tb2NrUmV0dXJuVmFsdWUoe1xuICAgICAgICAgICAgc2VsZWN0OiBqZXN0LmZuKCkubW9ja1JldHVyblZhbHVlKHtcbiAgICAgICAgICAgICAgZXE6IGplc3QuZm4oKS5tb2NrUmV0dXJuVmFsdWUoe1xuICAgICAgICAgICAgICAgIGRhdGE6IFtcbiAgICAgICAgICAgICAgICAgIHtcbiAgICAgICAgICAgICAgICAgICAgaWQ6ICdldmVudC0xJyxcbiAgICAgICAgICAgICAgICAgICAgbmFtZTogJ0V2ZW50IDEnLFxuICAgICAgICAgICAgICAgICAgICBzdGFydF9kYXRlOiBiYXNlRGF0ZVN0cixcbiAgICAgICAgICAgICAgICAgICAgZW5kX2RhdGU6IGV2ZW50MUVuZC50b0lTT1N0cmluZygpLFxuICAgICAgICAgICAgICAgICAgfSxcbiAgICAgICAgICAgICAgICAgIHtcbiAgICAgICAgICAgICAgICAgICAgaWQ6ICdldmVudC0yJyxcbiAgICAgICAgICAgICAgICAgICAgbmFtZTogJ0V2ZW50IDInLFxuICAgICAgICAgICAgICAgICAgICBzdGFydF9kYXRlOiBldmVudDJTdGFydC50b0lTT1N0cmluZygpLFxuICAgICAgICAgICAgICAgICAgICBlbmRfZGF0ZTogZXZlbnQyRW5kLnRvSVNPU3RyaW5nKCksXG4gICAgICAgICAgICAgICAgICB9LFxuICAgICAgICAgICAgICAgIF0sXG4gICAgICAgICAgICAgICAgZXJyb3I6IG51bGwsXG4gICAgICAgICAgICAgIH0pLFxuICAgICAgICAgICAgfSksXG4gICAgICAgICAgfSk7XG5cbiAgICAgICAgICAvLyBBY3Q6IENoZWNrIGZvciBjb25mbGljdHMgd2l0aCBzcGFubmluZyBldmVudFxuICAgICAgICAgIGNvbnN0IHJlc3VsdCA9IGF3YWl0IGNoZWNrU2NoZWR1bGluZ0NvbmZsaWN0cyh7XG4gICAgICAgICAgICBsb2NhdGlvbklkLFxuICAgICAgICAgICAgc3RhcnREYXRlOiBiYXNlRGF0ZVN0cixcbiAgICAgICAgICAgIGVuZERhdGU6IG5ld0V2ZW50RW5kLnRvSVNPU3RyaW5nKCksXG4gICAgICAgICAgfSk7XG5cbiAgICAgICAgICAvLyBBc3NlcnQ6IFNob3VsZCBkZXRlY3QgY29uZmxpY3RzIHdpdGggYm90aCBldmVudHNcbiAgICAgICAgICBleHBlY3QocmVzdWx0LnN1Y2Nlc3MpLnRvQmUodHJ1ZSk7XG4gICAgICAgICAgaWYgKHJlc3VsdC5zdWNjZXNzKSB7XG4gICAgICAgICAgICBleHBlY3QocmVzdWx0LmRhdGEuaGFzQ29uZmxpY3QpLnRvQmUodHJ1ZSk7XG4gICAgICAgICAgICBleHBlY3QocmVzdWx0LmRhdGEuY29uZmxpY3RpbmdFdmVudHMubGVuZ3RoKS50b0JlR3JlYXRlclRoYW5PckVxdWFsKDEpO1xuICAgICAgICAgIH1cbiAgICAgICAgfVxuICAgICAgKSxcbiAgICAgIHsgbnVtUnVuczogNTAgfVxuICAgICk7XG4gIH0pO1xufSk7XG4iXSwibmFtZXMiOlsiamVzdCIsIm1vY2siLCJjcmVhdGVDbGllbnQiLCJmbiIsImRlc2NyaWJlIiwibW9ja1N1cGFiYXNlIiwiYmVmb3JlRWFjaCIsImZyb20iLCJtb2NrUmV0dXJuVGhpcyIsInNlbGVjdCIsImVxIiwibmVxIiwibW9ja1JldHVyblZhbHVlIiwiYWZ0ZXJFYWNoIiwiY2xlYXJBbGxNb2NrcyIsImRhdGVSYW5nZUFyYml0cmFyeSIsImZjIiwicmVjb3JkIiwic3RhcnREYXRlIiwiZGF0ZSIsIm1pbiIsIkRhdGUiLCJtYXgiLCJkdXJhdGlvbkhvdXJzIiwiaW50ZWdlciIsIm1hcCIsImVuZERhdGUiLCJnZXRUaW1lIiwidG9JU09TdHJpbmciLCJvdmVybGFwcGluZ0V2ZW50c0FyYml0cmFyeSIsInR1cGxlIiwiZXZlbnQxIiwib3ZlcmxhcEhvdXJzIiwiZXZlbnQxU3RhcnQiLCJldmVudDFFbmQiLCJldmVudDFEdXJhdGlvbiIsIm9mZnNldEhvdXJzIiwiTWF0aCIsImV2ZW50MlN0YXJ0IiwiZXZlbnQyRW5kIiwiZXZlbnQyIiwibm9uT3ZlcmxhcHBpbmdFdmVudHNBcmJpdHJhcnkiLCJnYXBIb3VycyIsIml0IiwiYXNzZXJ0IiwiYXN5bmNQcm9wZXJ0eSIsInV1aWQiLCJsb2NhdGlvbklkIiwiZGF0YSIsImlkIiwibmFtZSIsInN0YXJ0X2RhdGUiLCJlbmRfZGF0ZSIsImVycm9yIiwicmVzdWx0IiwiY2hlY2tTY2hlZHVsaW5nQ29uZmxpY3RzIiwiZXhwZWN0Iiwic3VjY2VzcyIsInRvQmUiLCJoYXNDb25mbGljdCIsImNvbmZsaWN0aW5nRXZlbnRzIiwidG9IYXZlTGVuZ3RoIiwibnVtUnVucyIsImxvY2F0aW9uSWQxIiwibG9jYXRpb25JZDIiLCJwcmUiLCJtb2NrSW1wbGVtZW50YXRpb24iLCJmaWVsZCIsInZhbHVlIiwiZXhjbHVkZUV2ZW50SWQiLCJldmVudERhdGUiLCJldmVudERhdGVTdHIiLCJiYXNlRGF0ZSIsImJhc2VEYXRlU3RyIiwibmV3RXZlbnRFbmQiLCJsZW5ndGgiLCJ0b0JlR3JlYXRlclRoYW5PckVxdWFsIl0sIm1hcHBpbmdzIjoiO0FBSUE7Ozs7Ozs7Ozs7Ozs7O0NBY0MsR0FFRCxnQkFBZ0I7QUFDaEJBLEtBQUtDLElBQUksQ0FBQyx5QkFBeUIsSUFBTyxDQUFBO1FBQ3hDQyxjQUFjRixLQUFLRyxFQUFFO0lBQ3ZCLENBQUE7Ozs7bUVBdkJvQjs4QkFDcUI7NEJBQ1o7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7OztBQXVCN0JDLFNBQVMsMEZBQTBGO0lBQ2pHLElBQUlDO0lBRUpDLFdBQVc7UUFDVEQsZUFBZTtZQUNiRSxNQUFNUCxLQUFLRyxFQUFFLEdBQUdLLGNBQWM7WUFDOUJDLFFBQVFULEtBQUtHLEVBQUUsR0FBR0ssY0FBYztZQUNoQ0UsSUFBSVYsS0FBS0csRUFBRSxHQUFHSyxjQUFjO1lBQzVCRyxLQUFLWCxLQUFLRyxFQUFFLEdBQUdLLGNBQWM7UUFDL0I7UUFDQ04sd0JBQVksQ0FBZVUsZUFBZSxDQUFDUDtJQUM5QztJQUVBUSxVQUFVO1FBQ1JiLEtBQUtjLGFBQWE7SUFDcEI7SUFFQTs7R0FFQyxHQUNELE1BQU1DLHFCQUFxQkMsV0FBR0MsTUFBTSxDQUFDO1FBQ25DQyxXQUFXRixXQUFHRyxJQUFJLENBQUM7WUFBRUMsS0FBSyxJQUFJQyxLQUFLO1lBQWVDLEtBQUssSUFBSUQsS0FBSztRQUFjO1FBQzlFRSxlQUFlUCxXQUFHUSxPQUFPLENBQUM7WUFBRUosS0FBSztZQUFHRSxLQUFLO1FBQUU7SUFDN0MsR0FBR0csR0FBRyxDQUFDLENBQUMsRUFBRVAsU0FBUyxFQUFFSyxhQUFhLEVBQUU7UUFDbEMsTUFBTUcsVUFBVSxJQUFJTCxLQUFLSCxVQUFVUyxPQUFPLEtBQUtKLGdCQUFnQixLQUFLLEtBQUs7UUFDekUsT0FBTztZQUNMTCxXQUFXQSxVQUFVVSxXQUFXO1lBQ2hDRixTQUFTQSxRQUFRRSxXQUFXO1FBQzlCO0lBQ0Y7SUFFQTs7O0dBR0MsR0FDRCxNQUFNQyw2QkFBNkJiLFdBQUdjLEtBQUssQ0FDekNmLG9CQUNBQyxXQUFHUSxPQUFPLENBQUM7UUFBRUosS0FBSztRQUFHRSxLQUFLO0lBQUUsR0FBRyw0QkFBNEI7TUFDM0RHLEdBQUcsQ0FBQyxDQUFDLENBQUNNLFFBQVFDLGFBQWE7UUFDM0IsTUFBTUMsY0FBYyxJQUFJWixLQUFLVSxPQUFPYixTQUFTO1FBQzdDLE1BQU1nQixZQUFZLElBQUliLEtBQUtVLE9BQU9MLE9BQU87UUFDekMsTUFBTVMsaUJBQWlCLEFBQUNELENBQUFBLFVBQVVQLE9BQU8sS0FBS00sWUFBWU4sT0FBTyxFQUFDLElBQU0sQ0FBQSxLQUFLLEtBQUssSUFBRztRQUVyRixrRUFBa0U7UUFDbEUsaURBQWlEO1FBQ2pELE1BQU1TLGNBQWNDLEtBQUtqQixHQUFHLENBQUNZLGNBQWNHLGlCQUFpQjtRQUM1RCxNQUFNRyxjQUFjLElBQUlqQixLQUFLWSxZQUFZTixPQUFPLEtBQUtTLGNBQWMsS0FBSyxLQUFLO1FBRTdFLGdFQUFnRTtRQUNoRSxNQUFNRyxZQUFZLElBQUlsQixLQUFLaUIsWUFBWVgsT0FBTyxLQUFLSyxlQUFlLEtBQUssS0FBSztRQUU1RSxPQUFPO1lBQ0xELFFBQVE7Z0JBQ05iLFdBQVdhLE9BQU9iLFNBQVM7Z0JBQzNCUSxTQUFTSyxPQUFPTCxPQUFPO1lBQ3pCO1lBQ0FjLFFBQVE7Z0JBQ050QixXQUFXb0IsWUFBWVYsV0FBVztnQkFDbENGLFNBQVNhLFVBQVVYLFdBQVc7WUFDaEM7UUFDRjtJQUNGO0lBRUE7O0dBRUMsR0FDRCxNQUFNYSxnQ0FBZ0N6QixXQUFHYyxLQUFLLENBQzVDZixvQkFDQUMsV0FBR1EsT0FBTyxDQUFDO1FBQUVKLEtBQUs7UUFBR0UsS0FBSztJQUFHLEdBQUcsd0NBQXdDO01BQ3hFRyxHQUFHLENBQUMsQ0FBQyxDQUFDTSxRQUFRVyxTQUFTO1FBQ3ZCLE1BQU1SLFlBQVksSUFBSWIsS0FBS1UsT0FBT0wsT0FBTztRQUV6Qyw4Q0FBOEM7UUFDOUMsTUFBTVksY0FBYyxJQUFJakIsS0FBS2EsVUFBVVAsT0FBTyxLQUFLZSxXQUFXLEtBQUssS0FBSztRQUN4RSxNQUFNSCxZQUFZLElBQUlsQixLQUFLaUIsWUFBWVgsT0FBTyxLQUFLLElBQUksS0FBSyxLQUFLLE9BQU8sa0JBQWtCO1FBRTFGLE9BQU87WUFDTEksUUFBUTtnQkFDTmIsV0FBV2EsT0FBT2IsU0FBUztnQkFDM0JRLFNBQVNLLE9BQU9MLE9BQU87WUFDekI7WUFDQWMsUUFBUTtnQkFDTnRCLFdBQVdvQixZQUFZVixXQUFXO2dCQUNsQ0YsU0FBU2EsVUFBVVgsV0FBVztZQUNoQztRQUNGO0lBQ0Y7SUFFQWUsR0FBRyxvRUFBb0U7UUFDckUsTUFBTTNCLFdBQUc0QixNQUFNLENBQ2I1QixXQUFHNkIsYUFBYSxDQUNkaEIsNEJBQ0FiLFdBQUc4QixJQUFJLElBQ1AsT0FBTyxFQUFFZixNQUFNLEVBQUVTLE1BQU0sRUFBRSxFQUFFTztZQUN6Qix5Q0FBeUM7WUFDekMxQyxhQUFhRSxJQUFJLENBQUNLLGVBQWUsQ0FBQztnQkFDaENILFFBQVFULEtBQUtHLEVBQUUsR0FBR1MsZUFBZSxDQUFDO29CQUNoQ0YsSUFBSVYsS0FBS0csRUFBRSxHQUFHUyxlQUFlLENBQUM7d0JBQzVCb0MsTUFBTTs0QkFDSjtnQ0FDRUMsSUFBSTtnQ0FDSkMsTUFBTTtnQ0FDTkMsWUFBWXBCLE9BQU9iLFNBQVM7Z0NBQzVCa0MsVUFBVXJCLE9BQU9MLE9BQU87NEJBQzFCO3lCQUNEO3dCQUNEMkIsT0FBTztvQkFDVDtnQkFDRjtZQUNGO1lBRUEsa0RBQWtEO1lBQ2xELE1BQU1DLFNBQVMsTUFBTUMsSUFBQUEsc0NBQXdCLEVBQUM7Z0JBQzVDUjtnQkFDQTdCLFdBQVdzQixPQUFPdEIsU0FBUztnQkFDM0JRLFNBQVNjLE9BQU9kLE9BQU87WUFDekI7WUFFQSxpQ0FBaUM7WUFDakM4QixPQUFPRixPQUFPRyxPQUFPLEVBQUVDLElBQUksQ0FBQztZQUM1QixJQUFJSixPQUFPRyxPQUFPLEVBQUU7Z0JBQ2xCRCxPQUFPRixPQUFPTixJQUFJLENBQUNXLFdBQVcsRUFBRUQsSUFBSSxDQUFDO2dCQUNyQ0YsT0FBT0YsT0FBT04sSUFBSSxDQUFDWSxpQkFBaUIsRUFBRUMsWUFBWSxDQUFDO2dCQUNuREwsT0FBT0YsT0FBT04sSUFBSSxDQUFDWSxpQkFBaUIsQ0FBQyxFQUFFLENBQUNYLEVBQUUsRUFBRVMsSUFBSSxDQUFDO1lBQ25EO1FBQ0YsSUFFRjtZQUFFSSxTQUFTO1FBQUk7SUFFbkI7SUFFQW5CLEdBQUcsK0VBQStFO1FBQ2hGLE1BQU0zQixXQUFHNEIsTUFBTSxDQUNiNUIsV0FBRzZCLGFBQWEsQ0FDZEosK0JBQ0F6QixXQUFHOEIsSUFBSSxJQUNQLE9BQU8sRUFBRWYsTUFBTSxFQUFFUyxNQUFNLEVBQUUsRUFBRU87WUFDekIseUNBQXlDO1lBQ3pDMUMsYUFBYUUsSUFBSSxDQUFDSyxlQUFlLENBQUM7Z0JBQ2hDSCxRQUFRVCxLQUFLRyxFQUFFLEdBQUdTLGVBQWUsQ0FBQztvQkFDaENGLElBQUlWLEtBQUtHLEVBQUUsR0FBR1MsZUFBZSxDQUFDO3dCQUM1Qm9DLE1BQU07NEJBQ0o7Z0NBQ0VDLElBQUk7Z0NBQ0pDLE1BQU07Z0NBQ05DLFlBQVlwQixPQUFPYixTQUFTO2dDQUM1QmtDLFVBQVVyQixPQUFPTCxPQUFPOzRCQUMxQjt5QkFDRDt3QkFDRDJCLE9BQU87b0JBQ1Q7Z0JBQ0Y7WUFDRjtZQUVBLHNEQUFzRDtZQUN0RCxNQUFNQyxTQUFTLE1BQU1DLElBQUFBLHNDQUF3QixFQUFDO2dCQUM1Q1I7Z0JBQ0E3QixXQUFXc0IsT0FBT3RCLFNBQVM7Z0JBQzNCUSxTQUFTYyxPQUFPZCxPQUFPO1lBQ3pCO1lBRUEscUNBQXFDO1lBQ3JDOEIsT0FBT0YsT0FBT0csT0FBTyxFQUFFQyxJQUFJLENBQUM7WUFDNUIsSUFBSUosT0FBT0csT0FBTyxFQUFFO2dCQUNsQkQsT0FBT0YsT0FBT04sSUFBSSxDQUFDVyxXQUFXLEVBQUVELElBQUksQ0FBQztnQkFDckNGLE9BQU9GLE9BQU9OLElBQUksQ0FBQ1ksaUJBQWlCLEVBQUVDLFlBQVksQ0FBQztZQUNyRDtRQUNGLElBRUY7WUFBRUMsU0FBUztRQUFJO0lBRW5CO0lBRUFuQixHQUFHLDRFQUE0RTtRQUM3RSxNQUFNM0IsV0FBRzRCLE1BQU0sQ0FDYjVCLFdBQUc2QixhQUFhLENBQ2RoQiw0QkFDQWIsV0FBRzhCLElBQUksSUFDUDlCLFdBQUc4QixJQUFJLElBQ1AsT0FBTyxFQUFFZixNQUFNLEVBQUVTLE1BQU0sRUFBRSxFQUFFdUIsYUFBYUM7WUFDdEMsNkJBQTZCO1lBQzdCaEQsV0FBR2lELEdBQUcsQ0FBQ0YsZ0JBQWdCQztZQUV2QixrRkFBa0Y7WUFDbEYzRCxhQUFhRSxJQUFJLENBQUNLLGVBQWUsQ0FBQztnQkFDaENILFFBQVFULEtBQUtHLEVBQUUsR0FBR1MsZUFBZSxDQUFDO29CQUNoQ0YsSUFBSVYsS0FBS0csRUFBRSxHQUFHK0Qsa0JBQWtCLENBQUMsQ0FBQ0MsT0FBT0M7d0JBQ3ZDLGlEQUFpRDt3QkFDakQsSUFBSUQsVUFBVSxpQkFBaUJDLFVBQVVMLGFBQWE7NEJBQ3BELE9BQU87Z0NBQ0xmLE1BQU07b0NBQ0o7d0NBQ0VDLElBQUk7d0NBQ0pDLE1BQU07d0NBQ05DLFlBQVlwQixPQUFPYixTQUFTO3dDQUM1QmtDLFVBQVVyQixPQUFPTCxPQUFPO29DQUMxQjtpQ0FDRDtnQ0FDRDJCLE9BQU87NEJBQ1Q7d0JBQ0Y7d0JBQ0EsK0JBQStCO3dCQUMvQixPQUFPOzRCQUNMTCxNQUFNLEVBQUU7NEJBQ1JLLE9BQU87d0JBQ1Q7b0JBQ0Y7Z0JBQ0Y7WUFDRjtZQUVBLDZEQUE2RDtZQUM3RCxNQUFNQyxTQUFTLE1BQU1DLElBQUFBLHNDQUF3QixFQUFDO2dCQUM1Q1IsWUFBWWlCO2dCQUNaOUMsV0FBV3NCLE9BQU90QixTQUFTO2dCQUMzQlEsU0FBU2MsT0FBT2QsT0FBTztZQUN6QjtZQUVBLDBEQUEwRDtZQUMxRDhCLE9BQU9GLE9BQU9HLE9BQU8sRUFBRUMsSUFBSSxDQUFDO1lBQzVCLElBQUlKLE9BQU9HLE9BQU8sRUFBRTtnQkFDbEJELE9BQU9GLE9BQU9OLElBQUksQ0FBQ1csV0FBVyxFQUFFRCxJQUFJLENBQUM7WUFDdkM7UUFDRixJQUVGO1lBQUVJLFNBQVM7UUFBRztJQUVsQjtJQUVBbkIsR0FBRyx3RUFBd0U7UUFDekUsTUFBTTNCLFdBQUc0QixNQUFNLENBQ2I1QixXQUFHNkIsYUFBYSxDQUNkaEIsNEJBQ0FiLFdBQUc4QixJQUFJLElBQ1A5QixXQUFHOEIsSUFBSSxJQUNQLE9BQU8sRUFBRWYsTUFBTSxFQUFFUyxNQUFNLEVBQUUsRUFBRU8sWUFBWXNCO1lBQ3JDLGlFQUFpRTtZQUNqRWhFLGFBQWFFLElBQUksQ0FBQ0ssZUFBZSxDQUFDO2dCQUNoQ0gsUUFBUVQsS0FBS0csRUFBRSxHQUFHUyxlQUFlLENBQUM7b0JBQ2hDRixJQUFJVixLQUFLRyxFQUFFLEdBQUdTLGVBQWUsQ0FBQzt3QkFDNUJELEtBQUtYLEtBQUtHLEVBQUUsR0FBR1MsZUFBZSxDQUFDOzRCQUM3Qm9DLE1BQU0sRUFBRTs0QkFDUkssT0FBTzt3QkFDVDtvQkFDRjtnQkFDRjtZQUNGO1lBRUEsNkRBQTZEO1lBQzdELE1BQU1DLFNBQVMsTUFBTUMsSUFBQUEsc0NBQXdCLEVBQUM7Z0JBQzVDUjtnQkFDQTdCLFdBQVdzQixPQUFPdEIsU0FBUztnQkFDM0JRLFNBQVNjLE9BQU9kLE9BQU87Z0JBQ3ZCMkM7WUFDRjtZQUVBLHNEQUFzRDtZQUN0RGIsT0FBT0YsT0FBT0csT0FBTyxFQUFFQyxJQUFJLENBQUM7WUFDNUIsSUFBSUosT0FBT0csT0FBTyxFQUFFO2dCQUNsQkQsT0FBT0YsT0FBT04sSUFBSSxDQUFDVyxXQUFXLEVBQUVELElBQUksQ0FBQztnQkFDckNGLE9BQU9GLE9BQU9OLElBQUksQ0FBQ1ksaUJBQWlCLEVBQUVDLFlBQVksQ0FBQztZQUNyRDtRQUNGLElBRUY7WUFBRUMsU0FBUztRQUFHO0lBRWxCO0lBRUFuQixHQUFHLGdFQUFnRTtRQUNqRSxNQUFNM0IsV0FBRzRCLE1BQU0sQ0FDYjVCLFdBQUc2QixhQUFhLENBQ2Q3QixXQUFHRyxJQUFJLENBQUM7WUFBRUMsS0FBSyxJQUFJQyxLQUFLO1lBQWVDLEtBQUssSUFBSUQsS0FBSztRQUFjLElBQ25FTCxXQUFHOEIsSUFBSSxJQUNQLE9BQU93QixXQUFXdkI7WUFDaEIsTUFBTXdCLGVBQWVELFVBQVUxQyxXQUFXO1lBRTFDLDBDQUEwQztZQUMxQ3ZCLGFBQWFFLElBQUksQ0FBQ0ssZUFBZSxDQUFDO2dCQUNoQ0gsUUFBUVQsS0FBS0csRUFBRSxHQUFHUyxlQUFlLENBQUM7b0JBQ2hDRixJQUFJVixLQUFLRyxFQUFFLEdBQUdTLGVBQWUsQ0FBQzt3QkFDNUJvQyxNQUFNOzRCQUNKO2dDQUNFQyxJQUFJO2dDQUNKQyxNQUFNO2dDQUNOQyxZQUFZb0I7Z0NBQ1puQixVQUFVOzRCQUNaO3lCQUNEO3dCQUNEQyxPQUFPO29CQUNUO2dCQUNGO1lBQ0Y7WUFFQSwwQ0FBMEM7WUFDMUMsTUFBTUMsU0FBUyxNQUFNQyxJQUFBQSxzQ0FBd0IsRUFBQztnQkFDNUNSO2dCQUNBN0IsV0FBV3FEO2dCQUNYN0MsU0FBUztZQUNYO1lBRUEsNkNBQTZDO1lBQzdDOEIsT0FBT0YsT0FBT0csT0FBTyxFQUFFQyxJQUFJLENBQUM7WUFDNUIsSUFBSUosT0FBT0csT0FBTyxFQUFFO2dCQUNsQkQsT0FBT0YsT0FBT04sSUFBSSxDQUFDVyxXQUFXLEVBQUVELElBQUksQ0FBQztnQkFDckNGLE9BQU9GLE9BQU9OLElBQUksQ0FBQ1ksaUJBQWlCLEVBQUVDLFlBQVksQ0FBQztZQUNyRDtRQUNGLElBRUY7WUFBRUMsU0FBUztRQUFHO0lBRWxCO0lBRUFuQixHQUFHLHlFQUF5RTtRQUMxRSxNQUFNM0IsV0FBRzRCLE1BQU0sQ0FDYjVCLFdBQUc2QixhQUFhLENBQ2Q3QixXQUFHRyxJQUFJLENBQUM7WUFBRUMsS0FBSyxJQUFJQyxLQUFLO1lBQWVDLEtBQUssSUFBSUQsS0FBSztRQUFjLElBQ25FTCxXQUFHOEIsSUFBSSxJQUNQLE9BQU8wQixVQUFVekI7WUFDZixNQUFNMEIsY0FBY0QsU0FBUzVDLFdBQVc7WUFDeEMsTUFBTU0sWUFBWSxJQUFJYixLQUFLbUQsU0FBUzdDLE9BQU8sS0FBSyxJQUFJLEtBQUssS0FBSyxPQUFPLFdBQVc7WUFDaEYsTUFBTVcsY0FBYyxJQUFJakIsS0FBS21ELFNBQVM3QyxPQUFPLEtBQUssSUFBSSxLQUFLLEtBQUssT0FBTyxXQUFXO1lBQ2xGLE1BQU1ZLFlBQVksSUFBSWxCLEtBQUttRCxTQUFTN0MsT0FBTyxLQUFLLElBQUksS0FBSyxLQUFLLE9BQU8sV0FBVztZQUVoRiw2REFBNkQ7WUFDN0QsTUFBTStDLGNBQWMsSUFBSXJELEtBQUttRCxTQUFTN0MsT0FBTyxLQUFLLElBQUksS0FBSyxLQUFLO1lBRWhFLGtDQUFrQztZQUNsQ3RCLGFBQWFFLElBQUksQ0FBQ0ssZUFBZSxDQUFDO2dCQUNoQ0gsUUFBUVQsS0FBS0csRUFBRSxHQUFHUyxlQUFlLENBQUM7b0JBQ2hDRixJQUFJVixLQUFLRyxFQUFFLEdBQUdTLGVBQWUsQ0FBQzt3QkFDNUJvQyxNQUFNOzRCQUNKO2dDQUNFQyxJQUFJO2dDQUNKQyxNQUFNO2dDQUNOQyxZQUFZc0I7Z0NBQ1pyQixVQUFVbEIsVUFBVU4sV0FBVzs0QkFDakM7NEJBQ0E7Z0NBQ0VxQixJQUFJO2dDQUNKQyxNQUFNO2dDQUNOQyxZQUFZYixZQUFZVixXQUFXO2dDQUNuQ3dCLFVBQVViLFVBQVVYLFdBQVc7NEJBQ2pDO3lCQUNEO3dCQUNEeUIsT0FBTztvQkFDVDtnQkFDRjtZQUNGO1lBRUEsK0NBQStDO1lBQy9DLE1BQU1DLFNBQVMsTUFBTUMsSUFBQUEsc0NBQXdCLEVBQUM7Z0JBQzVDUjtnQkFDQTdCLFdBQVd1RDtnQkFDWC9DLFNBQVNnRCxZQUFZOUMsV0FBVztZQUNsQztZQUVBLG1EQUFtRDtZQUNuRDRCLE9BQU9GLE9BQU9HLE9BQU8sRUFBRUMsSUFBSSxDQUFDO1lBQzVCLElBQUlKLE9BQU9HLE9BQU8sRUFBRTtnQkFDbEJELE9BQU9GLE9BQU9OLElBQUksQ0FBQ1csV0FBVyxFQUFFRCxJQUFJLENBQUM7Z0JBQ3JDRixPQUFPRixPQUFPTixJQUFJLENBQUNZLGlCQUFpQixDQUFDZSxNQUFNLEVBQUVDLHNCQUFzQixDQUFDO1lBQ3RFO1FBQ0YsSUFFRjtZQUFFZCxTQUFTO1FBQUc7SUFFbEI7QUFDRiJ9

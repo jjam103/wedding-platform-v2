@@ -17,6 +17,15 @@ jest.mock('@/components/ui/ToastContext', () => ({
   }),
 }));
 
+// Mock InlineSectionEditor
+jest.mock('@/components/admin/InlineSectionEditor', () => ({
+  InlineSectionEditor: ({ pageType, pageId }: any) => (
+    <div data-testid="inline-section-editor">
+      <div>Inline Section Editor for {pageType}: {pageId}</div>
+    </div>
+  ),
+}));
+
 // Mock DataTable components
 jest.mock('@/components/ui/DataTable', () => ({
   DataTable: ({ data, columns, loading, onRowClick }: any) => {
@@ -140,7 +149,7 @@ describe('EventsPage', () => {
           ok: true,
           json: () => Promise.resolve({
             success: true,
-            data: { locations: mockLocations },
+            data: mockLocations,  // Return array directly, not wrapped
           }),
         });
       }
@@ -198,7 +207,7 @@ describe('EventsPage', () => {
             ok: true,
             json: () => Promise.resolve({
               success: true,
-              data: { locations: mockLocations },
+              data: mockLocations,  // Return array directly
             }),
           });
         }
@@ -277,7 +286,7 @@ describe('EventsPage', () => {
             ok: true,
             json: () => Promise.resolve({
               success: true,
-              data: { locations: mockLocations },
+              data: mockLocations,  // Return array directly
             }),
           });
         }
@@ -353,28 +362,51 @@ describe('EventsPage', () => {
   });
 
   describe('Section editor integration', () => {
-    it('should display Manage Sections button for each event', async () => {
+    it('should display inline section editor when editing an event', async () => {
       render(<EventsPage />);
 
       await waitFor(() => {
         expect(screen.getByRole('heading', { name: /event management/i })).toBeInTheDocument();
       });
 
-      const manageSectionsButtons = screen.getAllByRole('button', { name: /manage sections/i });
-      expect(manageSectionsButtons.length).toBeGreaterThan(0);
+      // Wait for events to load
+      await waitFor(() => {
+        expect(screen.getByText('Wedding Ceremony')).toBeInTheDocument();
+      });
+
+      // Click on an event row to edit it
+      const eventRow = screen.getByTestId('event-row-event-1');
+      fireEvent.click(eventRow);
+
+      // Should show the inline section editor
+      await waitFor(() => {
+        expect(screen.getByTestId('inline-section-editor')).toBeInTheDocument();
+      });
     });
 
-    it('should navigate to section editor when Manage Sections is clicked', async () => {
+    it('should show section editor for the selected event', async () => {
       render(<EventsPage />);
 
       await waitFor(() => {
         expect(screen.getByRole('heading', { name: /event management/i })).toBeInTheDocument();
       });
 
-      const manageSectionsButtons = screen.getAllByRole('button', { name: /manage sections/i });
-      fireEvent.click(manageSectionsButtons[0]);
+      // Wait for events to load
+      await waitFor(() => {
+        expect(screen.getByText('Wedding Ceremony')).toBeInTheDocument();
+      });
 
-      expect(mockRouter.push).toHaveBeenCalledWith('/admin/events/event-1/sections');
+      // Click on an event row to edit it
+      const eventRow = screen.getByTestId('event-row-event-1');
+      fireEvent.click(eventRow);
+
+      // Should show the section editor with correct page type and ID
+      await waitFor(() => {
+        const sectionEditor = screen.getByTestId('inline-section-editor');
+        expect(sectionEditor).toBeInTheDocument();
+        expect(sectionEditor).toHaveTextContent('event');
+        expect(sectionEditor).toHaveTextContent('event-1');
+      });
     });
   });
 
@@ -417,7 +449,7 @@ describe('EventsPage', () => {
             ok: true,
             json: () => Promise.resolve({
               success: true,
-              data: { locations: mockLocations },
+              data: mockLocations,  // Return array directly
             }),
           });
         }
@@ -498,7 +530,7 @@ describe('EventsPage', () => {
             ok: true,
             json: () => Promise.resolve({
               success: true,
-              data: { locations: mockLocations },
+              data: mockLocations,  // Return array directly
             }),
           });
         }

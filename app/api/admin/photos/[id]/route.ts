@@ -1,18 +1,40 @@
-import { createAuthenticatedClient } from '@/lib/supabaseServer';
 import { NextResponse } from 'next/server';
-import { getPhoto, deletePhoto, updatePhoto } from '@/services/photoService';
+import { createServerClient } from '@supabase/ssr';
+import { cookies } from 'next/headers';
+import { getPhoto, updatePhoto, deletePhoto } from '@/services/photoService';
+import { z } from 'zod';
 
 /**
  * GET /api/admin/photos/[id]
- * Gets a single photo by ID
+ * 
+ * Get a single photo by ID
  */
 export async function GET(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    // 1. Auth check
-    const supabase = await createAuthenticatedClient();
+    // 1. Await params
+    const { id } = await params;
+
+    // 2. Authenticate
+    const cookieStore = await cookies();
+    const supabase = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        cookies: {
+          getAll() {
+            return cookieStore.getAll();
+          },
+          setAll(cookiesToSet) {
+            cookiesToSet.forEach(({ name, value }) => {
+              cookieStore.set(name, value);
+            });
+          },
+        },
+      }
+    );
     const {
       data: { session },
       error: authError,
@@ -22,22 +44,31 @@ export async function GET(
       return NextResponse.json(
         {
           success: false,
-          error: { code: 'UNAUTHORIZED', message: 'Authentication required' },
+          error: {
+            code: 'UNAUTHORIZED',
+            message: 'Authentication required',
+          },
         },
         { status: 401 }
       );
     }
 
-    // 2. Await params
-    const { id } = await params;
-
-    // 5. Call service
+    // 3. Call service
     const result = await getPhoto(id);
 
     // 4. Return response
-    return NextResponse.json(result, {
-      status: result.success ? 200 : result.error.code === 'NOT_FOUND' ? 404 : 500,
-    });
+    if (!result.success) {
+      const statusMap: Record<string, number> = {
+        NOT_FOUND: 404,
+        DATABASE_ERROR: 500,
+        UNKNOWN_ERROR: 500,
+      };
+      return NextResponse.json(result, {
+        status: statusMap[result.error.code] || 500,
+      });
+    }
+
+    return NextResponse.json(result, { status: 200 });
   } catch (error) {
     return NextResponse.json(
       {
@@ -53,16 +84,36 @@ export async function GET(
 }
 
 /**
- * PATCH /api/admin/photos/[id]
- * Updates photo metadata
+ * PUT /api/admin/photos/[id]
+ * 
+ * Update photo metadata (caption, alt_text, display_order)
  */
-export async function PATCH(
+export async function PUT(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    // 1. Auth check
-    const supabase = await createAuthenticatedClient();
+    // 1. Await params
+    const { id } = await params;
+
+    // 2. Authenticate
+    const cookieStore = await cookies();
+    const supabase = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        cookies: {
+          getAll() {
+            return cookieStore.getAll();
+          },
+          setAll(cookiesToSet) {
+            cookiesToSet.forEach(({ name, value }) => {
+              cookieStore.set(name, value);
+            });
+          },
+        },
+      }
+    );
     const {
       data: { session },
       error: authError,
@@ -72,32 +123,62 @@ export async function PATCH(
       return NextResponse.json(
         {
           success: false,
-          error: { code: 'UNAUTHORIZED', message: 'Authentication required' },
+          error: {
+            code: 'UNAUTHORIZED',
+            message: 'Authentication required',
+          },
         },
         { status: 401 }
       );
     }
 
-    // 2. Await params
-    const { id } = await params;
-
-    // 2. Parse request body
+    // 3. Validate input
     const body = await request.json();
+    const updateSchema = z.object({
+      caption: z.string().max(500).optional(),
+      alt_text: z.string().max(200).optional(),
+      display_order: z.number().int().optional(),
+    });
 
-    // 5. Call service
-    const result = await updatePhoto(id, body);
+    const validation = updateSchema.safeParse(body);
+    if (!validation.success) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: {
+            code: 'VALIDATION_ERROR',
+            message: 'Invalid input',
+            details: validation.error.issues,
+          },
+        },
+        { status: 400 }
+      );
+    }
+
+    // 4. Call service
+    const result = await updatePhoto(id, validation.data);
 
     // 5. Return response
-    return NextResponse.json(result, {
-      status: result.success ? 200 : result.error.code === 'NOT_FOUND' ? 404 : 500,
-    });
+    if (!result.success) {
+      const statusMap: Record<string, number> = {
+        NOT_FOUND: 404,
+        VALIDATION_ERROR: 400,
+        DATABASE_ERROR: 500,
+        UNKNOWN_ERROR: 500,
+      };
+      return NextResponse.json(result, {
+        status: statusMap[result.error.code] || 500,
+      });
+    }
+
+    return NextResponse.json(result, { status: 200 });
   } catch (error) {
     return NextResponse.json(
       {
         success: false,
         error: {
-          code: 'UNKNOWN_ERROR',
-          message: error instanceof Error ? error.message : 'Unknown error',
+          code: 'INTERNAL_ERROR',
+          message: 'An unexpected error occurred',
         },
       },
       { status: 500 }
@@ -107,15 +188,35 @@ export async function PATCH(
 
 /**
  * DELETE /api/admin/photos/[id]
- * Deletes a photo
+ * 
+ * Delete a photo
  */
 export async function DELETE(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    // 1. Auth check
-    const supabase = await createAuthenticatedClient();
+    // 1. Await params
+    const { id } = await params;
+
+    // 2. Authenticate
+    const cookieStore = await cookies();
+    const supabase = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        cookies: {
+          getAll() {
+            return cookieStore.getAll();
+          },
+          setAll(cookiesToSet) {
+            cookiesToSet.forEach(({ name, value }) => {
+              cookieStore.set(name, value);
+            });
+          },
+        },
+      }
+    );
     const {
       data: { session },
       error: authError,
@@ -125,29 +226,39 @@ export async function DELETE(
       return NextResponse.json(
         {
           success: false,
-          error: { code: 'UNAUTHORIZED', message: 'Authentication required' },
+          error: {
+            code: 'UNAUTHORIZED',
+            message: 'Authentication required',
+          },
         },
         { status: 401 }
       );
     }
 
-    // 2. Await params
-    const { id } = await params;
-
-    // 5. Call service
+    // 3. Call service
     const result = await deletePhoto(id);
 
     // 4. Return response
-    return NextResponse.json(result, {
-      status: result.success ? 200 : 500,
-    });
+    if (!result.success) {
+      const statusMap: Record<string, number> = {
+        NOT_FOUND: 404,
+        DATABASE_ERROR: 500,
+        STORAGE_UNAVAILABLE: 503,
+        UNKNOWN_ERROR: 500,
+      };
+      return NextResponse.json(result, {
+        status: statusMap[result.error.code] || 500,
+      });
+    }
+
+    return NextResponse.json(result, { status: 200 });
   } catch (error) {
     return NextResponse.json(
       {
         success: false,
         error: {
-          code: 'UNKNOWN_ERROR',
-          message: error instanceof Error ? error.message : 'Unknown error',
+          code: 'INTERNAL_ERROR',
+          message: 'An unexpected error occurred',
         },
       },
       { status: 500 }

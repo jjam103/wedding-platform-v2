@@ -1,0 +1,91 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e1]:
+  - link "Skip to main content" [ref=e2] [cursor=pointer]:
+    - /url: "#main-content"
+  - link "Skip to main content" [ref=e3] [cursor=pointer]:
+    - /url: "#main-content"
+  - generic [ref=e4]:
+    - navigation "Main navigation" [ref=e5]:
+      - generic [ref=e7]:
+        - generic [ref=e8]:
+          - generic [ref=e9]: 🌴
+          - generic [ref=e10]: Admin
+        - button "Close menu" [expanded] [active] [ref=e11]:
+          - generic [ref=e12]: ✕
+    - dialog "Mobile navigation menu" [ref=e14]:
+      - generic [ref=e15]:
+        - generic [ref=e16]:
+          - generic [ref=e17]: 🌴
+          - generic [ref=e18]: Admin Menu
+        - button "Close menu" [ref=e19]:
+          - generic [ref=e20]: ✕
+      - link "Dashboard" [ref=e22] [cursor=pointer]:
+        - /url: /admin
+        - generic [ref=e23]: 🏠
+        - generic [ref=e24]: Dashboard
+      - generic [ref=e25]:
+        - button "Content" [ref=e27]:
+          - generic [ref=e28]: 📝
+          - generic [ref=e29]: Content
+          - generic [ref=e30]: ▶
+        - button "Guests" [ref=e32]:
+          - generic [ref=e33]: 👥
+          - generic [ref=e34]: Guests
+          - generic [ref=e35]: ▶
+        - button "RSVPs" [ref=e37]:
+          - generic [ref=e38]: ✓
+          - generic [ref=e39]: RSVPs
+          - generic [ref=e40]: ▶
+        - button "Logistics" [ref=e42]:
+          - generic [ref=e43]: 🚗
+          - generic [ref=e44]: Logistics
+          - generic [ref=e45]: ▶
+        - button "Admin" [ref=e47]:
+          - generic [ref=e48]: ⚙️
+          - generic [ref=e49]: Admin
+          - generic [ref=e50]: ▶
+      - paragraph [ref=e52]: Pura Vida! ☀️
+    - banner [ref=e53]:
+      - toolbar "User actions" [ref=e55]:
+        - button "Notifications (coming soon)" [ref=e56]: 🔔
+        - button "User menu" [ref=e58]:
+          - generic [ref=e59]: A
+          - generic [ref=e60]: ▼
+    - main [ref=e61]:
+      - status "Loading dashboard" [ref=e63]:
+        - generic [ref=e64]:
+          - generic [ref=e65]:
+            - status "Loading content" [ref=e66]
+            - status "Loading content" [ref=e67]
+          - generic [ref=e68]:
+            - status "Loading content" [ref=e69]
+            - status "Loading content" [ref=e70]
+          - generic [ref=e71]:
+            - status "Loading content" [ref=e72]
+            - status "Loading content" [ref=e73]
+          - generic [ref=e74]:
+            - status "Loading content" [ref=e75]
+            - status "Loading content" [ref=e76]
+        - generic [ref=e77]:
+          - status "Loading card" [ref=e78]:
+            - status "Loading content" [ref=e79]
+            - generic [ref=e80]:
+              - status "Loading content" [ref=e81]
+              - status "Loading content" [ref=e82]
+              - status "Loading content" [ref=e83]
+              - status "Loading content" [ref=e84]
+              - status "Loading content" [ref=e85]
+          - status "Loading card" [ref=e86]:
+            - status "Loading content" [ref=e87]
+            - generic [ref=e88]:
+              - status "Loading content" [ref=e89]
+              - status "Loading content" [ref=e90]
+              - status "Loading content" [ref=e91]
+              - status "Loading content" [ref=e92]
+              - status "Loading content" [ref=e93]
+  - button "Open Next.js Dev Tools" [ref=e99] [cursor=pointer]:
+    - img [ref=e100]
+  - alert [ref=e103]
+```

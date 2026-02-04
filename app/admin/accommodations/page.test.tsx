@@ -17,6 +17,15 @@ jest.mock('@/components/ui/ToastContext', () => ({
   }),
 }));
 
+// Mock InlineSectionEditor
+jest.mock('@/components/admin/InlineSectionEditor', () => ({
+  InlineSectionEditor: ({ pageType, pageId }: any) => (
+    <div data-testid="inline-section-editor">
+      <div>Inline Section Editor for {pageType}: {pageId}</div>
+    </div>
+  ),
+}));
+
 // Mock DataTable components
 jest.mock('@/components/ui/DataTable', () => ({
   DataTable: ({ data, columns, loading, onRowClick, onDelete }: any) => {
@@ -126,7 +135,7 @@ describe('AccommodationsPage', () => {
       locationId: 'location-1',
       checkInDate: '2025-06-14',
       checkOutDate: '2025-06-17',
-      status: 'available',
+      status: 'published',
       createdAt: '2025-01-01T00:00:00Z',
       updatedAt: '2025-01-01T00:00:00Z',
     },
@@ -138,7 +147,7 @@ describe('AccommodationsPage', () => {
       locationId: 'location-2',
       checkInDate: '2025-06-14',
       checkOutDate: '2025-06-17',
-      status: 'booked',
+      status: 'draft',
       createdAt: '2025-01-01T00:00:00Z',
       updatedAt: '2025-01-01T00:00:00Z',
     },
@@ -204,7 +213,7 @@ describe('AccommodationsPage', () => {
           locationId: 'location-1',
           checkInDate: '2025-06-14',
           checkOutDate: '2025-06-17',
-          status: 'available',
+          status: 'published',
         },
       };
 
@@ -261,7 +270,7 @@ describe('AccommodationsPage', () => {
         data: {
           id: 'accommodation-3',
           name: 'New Resort',
-          status: 'available',
+          status: 'published',
         },
       };
 
@@ -409,7 +418,7 @@ describe('AccommodationsPage', () => {
   });
 
   describe('Section editor integration', () => {
-    it('should navigate to section editor when Manage Sections button is clicked', async () => {
+    it('should display inline section editor when editing an accommodation', async () => {
       render(<AccommodationsPage />);
 
       await waitFor(() => {
@@ -420,27 +429,34 @@ describe('AccommodationsPage', () => {
         expect(screen.getByText('Tamarindo Diria Beach Resort')).toBeInTheDocument();
       });
 
-      // Find and click Manage Sections button
-      const manageSectionsButtons = screen.getAllByRole('button', { name: /manage sections/i });
-      fireEvent.click(manageSectionsButtons[0]);
+      // Click on accommodation row to edit it
+      const accommodationRow = screen.getByTestId('accommodation-row-accommodation-1');
+      fireEvent.click(accommodationRow);
 
-      // Verify navigation
-      expect(mockRouter.push).toHaveBeenCalledWith('/admin/accommodations/accommodation-1/sections');
+      // Should show the inline section editor
+      await waitFor(() => {
+        expect(screen.getByTestId('inline-section-editor')).toBeInTheDocument();
+      });
     });
 
-    it('should navigate to correct accommodation sections page', async () => {
+    it('should show section editor for the selected accommodation', async () => {
       render(<AccommodationsPage />);
 
       await waitFor(() => {
         expect(screen.getByText('Hotel Capitan Suizo')).toBeInTheDocument();
       });
 
-      // Find and click Manage Sections button for second accommodation
-      const manageSectionsButtons = screen.getAllByRole('button', { name: /manage sections/i });
-      fireEvent.click(manageSectionsButtons[1]);
+      // Click on accommodation row to edit it
+      const accommodationRow = screen.getByTestId('accommodation-row-accommodation-2');
+      fireEvent.click(accommodationRow);
 
-      // Verify navigation to correct accommodation
-      expect(mockRouter.push).toHaveBeenCalledWith('/admin/accommodations/accommodation-2/sections');
+      // Should show the section editor with correct page type and ID
+      await waitFor(() => {
+        const sectionEditor = screen.getByTestId('inline-section-editor');
+        expect(sectionEditor).toBeInTheDocument();
+        expect(sectionEditor).toHaveTextContent('accommodation');
+        expect(sectionEditor).toHaveTextContent('accommodation-2');
+      });
     });
   });
 
@@ -607,8 +623,8 @@ describe('AccommodationsPage', () => {
       render(<AccommodationsPage />);
 
       await waitFor(() => {
-        expect(screen.getByText('Available')).toBeInTheDocument();
-        expect(screen.getByText('Booked')).toBeInTheDocument();
+        expect(screen.getByText('Published')).toBeInTheDocument();
+        expect(screen.getByText('Draft')).toBeInTheDocument();
       });
     });
 
@@ -620,13 +636,13 @@ describe('AccommodationsPage', () => {
         expect(screen.getByText('Tamarindo Diria Beach Resort')).toBeInTheDocument();
       });
 
-      // Get all "Available" text elements and find the badge (not the filter option)
-      const availableElements = screen.getAllByText('Available');
+      // Get all "Published" text elements and find the badge (not the filter option)
+      const publishedElements = screen.getAllByText('Published');
       // The badge should be a span with specific classes, filter options are in select/option
-      const availableBadge = availableElements.find(el => el.tagName === 'SPAN');
+      const publishedBadge = publishedElements.find(el => el.tagName === 'SPAN');
       
-      expect(availableBadge).toBeDefined();
-      expect(availableBadge).toHaveClass('bg-jungle-100', 'text-jungle-800');
+      expect(publishedBadge).toBeDefined();
+      expect(publishedBadge).toHaveClass('bg-jungle-100', 'text-jungle-800');
     });
   });
 });

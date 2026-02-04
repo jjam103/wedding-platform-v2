@@ -484,6 +484,7 @@ export async function validateReferences(references: Reference[]): Promise<Resul
             .from('activities')
             .select('id')
             .eq('id', ref.id)
+            .is('deleted_at', null)
             .single();
           exists = !!data;
           break;
@@ -493,6 +494,7 @@ export async function validateReferences(references: Reference[]): Promise<Resul
             .from('events')
             .select('id')
             .eq('id', ref.id)
+            .is('deleted_at', null)
             .single();
           exists = !!data;
           break;
@@ -502,6 +504,17 @@ export async function validateReferences(references: Reference[]): Promise<Resul
             .from('accommodations')
             .select('id')
             .eq('id', ref.id)
+            .is('deleted_at', null)
+            .single();
+          exists = !!data;
+          break;
+        }
+        case 'content_page': {
+          const { data } = await supabase
+            .from('content_pages')
+            .select('id')
+            .eq('id', ref.id)
+            .is('deleted_at', null)
             .single();
           exists = !!data;
           break;
@@ -793,7 +806,7 @@ export async function revertToVersion(
           column_number: col.column_number,
           content_type: col.content_type,
           content_data: col.content_data,
-        })),
+        })) as any,
       });
 
       if (!createResult.success) {

@@ -1,0 +1,93 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e1]:
+  - link "Skip to main content" [ref=e2] [cursor=pointer]:
+    - /url: "#main-content"
+  - link "Skip to main content" [ref=e3] [cursor=pointer]:
+    - /url: "#main-content"
+  - generic [ref=e4]:
+    - navigation "Main navigation" [ref=e5]:
+      - generic [ref=e6]:
+        - generic [ref=e7]:
+          - link "Admin" [ref=e8] [cursor=pointer]:
+            - /url: /admin
+            - generic [ref=e9]: 🌴
+            - generic [ref=e10]: Admin
+          - button "Content" [ref=e11]:
+            - generic [ref=e12]: 📝
+            - generic [ref=e13]: Content
+          - button "Guests" [ref=e14]:
+            - generic [ref=e15]: 👥
+            - generic [ref=e16]: Guests
+          - button "RSVPs" [ref=e17]:
+            - generic [ref=e18]: ✓
+            - generic [ref=e19]: RSVPs
+          - button "Logistics" [ref=e20]:
+            - generic [ref=e21]: 🚗
+            - generic [ref=e22]: Logistics
+          - button "Admin" [ref=e23]:
+            - generic [ref=e24]: ⚙️
+            - generic [ref=e25]: Admin
+        - generic [ref=e26]:
+          - link "Home Page" [ref=e27] [cursor=pointer]:
+            - /url: /admin/home-page
+          - link "Activities" [ref=e28] [cursor=pointer]:
+            - /url: /admin/activities
+          - link "Events" [ref=e29] [cursor=pointer]:
+            - /url: /admin/events
+          - link "Content Pages" [ref=e30] [cursor=pointer]:
+            - /url: /admin/content-pages
+          - link "Locations" [ref=e31] [cursor=pointer]:
+            - /url: /admin/locations
+          - link "Photos" [ref=e32] [cursor=pointer]:
+            - /url: /admin/photos
+    - banner [ref=e33]:
+      - generic [ref=e34]:
+        - heading "Wedding Admin" [level=1] [ref=e36]
+        - toolbar "User actions" [ref=e37]:
+          - button "Notifications (coming soon)" [ref=e38]: 🔔
+          - button "User menu" [ref=e40]:
+            - generic [ref=e41]: A
+            - generic [ref=e42]: Admin
+            - generic [ref=e43]: ▼
+    - main [ref=e44]:
+      - generic [ref=e46]:
+        - generic [ref=e47]:
+          - heading "Locations" [level=1] [ref=e48]
+          - paragraph [ref=e49]: Manage location hierarchy
+        - generic [ref=e50]:
+          - textbox "Search locations..." [ref=e51]
+          - button "Cancel" [ref=e52]
+        - generic [ref=e53]:
+          - button "Add New Location" [expanded] [ref=e54]:
+            - generic [ref=e55]: Add New Location
+            - generic [ref=e56]: ▼
+          - generic [ref=e58]:
+            - generic [ref=e59]:
+              - generic [ref=e60]:
+                - generic [ref=e61]: Location Name*
+                - textbox "Location Name*" [active] [ref=e62]:
+                  - /placeholder: e.g., Tamarindo Beach
+                  - text: Location B 1770246230626
+              - generic [ref=e63]:
+                - generic [ref=e64]: Parent Location
+                - combobox "Parent Location" [ref=e65]:
+                  - option "Select Parent Location" [selected]
+                  - option "None (Root Location)"
+              - generic [ref=e66]:
+                - generic [ref=e67]: Address
+                - textbox "Address" [ref=e68]:
+                  - /placeholder: e.g., Tamarindo, Guanacaste, Costa Rica
+              - generic [ref=e70]:
+                - generic [ref=e71]: Description
+                - textbox "Description" [ref=e72]:
+                  - /placeholder: Optional description
+            - generic [ref=e73]:
+              - button "Create" [ref=e74]
+              - button "Cancel" [ref=e75]
+        - generic [ref=e77]: No locations yet. Add your first location above.
+  - button "Open Next.js Dev Tools" [ref=e83] [cursor=pointer]:
+    - img [ref=e84]
+  - alert [ref=e87]
+```

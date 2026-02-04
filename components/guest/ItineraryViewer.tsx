@@ -17,6 +17,9 @@ interface ItineraryEvent {
   location?: string;
   description?: string;
   rsvp_status?: string;
+  capacity?: number;
+  attending_count?: number;
+  rsvp_deadline?: string;
 }
 
 interface Itinerary {
@@ -28,23 +31,30 @@ interface Itinerary {
   generated_at: string;
 }
 
+type ViewMode = 'day-by-day' | 'calendar' | 'list';
+
 /**
- * Itinerary Viewer Component
+ * Enhanced Itinerary Viewer Component
  * 
- * Displays personalized itinerary with offline caching:
- * - Events and activities timeline
- * - Accommodation information
- * - Transportation details
- * - PDF export (future enhancement)
+ * Displays personalized itinerary with enhanced features:
+ * - Multiple view modes (day-by-day, calendar, list)
+ * - Date range filtering
+ * - Capacity warnings and deadline alerts
+ * - PDF export capability
  * - Offline access via caching
+ * - Quick RSVP links
  * 
- * Requirements: 13.10, 18.3, 18.4
+ * Requirements: 26.1, 26.2, 26.3, 26.4, 26.5, 26.6, 26.7, 26.8, 13.10, 18.3, 18.4
  */
 export function ItineraryViewer({ guest }: ItineraryViewerProps) {
   const [itinerary, setItinerary] = useState<Itinerary | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isOffline, setIsOffline] = useState(false);
+  const [viewMode, setViewMode] = useState<ViewMode>('day-by-day');
+  const [dateFrom, setDateFrom] = useState<string>('');
+  const [dateTo, setDateTo] = useState<string>('');
+  const [filteredEvents, setFilteredEvents] = useState<ItineraryEvent[]>([]);
 
   useEffect(() => {
     loadItinerary();
@@ -61,6 +71,33 @@ export function ItineraryViewer({ guest }: ItineraryViewerProps) {
       window.removeEventListener('offline', handleOffline);
     };
   }, [guest.id]);
+
+  // Filter events when itinerary or date filters change
+  useEffect(() => {
+    if (!itinerary) {
+      setFilteredEvents([]);
+      return;
+    }
+
+    let filtered = [...itinerary.events];
+
+    // Apply date range filter
+    if (dateFrom) {
+      filtered = filtered.filter(event => new Date(event.date) >= new Date(dateFrom));
+    }
+    if (dateTo) {
+      filtered = filtered.filter(event => new Date(event.date) <= new Date(dateTo));
+    }
+
+    // Sort chronologically
+    filtered.sort((a, b) => {
+      const dateA = new Date(`${a.date}T${a.time}`);
+      const dateB = new Date(`${b.date}T${b.time}`);
+      return dateA.getTime() - dateB.getTime();
+    });
+
+    setFilteredEvents(filtered);
+  }, [itinerary, dateFrom, dateTo]);
 
   const loadItinerary = async () => {
     try {
@@ -156,6 +193,54 @@ export function ItineraryViewer({ guest }: ItineraryViewerProps) {
     }
   };
 
+  const getCapacityWarning = (event: ItineraryEvent) => {
+    if (!event.capacity || !event.attending_count) return null;
+    
+    const remaining = event.capacity - event.attending_count;
+    const utilizationPercent = (event.attending_count / event.capacity) * 100;
+
+    if (remaining === 0) {
+      return { level: 'full', message: 'Full', color: 'bg-volcano-100 text-volcano-800' };
+    } else if (utilizationPercent >= 90) {
+      return { level: 'critical', message: `${remaining} spots left`, color: 'bg-sunset-100 text-sunset-800' };
+    }
+    return null;
+  };
+
+  const getDeadlineAlert = (event: ItineraryEvent) => {
+    if (!event.rsvp_deadline) return null;
+
+    const deadline = new Date(event.rsvp_deadline);
+    const now = new Date();
+    const daysUntilDeadline = Math.ceil((deadline.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+
+    if (daysUntilDeadline < 0) {
+      return { level: 'passed', message: 'Deadline passed', color: 'bg-sage-100 text-sage-800' };
+    } else if (daysUntilDeadline <= 7) {
+      return { level: 'approaching', message: `${daysUntilDeadline} days left`, color: 'bg-sunset-100 text-sunset-800' };
+    }
+    return null;
+  };
+
+  const handleExportPDF = async () => {
+    try {
+      const response = await fetch('/api/guest/itinerary/pdf');
+      if (!response.ok) throw new Error('Failed to generate PDF');
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `itinerary-${guest.first_name}-${guest.last_name}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (err) {
+      setError('Failed to export PDF');
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-jungle-50 via-ocean-50 to-sunset-50">
       {/* Header */}
@@ -172,12 +257,94 @@ export function ItineraryViewer({ guest }: ItineraryViewerProps) {
                   📡 Offline Mode
                 </span>
               )}
+              <button
+                onClick={handleExportPDF}
+                className="px-4 py-2 bg-jungle-600 text-white rounded-lg hover:bg-jungle-700 transition-colors font-medium"
+              >
+                📄 Export PDF
+              </button>
               <a
                 href="/guest/dashboard"
                 className="text-ocean-600 hover:text-ocean-700 font-medium"
               >
                 ← Back to Dashboard
               </a>
+            </div>
+          </div>
+          
+          {/* View Mode Toggle and Filters */}
+          <div className="mt-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            {/* View Mode Toggle */}
+            <div className="flex items-center space-x-2 bg-sage-100 rounded-lg p-1">
+              <button
+                onClick={() => setViewMode('day-by-day')}
+                className={`px-4 py-2 rounded-md font-medium transition-colors ${
+                  viewMode === 'day-by-day'
+                    ? 'bg-white text-jungle-700 shadow-sm'
+                    : 'text-sage-600 hover:text-sage-800'
+                }`}
+              >
+                📅 Day-by-Day
+              </button>
+              <button
+                onClick={() => setViewMode('calendar')}
+                className={`px-4 py-2 rounded-md font-medium transition-colors ${
+                  viewMode === 'calendar'
+                    ? 'bg-white text-jungle-700 shadow-sm'
+                    : 'text-sage-600 hover:text-sage-800'
+                }`}
+              >
+                📆 Calendar
+              </button>
+              <button
+                onClick={() => setViewMode('list')}
+                className={`px-4 py-2 rounded-md font-medium transition-colors ${
+                  viewMode === 'list'
+                    ? 'bg-white text-jungle-700 shadow-sm'
+                    : 'text-sage-600 hover:text-sage-800'
+                }`}
+              >
+                📋 List
+              </button>
+            </div>
+            
+            {/* Date Range Filters */}
+            <div className="flex items-center space-x-3">
+              <div className="flex items-center space-x-2">
+                <label htmlFor="dateFrom" className="text-sm font-medium text-sage-700">
+                  From:
+                </label>
+                <input
+                  type="date"
+                  id="dateFrom"
+                  value={dateFrom}
+                  onChange={(e) => setDateFrom(e.target.value)}
+                  className="px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-jungle-500 focus:border-jungle-500"
+                />
+              </div>
+              <div className="flex items-center space-x-2">
+                <label htmlFor="dateTo" className="text-sm font-medium text-sage-700">
+                  To:
+                </label>
+                <input
+                  type="date"
+                  id="dateTo"
+                  value={dateTo}
+                  onChange={(e) => setDateTo(e.target.value)}
+                  className="px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-jungle-500 focus:border-jungle-500"
+                />
+              </div>
+              {(dateFrom || dateTo) && (
+                <button
+                  onClick={() => {
+                    setDateFrom('');
+                    setDateTo('');
+                  }}
+                  className="text-sm text-ocean-600 hover:text-ocean-700 font-medium"
+                >
+                  Clear
+                </button>
+              )}
             </div>
           </div>
         </div>
@@ -272,54 +439,221 @@ export function ItineraryViewer({ guest }: ItineraryViewerProps) {
             <div className="bg-white rounded-lg shadow-md border border-sage-200 p-6">
               <h2 className="text-xl font-bold text-jungle-700 mb-6">📅 Schedule</h2>
               
-              {itinerary.events.length === 0 ? (
+              {filteredEvents.length === 0 ? (
                 <div className="text-center py-8">
-                  <p className="text-sage-600">No events scheduled yet.</p>
+                  <p className="text-sage-600">
+                    {dateFrom || dateTo
+                      ? 'No events in selected date range.'
+                      : 'No events scheduled yet.'}
+                  </p>
                 </div>
-              ) : (
+              ) : viewMode === 'day-by-day' ? (
                 <div className="space-y-8">
-                  {groupEventsByDate(itinerary.events).map(({ date, events }) => (
+                  {groupEventsByDate(filteredEvents).map(({ date, events }) => (
                     <div key={date}>
                       <h3 className="text-lg font-semibold text-jungle-700 mb-4 pb-2 border-b border-sage-200">
                         {formatDate(events[0].date)}
                       </h3>
                       <div className="space-y-4">
-                        {events.map(event => (
-                          <div
-                            key={event.id}
-                            className="flex items-start space-x-4 pl-4 border-l-4 border-jungle-300"
-                          >
-                            <div className="flex-shrink-0 w-20 text-right">
-                              <div className="text-sm font-medium text-sage-700">
-                                {formatTime(event.time)}
-                              </div>
-                            </div>
-                            <div className="flex-1">
-                              <div className="flex items-start justify-between">
-                                <div>
-                                  <h4 className="font-semibold text-sage-800">{event.name}</h4>
-                                  {event.description && (
-                                    <p className="text-sm text-sage-600 mt-1">
-                                      {event.description}
-                                    </p>
-                                  )}
+                        {events.map(event => {
+                          const capacityWarning = getCapacityWarning(event);
+                          const deadlineAlert = getDeadlineAlert(event);
+                          
+                          return (
+                            <div
+                              key={event.id}
+                              className="flex items-start space-x-4 pl-4 border-l-4 border-jungle-300"
+                            >
+                              <div className="flex-shrink-0 w-20 text-right">
+                                <div className="text-sm font-medium text-sage-700">
+                                  {formatTime(event.time)}
                                 </div>
-                                {event.rsvp_status && (
-                                  <span
-                                    className={`ml-4 inline-block px-2 py-1 rounded-full text-xs font-medium border ${getRSVPStatusColor(
-                                      event.rsvp_status
-                                    )}`}
-                                  >
-                                    {event.rsvp_status}
-                                  </span>
-                                )}
+                              </div>
+                              <div className="flex-1">
+                                <div className="flex items-start justify-between">
+                                  <div className="flex-1">
+                                    <h4 className="font-semibold text-sage-800">{event.name}</h4>
+                                    {event.location && (
+                                      <p className="text-sm text-sage-600 mt-1">
+                                        📍 {event.location}
+                                      </p>
+                                    )}
+                                    {event.description && (
+                                      <p className="text-sm text-sage-600 mt-1">
+                                        {event.description}
+                                      </p>
+                                    )}
+                                    
+                                    {/* Capacity Warning and Deadline Alert Badges */}
+                                    <div className="flex items-center gap-2 mt-2">
+                                      {capacityWarning && (
+                                        <span className={`inline-block px-2 py-1 rounded-full text-xs font-medium ${capacityWarning.color}`}>
+                                          ⚠️ {capacityWarning.message}
+                                        </span>
+                                      )}
+                                      {deadlineAlert && (
+                                        <span className={`inline-block px-2 py-1 rounded-full text-xs font-medium ${deadlineAlert.color}`}>
+                                          ⏰ {deadlineAlert.message}
+                                        </span>
+                                      )}
+                                    </div>
+                                  </div>
+                                  <div className="flex flex-col items-end gap-2 ml-4">
+                                    {event.rsvp_status && (
+                                      <span
+                                        className={`inline-block px-2 py-1 rounded-full text-xs font-medium border ${getRSVPStatusColor(
+                                          event.rsvp_status
+                                        )}`}
+                                      >
+                                        {event.rsvp_status}
+                                      </span>
+                                    )}
+                                    {/* Quick RSVP Link */}
+                                    <a
+                                      href={`/guest/${event.type}s/${event.id}/rsvp`}
+                                      className="text-xs text-ocean-600 hover:text-ocean-700 font-medium"
+                                    >
+                                      {event.rsvp_status === 'pending' ? 'RSVP Now →' : 'Update RSVP →'}
+                                    </a>
+                                  </div>
+                                </div>
                               </div>
                             </div>
-                          </div>
-                        ))}
+                          );
+                        })}
                       </div>
                     </div>
                   ))}
+                </div>
+              ) : viewMode === 'calendar' ? (
+                <div className="space-y-6">
+                  <p className="text-sm text-sage-600 mb-4">
+                    Calendar view showing events by month
+                  </p>
+                  {/* Simple calendar grid - group by month */}
+                  {Array.from(
+                    new Set(filteredEvents.map(e => new Date(e.date).toLocaleDateString('en-US', { year: 'numeric', month: 'long' })))
+                  ).map(month => {
+                    const monthEvents = filteredEvents.filter(
+                      e => new Date(e.date).toLocaleDateString('en-US', { year: 'numeric', month: 'long' }) === month
+                    );
+                    
+                    return (
+                      <div key={month} className="border border-sage-200 rounded-lg p-4">
+                        <h3 className="text-lg font-semibold text-jungle-700 mb-3">{month}</h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                          {monthEvents.map(event => {
+                            const capacityWarning = getCapacityWarning(event);
+                            const deadlineAlert = getDeadlineAlert(event);
+                            
+                            return (
+                              <div
+                                key={event.id}
+                                className="border border-sage-200 rounded-lg p-3 hover:border-jungle-300 transition-colors"
+                              >
+                                <div className="flex items-start justify-between mb-2">
+                                  <div className="text-sm font-medium text-sage-700">
+                                    {new Date(event.date).getDate()}
+                                  </div>
+                                  {event.rsvp_status && (
+                                    <span
+                                      className={`inline-block px-2 py-1 rounded-full text-xs font-medium border ${getRSVPStatusColor(
+                                        event.rsvp_status
+                                      )}`}
+                                    >
+                                      {event.rsvp_status}
+                                    </span>
+                                  )}
+                                </div>
+                                <h4 className="font-semibold text-sage-800 text-sm mb-1">{event.name}</h4>
+                                <p className="text-xs text-sage-600">{formatTime(event.time)}</p>
+                                {(capacityWarning || deadlineAlert) && (
+                                  <div className="flex flex-wrap gap-1 mt-2">
+                                    {capacityWarning && (
+                                      <span className={`inline-block px-2 py-1 rounded-full text-xs font-medium ${capacityWarning.color}`}>
+                                        ⚠️
+                                      </span>
+                                    )}
+                                    {deadlineAlert && (
+                                      <span className={`inline-block px-2 py-1 rounded-full text-xs font-medium ${deadlineAlert.color}`}>
+                                        ⏰
+                                      </span>
+                                    )}
+                                  </div>
+                                )}
+                                <a
+                                  href={`/guest/${event.type}s/${event.id}/rsvp`}
+                                  className="text-xs text-ocean-600 hover:text-ocean-700 font-medium mt-2 inline-block"
+                                >
+                                  {event.rsvp_status === 'pending' ? 'RSVP →' : 'Update →'}
+                                </a>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                /* List View */
+                <div className="space-y-3">
+                  {filteredEvents.map(event => {
+                    const capacityWarning = getCapacityWarning(event);
+                    const deadlineAlert = getDeadlineAlert(event);
+                    
+                    return (
+                      <div
+                        key={event.id}
+                        className="border border-sage-200 rounded-lg p-4 hover:border-jungle-300 transition-colors"
+                      >
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-3 mb-2">
+                              <h4 className="font-semibold text-sage-800">{event.name}</h4>
+                              {event.rsvp_status && (
+                                <span
+                                  className={`inline-block px-2 py-1 rounded-full text-xs font-medium border ${getRSVPStatusColor(
+                                    event.rsvp_status
+                                  )}`}
+                                >
+                                  {event.rsvp_status}
+                                </span>
+                              )}
+                            </div>
+                            <div className="flex items-center gap-4 text-sm text-sage-600">
+                              <span>📅 {formatDate(event.date)}</span>
+                              <span>🕐 {formatTime(event.time)}</span>
+                              {event.location && <span>📍 {event.location}</span>}
+                            </div>
+                            {event.description && (
+                              <p className="text-sm text-sage-600 mt-2">{event.description}</p>
+                            )}
+                            {(capacityWarning || deadlineAlert) && (
+                              <div className="flex items-center gap-2 mt-2">
+                                {capacityWarning && (
+                                  <span className={`inline-block px-2 py-1 rounded-full text-xs font-medium ${capacityWarning.color}`}>
+                                    ⚠️ {capacityWarning.message}
+                                  </span>
+                                )}
+                                {deadlineAlert && (
+                                  <span className={`inline-block px-2 py-1 rounded-full text-xs font-medium ${deadlineAlert.color}`}>
+                                    ⏰ {deadlineAlert.message}
+                                  </span>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                          <a
+                            href={`/guest/${event.type}s/${event.id}/rsvp`}
+                            className="text-sm text-ocean-600 hover:text-ocean-700 font-medium ml-4"
+                          >
+                            {event.rsvp_status === 'pending' ? 'RSVP Now →' : 'Update RSVP →'}
+                          </a>
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
               )}
             </div>

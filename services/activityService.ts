@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import { sanitizeInput, sanitizeRichText } from "../utils/sanitization";
+import { generateSlug, isValidSlug, makeUniqueSlug } from "../utils/slugs";
 import {
   createActivitySchema,
   updateActivitySchema,
@@ -46,6 +47,37 @@ function toCamelCase(obj: any): any {
 }
 
 /**
+ * Ensures slug is unique by checking existing activities and appending a number if necessary.
+ * 
+ * @param slug - Desired slug
+ * @param excludeId - ID to exclude from uniqueness check (for updates)
+ * @returns Unique slug
+ */
+async function ensureUniqueSlug(slug: string, excludeId?: string): Promise<string> {
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  );
+
+  // Get all existing slugs
+  let query = supabase.from('activities').select('slug');
+  
+  if (excludeId) {
+    query = query.neq('id', excludeId);
+  }
+
+  const { data, error } = await query;
+
+  if (error) {
+    // If we can't check, return the original slug and let database handle uniqueness
+    return slug;
+  }
+
+  const existingSlugs = data.map((activity: any) => activity.slug).filter(Boolean);
+  return makeUniqueSlug(slug, existingSlugs);
+}
+
+/**
  * Creates a new activity in the system.
  *
  * @param data - Activity data including name, type, time, and capacity
@@ -82,13 +114,37 @@ export async function create(data: CreateActivityDTO): Promise<Result<Activity>>
       activityType: sanitizeInput(validation.data.activityType),
     };
 
+    // 2.1. Generate slug if not provided
+    const baseSlug = generateSlug(sanitized.name);
+    if (!isValidSlug(baseSlug)) {
+      return {
+        success: false,
+        error: {
+          code: 'VALIDATION_ERROR',
+          message: 'Activity name must contain at least one alphanumeric character to generate a valid slug',
+          details: {
+            field: 'name',
+            value: sanitized.name,
+            reason: 'Generated slug is invalid or empty after normalization',
+          },
+        },
+      };
+    }
+
+    // 2.2. Ensure slug is unique
+    const uniqueSlug = await ensureUniqueSlug(baseSlug);
+    const sanitizedWithSlug = {
+      ...sanitized,
+      slug: uniqueSlug,
+    };
+
     // 3. Database operation
     const supabase = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.SUPABASE_SERVICE_ROLE_KEY!
     );
 
-    const dbData = toSnakeCase(sanitized);
+    const dbData = toSnakeCase(sanitizedWithSlug);
     const { data: result, error } = await supabase
       .from('activities')
       .insert(dbData)
@@ -131,6 +187,7 @@ export async function get(id: string): Promise<Result<Activity>> {
       .from('activities')
       .select('*')
       .eq('id', id)
+      .is('deleted_at', null)
       .single();
 
     if (error) {
@@ -192,6 +249,9 @@ export async function update(id: string, data: UpdateActivityDTO): Promise<Resul
       sanitized.activityType = sanitizeInput(sanitized.activityType);
     }
 
+    // 2.1. Preserve slug - do not regenerate from name on update
+    // Slug should only be set on creation or explicitly updated by admin
+
     // 3. Database operation
     const supabase = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -235,16 +295,105 @@ export async function update(id: string, data: UpdateActivityDTO): Promise<Resul
  * Deletes an activity by ID.
  *
  * @param id - Activity UUID
+ * @param options - Delete options (soft delete or permanent)
  * @returns Result indicating success or error details
+ * 
+ * @example
+ * // Soft delete (default)
+ * await deleteActivity('activity-id');
+ * 
+ * // Permanent delete
+ * await deleteActivity('activity-id', { permanent: true });
  */
-export async function deleteActivity(id: string): Promise<Result<void>> {
+export async function deleteActivity(
+  id: string,
+  options: { permanent?: boolean; deletedBy?: string } = {}
+): Promise<Result<void>> {
   try {
     const supabase = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.SUPABASE_SERVICE_ROLE_KEY!
     );
 
-    const { error } = await supabase.from('activities').delete().eq('id', id);
+    const { permanent = false, deletedBy } = options;
+
+    if (permanent) {
+      // Permanent deletion - remove from database
+      const { error } = await supabase.from('activities').delete().eq('id', id);
+
+      if (error) {
+        return {
+          success: false,
+          error: { code: 'DATABASE_ERROR', message: error.message, details: error },
+        };
+      }
+    } else {
+      // Soft delete - set deleted_at timestamp
+      const now = new Date().toISOString();
+
+      // Soft delete associated RSVPs
+      await supabase
+        .from('rsvps')
+        .update({ deleted_at: now, deleted_by: deletedBy })
+        .eq('activity_id', id)
+        .is('deleted_at', null);
+
+      // Soft delete activity
+      const { error } = await supabase
+        .from('activities')
+        .update({ deleted_at: now, deleted_by: deletedBy })
+        .eq('id', id)
+        .is('deleted_at', null);
+
+      if (error) {
+        return {
+          success: false,
+          error: { code: 'DATABASE_ERROR', message: error.message, details: error },
+        };
+      }
+    }
+
+    return { success: true, data: undefined };
+  } catch (error) {
+    return {
+      success: false,
+      error: {
+        code: 'UNKNOWN_ERROR',
+        message: error instanceof Error ? error.message : 'Unknown error',
+      },
+    };
+  }
+}
+
+/**
+ * Restores a soft-deleted activity and all associated RSVPs
+ * 
+ * @param id - Activity ID
+ * @returns Result containing the restored activity or error details
+ * 
+ * @example
+ * const result = await restoreActivity('activity-id');
+ */
+export async function restoreActivity(id: string): Promise<Result<Activity>> {
+  try {
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    );
+
+    // Restore associated RSVPs
+    await supabase
+      .from('rsvps')
+      .update({ deleted_at: null, deleted_by: null })
+      .eq('activity_id', id);
+
+    // Restore activity
+    const { data, error } = await supabase
+      .from('activities')
+      .update({ deleted_at: null, deleted_by: null })
+      .eq('id', id)
+      .select()
+      .single();
 
     if (error) {
       return {
@@ -253,7 +402,7 @@ export async function deleteActivity(id: string): Promise<Result<void>> {
       };
     }
 
-    return { success: true, data: undefined };
+    return { success: true, data };
   } catch (error) {
     return {
       success: false,
@@ -297,6 +446,9 @@ export async function list(filters: ActivityFilterDTO = {}): Promise<Result<Pagi
     );
 
     let query = supabase.from('activities').select('*', { count: 'exact' });
+
+    // Filter out soft-deleted activities
+    query = query.is('deleted_at', null);
 
     // Apply filters
     if (filterParams.eventId !== undefined) {
@@ -399,6 +551,7 @@ export async function search(searchParams: ActivitySearchDTO): Promise<Result<Pa
     const { data, error, count } = await supabase
       .from('activities')
       .select('*', { count: 'exact' })
+      .is('deleted_at', null)
       .or(`name.ilike.%${sanitizedQuery}%,description.ilike.%${sanitizedQuery}%`)
       .order('start_time', { ascending: true })
       .range(from, to);
@@ -550,6 +703,65 @@ export async function calculateNetCost(activityId: string): Promise<Result<numbe
     const netCost = Math.max(0, costPerPerson - hostSubsidy);
 
     return { success: true, data: netCost };
+  } catch (error) {
+    return {
+      success: false,
+      error: {
+        code: 'UNKNOWN_ERROR',
+        message: error instanceof Error ? error.message : 'Unknown error',
+      },
+    };
+  }
+}
+
+/**
+ * Retrieves a single activity by slug.
+ *
+ * @param slug - Activity slug (URL-safe identifier)
+ * @returns Result containing the activity or error details
+ *
+ * @example
+ * const result = await activityService.getBySlug('beach-volleyball');
+ */
+export async function getBySlug(slug: string): Promise<Result<Activity>> {
+  try {
+    // Validate slug format
+    if (!slug || typeof slug !== 'string' || slug.trim() === '') {
+      return {
+        success: false,
+        error: {
+          code: 'VALIDATION_ERROR',
+          message: 'Invalid slug provided',
+        },
+      };
+    }
+
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    );
+
+    const { data, error } = await supabase
+      .from('activities')
+      .select('*')
+      .eq('slug', slug.toLowerCase())
+      .is('deleted_at', null)
+      .single();
+
+    if (error) {
+      if (error.code === 'PGRST116') {
+        return {
+          success: false,
+          error: { code: 'NOT_FOUND', message: 'Activity not found' },
+        };
+      }
+      return {
+        success: false,
+        error: { code: 'DATABASE_ERROR', message: error.message, details: error },
+      };
+    }
+
+    return { success: true, data: toCamelCase(data) as Activity };
   } catch (error) {
     return {
       success: false,

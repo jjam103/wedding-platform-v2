@@ -1,0 +1,314 @@
+name: Test Coverage Enforcement
+
+on:
+  pull_request:
+    branches: [main, develop]
+    types: [opened, synchronize, reopened]
+
+jobs:
+  enforce-coverage:
+    name: Enforce Coverage Thresholds
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Fetch all history for comparison
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20.x
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Run tests with coverage
+        run: npm run test:coverage
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co' }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder-key' }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY || 'placeholder-key' }}
+      
+      - name: Check coverage thresholds
+        id: coverage-check
+        run: |
+          # Parse coverage summary
+          COVERAGE_FILE="./coverage/coverage-summary.json"
+          
+          if [ ! -f "$COVERAGE_FILE" ]; then
+            echo "❌ Coverage file not found!"
+            exit 1
+          fi
+          
+          # Extract coverage percentages
+          LINES=$(jq '.total.lines.pct' $COVERAGE_FILE)
+          STATEMENTS=$(jq '.total.statements.pct' $COVERAGE_FILE)
+          FUNCTIONS=$(jq '.total.functions.pct' $COVERAGE_FILE)
+          BRANCHES=$(jq '.total.branches.pct' $COVERAGE_FILE)
+          
+          echo "lines=$LINES" >> $GITHUB_OUTPUT
+          echo "statements=$STATEMENTS" >> $GITHUB_OUTPUT
+          echo "functions=$FUNCTIONS" >> $GITHUB_OUTPUT
+          echo "branches=$BRANCHES" >> $GITHUB_OUTPUT
+          
+          # Check thresholds
+          FAILED=0
+          
+          if (( $(echo "$LINES < 80" | bc -l) )); then
+            echo "❌ Lines coverage ($LINES%) below threshold (80%)"
+            FAILED=1
+          fi
+          
+          if (( $(echo "$STATEMENTS < 80" | bc -l) )); then
+            echo "❌ Statements coverage ($STATEMENTS%) below threshold (80%)"
+            FAILED=1
+          fi
+          
+          if (( $(echo "$FUNCTIONS < 80" | bc -l) )); then
+            echo "❌ Functions coverage ($FUNCTIONS%) below threshold (80%)"
+            FAILED=1
+          fi
+          
+          if (( $(echo "$BRANCHES < 80" | bc -l) )); then
+            echo "❌ Branches coverage ($BRANCHES%) below threshold (80%)"
+            FAILED=1
+          fi
+          
+          if [ $FAILED -eq 1 ]; then
+            echo "failed=true" >> $GITHUB_OUTPUT
+            exit 1
+          else
+            echo "✅ All coverage thresholds met!"
+            echo "failed=false" >> $GITHUB_OUTPUT
+          fi
+      
+      - name: Check for new untested files
+        id: untested-check
+        run: |
+          # Find files with 0% coverage
+          UNTESTED=$(jq -r 'to_entries[] | select(.value.lines.pct == 0) | .key' ./coverage/coverage-summary.json | grep -v "test\|spec\|mock" || true)
+          
+          if [ -n "$UNTESTED" ]; then
+            echo "❌ Found files with 0% coverage:"
+            echo "$UNTESTED"
+            echo "untested<<EOF" >> $GITHUB_OUTPUT
+            echo "$UNTESTED" >> $GITHUB_OUTPUT
+            echo "EOF" >> $GITHUB_OUTPUT
+            exit 1
+          else
+            echo "✅ No untested files found!"
+          fi
+      
+      - name: Comment PR with coverage results
+        uses: actions/github-script@v7
+        if: always()
+        with:
+          script: |
+            const fs = require('fs');
+            const coverage = JSON.parse(fs.readFileSync('./coverage/coverage-summary.json', 'utf8'));
+            const total = coverage.total;
+            
+            const lines = total.lines.pct;
+            const statements = total.statements.pct;
+            const functions = total.functions.pct;
+            const branches = total.branches.pct;
+            
+            const linesStatus = lines >= 80 ? '✅' : '❌';
+            const statementsStatus = statements >= 80 ? '✅' : '❌';
+            const functionsStatus = functions >= 80 ? '✅' : '❌';
+            const branchesStatus = branches >= 80 ? '✅' : '❌';
+            
+            const overallStatus = (lines >= 80 && statements >= 80 && functions >= 80 && branches >= 80) ? '✅ PASSED' : '❌ FAILED';
+            
+            let comment = `## 📊 Coverage Enforcement Report\n\n`;
+            comment += `### Overall Status: ${overallStatus}\n\n`;
+            comment += `| Metric | Coverage | Threshold | Status |\n`;
+            comment += `|--------|----------|-----------|--------|\n`;
+            comment += `| Lines | ${lines.toFixed(2)}% | 80% | ${linesStatus} |\n`;
+            comment += `| Statements | ${statements.toFixed(2)}% | 80% | ${statementsStatus} |\n`;
+            comment += `| Functions | ${functions.toFixed(2)}% | 80% | ${functionsStatus} |\n`;
+            comment += `| Branches | ${branches.toFixed(2)}% | 80% | ${branchesStatus} |\n\n`;
+            
+            // Check for files with low coverage
+            const lowCoverageFiles = [];
+            for (const [file, data] of Object.entries(coverage)) {
+              if (file === 'total') continue;
+              if (data.lines.pct < 70 && !file.includes('test') && !file.includes('spec')) {
+                lowCoverageFiles.push({ file, coverage: data.lines.pct });
+              }
+            }
+            
+            if (lowCoverageFiles.length > 0) {
+              comment += `### ⚠️ Files with Low Coverage (<70%)\n\n`;
+              lowCoverageFiles.sort((a, b) => a.coverage - b.coverage).slice(0, 10).forEach(item => {
+                comment += `- \`${item.file}\`: ${item.coverage.toFixed(2)}%\n`;
+              });
+              if (lowCoverageFiles.length > 10) {
+                comment += `- ... and ${lowCoverageFiles.length - 10} more files\n`;
+              }
+              comment += `\n`;
+            }
+            
+            comment += `### 📋 Testing Requirements\n\n`;
+            comment += `Before merging, ensure:\n`;
+            comment += `- ✅ All new code has tests\n`;
+            comment += `- ✅ Service methods test all 4 paths (success, validation, database, security)\n`;
+            comment += `- ✅ API routes test auth, validation, and error handling\n`;
+            comment += `- ✅ Components test rendering, interactions, and error states\n`;
+            comment += `- ✅ Bug fixes include regression tests\n\n`;
+            comment += `📖 See [Code Review Testing Guidelines](../blob/main/docs/CODE_REVIEW_TESTING_GUIDELINES.md) for details.\n`;
+            
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: comment
+            });
+
+  enforce-test-quality:
+    name: Enforce Test Quality
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20.x
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Check for tests in PR
+        id: test-check
+        run: |
+          # Get list of changed files
+          CHANGED_FILES=$(git diff --name-only origin/${{ github.base_ref }}...HEAD)
+          
+          # Filter for source files (not tests, not config)
+          SOURCE_FILES=$(echo "$CHANGED_FILES" | grep -E '\.(ts|tsx)$' | grep -v -E '(test|spec|mock|\.d\.ts|config|setup)' || true)
+          
+          if [ -z "$SOURCE_FILES" ]; then
+            echo "No source files changed, skipping test check"
+            exit 0
+          fi
+          
+          echo "Changed source files:"
+          echo "$SOURCE_FILES"
+          
+          # Check if corresponding test files exist or were modified
+          MISSING_TESTS=""
+          
+          while IFS= read -r file; do
+            # Skip if file doesn't exist (deleted)
+            if [ ! -f "$file" ]; then
+              continue
+            fi
+            
+            # Generate possible test file names
+            TEST_FILE1="${file%.ts}.test.ts"
+            TEST_FILE2="${file%.tsx}.test.tsx"
+            TEST_FILE3="__tests__/unit/${file}"
+            TEST_FILE4="__tests__/integration/${file}"
+            
+            # Check if any test file exists or was modified
+            if ! echo "$CHANGED_FILES" | grep -q -E "(${TEST_FILE1}|${TEST_FILE2}|${TEST_FILE3}|${TEST_FILE4})" && \
+               ! [ -f "$TEST_FILE1" ] && ! [ -f "$TEST_FILE2" ] && \
+               ! [ -f "$TEST_FILE3" ] && ! [ -f "$TEST_FILE4" ]; then
+              MISSING_TESTS="${MISSING_TESTS}${file}\n"
+            fi
+          done <<< "$SOURCE_FILES"
+          
+          if [ -n "$MISSING_TESTS" ]; then
+            echo "⚠️ Warning: The following files may be missing tests:"
+            echo -e "$MISSING_TESTS"
+            echo "missing_tests<<EOF" >> $GITHUB_OUTPUT
+            echo -e "$MISSING_TESTS" >> $GITHUB_OUTPUT
+            echo "EOF" >> $GITHUB_OUTPUT
+          else
+            echo "✅ All changed files have corresponding tests"
+          fi
+      
+      - name: Check for test patterns
+        run: |
+          # Check for common anti-patterns in tests
+          echo "Checking for test anti-patterns..."
+          
+          # Find test files in PR
+          TEST_FILES=$(git diff --name-only origin/${{ github.base_ref }}...HEAD | grep -E '\.(test|spec)\.(ts|tsx)$' || true)
+          
+          if [ -z "$TEST_FILES" ]; then
+            echo "No test files changed"
+            exit 0
+          fi
+          
+          ISSUES_FOUND=0
+          
+          # Check for .skip() in tests
+          SKIPPED=$(echo "$TEST_FILES" | xargs grep -l "\.skip(" || true)
+          if [ -n "$SKIPPED" ]; then
+            echo "⚠️ Warning: Found .skip() in tests:"
+            echo "$SKIPPED"
+            ISSUES_FOUND=1
+          fi
+          
+          # Check for console.log in tests
+          CONSOLE_LOGS=$(echo "$TEST_FILES" | xargs grep -l "console\.log" || true)
+          if [ -n "$CONSOLE_LOGS" ]; then
+            echo "⚠️ Warning: Found console.log in tests:"
+            echo "$CONSOLE_LOGS"
+            ISSUES_FOUND=1
+          fi
+          
+          # Check for 'any' type in tests
+          ANY_TYPES=$(echo "$TEST_FILES" | xargs grep -l ": any" || true)
+          if [ -n "$ANY_TYPES" ]; then
+            echo "⚠️ Warning: Found 'any' type in tests:"
+            echo "$ANY_TYPES"
+            ISSUES_FOUND=1
+          fi
+          
+          if [ $ISSUES_FOUND -eq 0 ]; then
+            echo "✅ No test anti-patterns found"
+          fi
+      
+      - name: Comment PR with test quality warnings
+        uses: actions/github-script@v7
+        if: steps.test-check.outputs.missing_tests != ''
+        with:
+          script: |
+            const missingTests = `${{ steps.test-check.outputs.missing_tests }}`.trim();
+            
+            if (!missingTests) return;
+            
+            let comment = `## ⚠️ Test Quality Warning\n\n`;
+            comment += `The following files may be missing tests:\n\n`;
+            
+            missingTests.split('\n').forEach(file => {
+              if (file.trim()) {
+                comment += `- \`${file.trim()}\`\n`;
+              }
+            });
+            
+            comment += `\n### 📋 Testing Requirements\n\n`;
+            comment += `All code changes require corresponding tests:\n\n`;
+            comment += `- **Service methods**: Test success, validation error, database error, and security\n`;
+            comment += `- **API routes**: Test auth, validation, and error handling\n`;
+            comment += `- **Components**: Test rendering, interactions, and error states\n`;
+            comment += `- **Bug fixes**: Include regression tests\n\n`;
+            comment += `📖 See [Code Review Testing Guidelines](../blob/main/docs/CODE_REVIEW_TESTING_GUIDELINES.md) for details.\n`;
+            
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: comment
+            });

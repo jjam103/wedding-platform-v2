@@ -1,298 +1,184 @@
 /**
- * Tests for query optimization utilities
+ * Query Optimization Utilities Tests
  * 
- * Validates:
- * - Pagination calculations
- * - Field selection
- * - Query performance monitoring
+ * Tests for database query optimization functions
  */
 
 import {
-  calculatePaginationRange,
-  buildPaginatedResult,
-  DEFAULT_PAGE_SIZE,
-  MAX_PAGE_SIZE,
-  startQueryMonitoring,
-  endQueryMonitoring,
-  getQueryMetrics,
-  getAverageQueryDuration,
-  clearQueryMetrics,
+  getPaginationRange,
+  PAGINATION_DEFAULTS,
+  fetchGuestsWithRSVPs,
+  fetchEventsWithActivities,
+  fetchActivitiesWithRSVPs,
+  batchFetchByIds,
 } from './queryOptimization';
 
 describe('Query Optimization Utilities', () => {
-  describe('calculatePaginationRange', () => {
+  describe('getPaginationRange', () => {
     it('should calculate correct range for first page', () => {
-      const result = calculatePaginationRange(1, 50);
-      
+      const result = getPaginationRange(1, 50);
       expect(result).toEqual({ from: 0, to: 49 });
     });
 
     it('should calculate correct range for second page', () => {
-      const result = calculatePaginationRange(2, 50);
-      
+      const result = getPaginationRange(2, 50);
       expect(result).toEqual({ from: 50, to: 99 });
     });
 
-    it('should calculate correct range for third page', () => {
-      const result = calculatePaginationRange(3, 50);
-      
-      expect(result).toEqual({ from: 100, to: 149 });
+    it('should calculate correct range for custom page size', () => {
+      const result = getPaginationRange(3, 25);
+      expect(result).toEqual({ from: 50, to: 74 });
     });
 
-    it('should use default page size when not provided', () => {
-      const result = calculatePaginationRange(1);
-      
-      expect(result).toEqual({ from: 0, to: DEFAULT_PAGE_SIZE - 1 });
-    });
-
-    it('should handle page size of 25', () => {
-      const result = calculatePaginationRange(1, 25);
-      
-      expect(result).toEqual({ from: 0, to: 24 });
-    });
-
-    it('should handle page size of 100', () => {
-      const result = calculatePaginationRange(1, 100);
-      
-      expect(result).toEqual({ from: 0, to: 99 });
-    });
-
-    it('should constrain page size to maximum', () => {
-      const result = calculatePaginationRange(1, 200);
-      
-      expect(result).toEqual({ from: 0, to: MAX_PAGE_SIZE - 1 });
-    });
-
-    it('should handle invalid page numbers', () => {
-      const result = calculatePaginationRange(0, 50);
-      
-      expect(result).toEqual({ from: 0, to: 49 });
-    });
-
-    it('should handle negative page numbers', () => {
-      const result = calculatePaginationRange(-5, 50);
-      
-      expect(result).toEqual({ from: 0, to: 49 });
-    });
-
-    it('should handle invalid page sizes', () => {
-      const result = calculatePaginationRange(1, 0);
-      
-      expect(result).toEqual({ from: 0, to: 0 });
+    it('should handle page 1 with different page sizes', () => {
+      expect(getPaginationRange(1, 10)).toEqual({ from: 0, to: 9 });
+      expect(getPaginationRange(1, 100)).toEqual({ from: 0, to: 99 });
     });
   });
 
-  describe('buildPaginatedResult', () => {
-    it('should build correct pagination metadata for first page', () => {
-      const data = Array.from({ length: 50 }, (_, i) => ({ id: i + 1 }));
-      const result = buildPaginatedResult(data, 150, 1, 50);
-
-      expect(result.data).toEqual(data);
-      expect(result.pagination).toEqual({
-        page: 1,
-        pageSize: 50,
-        totalCount: 150,
-        totalPages: 3,
-        hasNextPage: true,
-        hasPreviousPage: false,
-      });
-    });
-
-    it('should build correct pagination metadata for middle page', () => {
-      const data = Array.from({ length: 50 }, (_, i) => ({ id: i + 51 }));
-      const result = buildPaginatedResult(data, 150, 2, 50);
-
-      expect(result.pagination).toEqual({
-        page: 2,
-        pageSize: 50,
-        totalCount: 150,
-        totalPages: 3,
-        hasNextPage: true,
-        hasPreviousPage: true,
-      });
-    });
-
-    it('should build correct pagination metadata for last page', () => {
-      const data = Array.from({ length: 50 }, (_, i) => ({ id: i + 101 }));
-      const result = buildPaginatedResult(data, 150, 3, 50);
-
-      expect(result.pagination).toEqual({
-        page: 3,
-        pageSize: 50,
-        totalCount: 150,
-        totalPages: 3,
-        hasNextPage: false,
-        hasPreviousPage: true,
-      });
-    });
-
-    it('should handle partial last page', () => {
-      const data = Array.from({ length: 25 }, (_, i) => ({ id: i + 101 }));
-      const result = buildPaginatedResult(data, 125, 3, 50);
-
-      expect(result.pagination).toEqual({
-        page: 3,
-        pageSize: 50,
-        totalCount: 125,
-        totalPages: 3,
-        hasNextPage: false,
-        hasPreviousPage: true,
-      });
-    });
-
-    it('should handle single page', () => {
-      const data = Array.from({ length: 25 }, (_, i) => ({ id: i + 1 }));
-      const result = buildPaginatedResult(data, 25, 1, 50);
-
-      expect(result.pagination).toEqual({
-        page: 1,
-        pageSize: 50,
-        totalCount: 25,
-        totalPages: 1,
-        hasNextPage: false,
-        hasPreviousPage: false,
-      });
-    });
-
-    it('should handle empty results', () => {
-      const result = buildPaginatedResult([], 0, 1, 50);
-
-      expect(result.data).toEqual([]);
-      expect(result.pagination).toEqual({
-        page: 1,
-        pageSize: 50,
-        totalCount: 0,
-        totalPages: 0,
-        hasNextPage: false,
-        hasPreviousPage: false,
-      });
-    });
-
-    it('should use default page size when not provided', () => {
-      const data = Array.from({ length: DEFAULT_PAGE_SIZE }, (_, i) => ({ id: i + 1 }));
-      const result = buildPaginatedResult(data, 100);
-
-      expect(result.pagination.pageSize).toBe(DEFAULT_PAGE_SIZE);
-    });
-
-    it('should constrain page size to maximum', () => {
-      const data = Array.from({ length: 100 }, (_, i) => ({ id: i + 1 }));
-      const result = buildPaginatedResult(data, 200, 1, 200);
-
-      expect(result.pagination.pageSize).toBe(MAX_PAGE_SIZE);
+  describe('PAGINATION_DEFAULTS', () => {
+    it('should have correct default values', () => {
+      expect(PAGINATION_DEFAULTS.GUESTS_PER_PAGE).toBe(50);
+      expect(PAGINATION_DEFAULTS.ACTIVITIES_PER_PAGE).toBe(50);
+      expect(PAGINATION_DEFAULTS.EVENTS_PER_PAGE).toBe(50);
+      expect(PAGINATION_DEFAULTS.PHOTOS_PER_PAGE).toBe(50);
+      expect(PAGINATION_DEFAULTS.EMAIL_HISTORY_PER_PAGE).toBe(50);
+      expect(PAGINATION_DEFAULTS.AUDIT_LOGS_PER_PAGE).toBe(100);
     });
   });
 
-  describe('Query Performance Monitoring', () => {
-    beforeEach(() => {
-      clearQueryMetrics();
-    });
-
-    it('should track query duration', () => {
-      const startTime = startQueryMonitoring('test-query');
+  describe('fetchGuestsWithRSVPs', () => {
+    it('should build query with default pagination', () => {
+      const mockSupabase = createMockSupabaseClient();
       
-      // Simulate some work
-      const sum = Array.from({ length: 1000 }, (_, i) => i).reduce((a, b) => a + b, 0);
+      fetchGuestsWithRSVPs(mockSupabase as any);
       
-      endQueryMonitoring('test-query', startTime, 100);
-
-      const metrics = getQueryMetrics();
-      expect(metrics).toHaveLength(1);
-      expect(metrics[0].queryName).toBe('test-query');
-      expect(metrics[0].recordCount).toBe(100);
-      expect(metrics[0].duration).toBeGreaterThan(0);
+      expect(mockSupabase.from).toHaveBeenCalledWith('guests');
+      expect(mockSupabase.select).toHaveBeenCalledWith(
+        expect.stringContaining('rsvps'),
+        { count: 'exact' }
+      );
+      expect(mockSupabase.range).toHaveBeenCalledWith(0, 49);
+      expect(mockSupabase.order).toHaveBeenCalledWith('last_name', { ascending: true });
     });
 
-    it('should track multiple queries', () => {
-      const start1 = startQueryMonitoring('query-1');
-      endQueryMonitoring('query-1', start1, 50);
-
-      const start2 = startQueryMonitoring('query-2');
-      endQueryMonitoring('query-2', start2, 75);
-
-      const start3 = startQueryMonitoring('query-3');
-      endQueryMonitoring('query-3', start3, 100);
-
-      const metrics = getQueryMetrics();
-      expect(metrics).toHaveLength(3);
-      expect(metrics[0].queryName).toBe('query-1');
-      expect(metrics[1].queryName).toBe('query-2');
-      expect(metrics[2].queryName).toBe('query-3');
-    });
-
-    it('should calculate average query duration', () => {
-      const start1 = startQueryMonitoring('test-query');
-      endQueryMonitoring('test-query', start1, 100);
-
-      const start2 = startQueryMonitoring('test-query');
-      endQueryMonitoring('test-query', start2, 100);
-
-      const start3 = startQueryMonitoring('test-query');
-      endQueryMonitoring('test-query', start3, 100);
-
-      const avgDuration = getAverageQueryDuration('test-query');
-      expect(avgDuration).toBeGreaterThan(0);
-    });
-
-    it('should return 0 for unknown query', () => {
-      const avgDuration = getAverageQueryDuration('unknown-query');
-      expect(avgDuration).toBe(0);
-    });
-
-    it('should clear metrics', () => {
-      const start = startQueryMonitoring('test-query');
-      endQueryMonitoring('test-query', start, 100);
-
-      expect(getQueryMetrics()).toHaveLength(1);
-
-      clearQueryMetrics();
-
-      expect(getQueryMetrics()).toHaveLength(0);
-    });
-
-    it('should limit metrics to 100 entries', () => {
-      // Add 150 metrics
-      for (let i = 0; i < 150; i++) {
-        const start = startQueryMonitoring(`query-${i}`);
-        endQueryMonitoring(`query-${i}`, start, 10);
-      }
-
-      const metrics = getQueryMetrics();
-      expect(metrics).toHaveLength(100);
+    it('should filter by group ID when provided', () => {
+      const mockSupabase = createMockSupabaseClient();
       
-      // Should keep the most recent 100
-      expect(metrics[0].queryName).toBe('query-50');
-      expect(metrics[99].queryName).toBe('query-149');
+      fetchGuestsWithRSVPs(mockSupabase as any, { groupId: 'group-123' });
+      
+      expect(mockSupabase.eq).toHaveBeenCalledWith('group_id', 'group-123');
+    });
+
+    it('should use custom pagination', () => {
+      const mockSupabase = createMockSupabaseClient();
+      
+      fetchGuestsWithRSVPs(mockSupabase as any, { page: 2, pageSize: 25 });
+      
+      expect(mockSupabase.range).toHaveBeenCalledWith(25, 49);
     });
   });
 
-  describe('Performance Requirements', () => {
-    it('should calculate pagination range in under 1ms', () => {
-      const start = performance.now();
+  describe('fetchEventsWithActivities', () => {
+    it('should build query with default pagination', () => {
+      const mockSupabase = createMockSupabaseClient();
       
-      for (let i = 0; i < 1000; i++) {
-        calculatePaginationRange(i + 1, 50);
-      }
+      fetchEventsWithActivities(mockSupabase as any);
       
-      const duration = performance.now() - start;
-      
-      // 1000 calculations should take less than 10ms
-      expect(duration).toBeLessThan(10);
+      expect(mockSupabase.from).toHaveBeenCalledWith('events');
+      expect(mockSupabase.select).toHaveBeenCalledWith(
+        expect.stringContaining('activities'),
+        { count: 'exact' }
+      );
+      expect(mockSupabase.range).toHaveBeenCalledWith(0, 49);
+      expect(mockSupabase.order).toHaveBeenCalledWith('event_date', { ascending: true });
     });
 
-    it('should build paginated result in under 1ms', () => {
-      const data = Array.from({ length: 50 }, (_, i) => ({ id: i + 1 }));
+    it('should filter active events by default', () => {
+      const mockSupabase = createMockSupabaseClient();
       
-      const start = performance.now();
+      fetchEventsWithActivities(mockSupabase as any);
       
-      for (let i = 0; i < 1000; i++) {
-        buildPaginatedResult(data, 150, 1, 50);
-      }
+      expect(mockSupabase.eq).toHaveBeenCalledWith('is_active', true);
+    });
+
+    it('should include inactive events when requested', () => {
+      const mockSupabase = createMockSupabaseClient();
       
-      const duration = performance.now() - start;
+      fetchEventsWithActivities(mockSupabase as any, { includeInactive: true });
       
-      // 1000 builds should take less than 10ms
-      expect(duration).toBeLessThan(10);
+      expect(mockSupabase.eq).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('fetchActivitiesWithRSVPs', () => {
+    it('should build query with default pagination', () => {
+      const mockSupabase = createMockSupabaseClient();
+      
+      fetchActivitiesWithRSVPs(mockSupabase as any);
+      
+      expect(mockSupabase.from).toHaveBeenCalledWith('activities');
+      expect(mockSupabase.select).toHaveBeenCalledWith(
+        expect.stringContaining('rsvps'),
+        { count: 'exact' }
+      );
+      expect(mockSupabase.range).toHaveBeenCalledWith(0, 49);
+      expect(mockSupabase.order).toHaveBeenCalledWith('activity_date', { ascending: true });
+    });
+
+    it('should filter by event ID when provided', () => {
+      const mockSupabase = createMockSupabaseClient();
+      
+      fetchActivitiesWithRSVPs(mockSupabase as any, { eventId: 'event-123' });
+      
+      expect(mockSupabase.eq).toHaveBeenCalledWith('event_id', 'event-123');
+    });
+  });
+
+  describe('batchFetchByIds', () => {
+    it('should return empty array for empty IDs', async () => {
+      const mockSupabase = createMockSupabaseClient();
+      
+      const result = await batchFetchByIds(mockSupabase as any, 'guests', []);
+      
+      expect(result).toEqual({ data: [], error: null });
+      expect(mockSupabase.from).not.toHaveBeenCalled();
+    });
+
+    it('should fetch multiple entities by IDs', async () => {
+      const mockSupabase = createMockSupabaseClient();
+      const ids = ['id-1', 'id-2', 'id-3'];
+      
+      await batchFetchByIds(mockSupabase as any, 'guests', ids);
+      
+      expect(mockSupabase.from).toHaveBeenCalledWith('guests');
+      expect(mockSupabase.select).toHaveBeenCalledWith('*');
+      expect(mockSupabase.in).toHaveBeenCalledWith('id', ids);
+    });
+
+    it('should use custom select fields', async () => {
+      const mockSupabase = createMockSupabaseClient();
+      const ids = ['id-1', 'id-2'];
+      
+      await batchFetchByIds(mockSupabase as any, 'guests', ids, 'id, first_name, last_name');
+      
+      expect(mockSupabase.select).toHaveBeenCalledWith('id, first_name, last_name');
     });
   });
 });
+
+// Mock Supabase client for testing
+function createMockSupabaseClient() {
+  const mockChain = {
+    from: jest.fn().mockReturnThis(),
+    select: jest.fn().mockReturnThis(),
+    eq: jest.fn().mockReturnThis(),
+    in: jest.fn().mockReturnThis(),
+    range: jest.fn().mockReturnThis(),
+    order: jest.fn().mockReturnThis(),
+    single: jest.fn().mockResolvedValue({ data: null, error: null }),
+    maybeSingle: jest.fn().mockResolvedValue({ data: null, error: null }),
+  };
+
+  return mockChain;
+}

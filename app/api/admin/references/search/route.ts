@@ -1,46 +1,13 @@
-import { createServerClient } from '@supabase/ssr';
+import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
 import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
 
-interface SearchResult {
-  id: string;
-  name: string;
-  type: string;
-  slug?: string;
-  status?: string;
-  preview?: string;
-}
-
-/**
- * Search across multiple entity types for reference linking
- * 
- * @param request - Request with query params: q (query), type (comma-separated entity types)
- * @returns Search results ordered by relevance
- */
-export async function GET(request: Request): Promise<NextResponse> {
+export async function GET(request: Request) {
   try {
-    // 1. Authenticate
-    const cookieStore = await cookies();
-    const supabase = createServerClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      {
-        cookies: {
-          getAll() {
-            return cookieStore.getAll();
-          },
-          setAll(cookiesToSet) {
-            cookiesToSet.forEach(({ name, value }) => {
-              cookieStore.set(name, value);
-            });
-          },
-        },
-      }
-    );
-    const {
-      data: { session },
-      error: authError,
-    } = await supabase.auth.getSession();
+    // 1. Auth check
+    const cookieStore = cookies();
+    const supabase = createRouteHandlerClient({ cookies: () => cookieStore });
+    const { data: { session }, error: authError } = await supabase.auth.getSession();
 
     if (authError || !session) {
       return NextResponse.json(
@@ -55,212 +22,168 @@ export async function GET(request: Request): Promise<NextResponse> {
     // 2. Parse query parameters
     const { searchParams } = new URL(request.url);
     const query = searchParams.get('q') || '';
-    const typeParam = searchParams.get('type') || '';
+    const typesParam = searchParams.get('types') || 'event,activity,content_page,accommodation';
+    const types = typesParam.split(',').filter(Boolean);
 
     if (!query.trim()) {
       return NextResponse.json({
         success: true,
-        data: { results: [], total: 0 },
+        data: {
+          events: [],
+          activities: [],
+          content_pages: [],
+          accommodations: [],
+        },
       });
     }
 
-    const entityTypes = typeParam.split(',').filter(Boolean);
-    if (entityTypes.length === 0) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: {
-            code: 'VALIDATION_ERROR',
-            message: 'At least one entity type is required',
-          },
-        },
-        { status: 400 }
-      );
-    }
-
     // 3. Search across entity types
-    const results: SearchResult[] = [];
-    const searchPattern = `%${query.toLowerCase()}%`;
+    const results: {
+      events: any[];
+      activities: any[];
+      content_pages: any[];
+      accommodations: any[];
+    } = {
+      events: [],
+      activities: [],
+      content_pages: [],
+      accommodations: [],
+    };
 
     // Search events
-    if (entityTypes.includes('event')) {
-      const { data: events } = await supabase
-        .from('events')
-        .select('id, name, slug, is_active, start_time')
-        .or(`name.ilike.${searchPattern},slug.ilike.${searchPattern}`)
-        .limit(20);
+    if (types.includes('event')) {
+      try {
+        const { data: events, error: eventsError } = await supabase
+          .from('events')
+          .select('id, name, slug, start_date, location_id, locations(name)')
+          .or(`name.ilike.%${query}%,description.ilike.%${query}%`)
+          .is('deleted_at', null)
+          .order('start_date', { ascending: true })
+          .limit(10);
 
-      if (events) {
-        results.push(
-          ...events.map((event) => ({
+        if (eventsError) {
+          console.error('Events search error:', eventsError);
+        } else if (events) {
+          results.events = events.map((event: any) => ({
             id: event.id,
             name: event.name,
-            type: 'event',
             slug: event.slug,
-            status: event.is_active ? 'active' : 'inactive',
-            preview: event.start_time
-              ? `${new Date(event.start_time).toLocaleDateString()} • ${
-                  event.is_active ? 'Active' : 'Inactive'
-                }`
-              : event.is_active
-              ? 'Active'
-              : 'Inactive',
-          }))
-        );
+            date: event.start_date,
+            location: event.locations?.name,
+          }));
+        }
+      } catch (err) {
+        console.error('Events search exception:', err);
       }
     }
 
     // Search activities
-    if (entityTypes.includes('activity')) {
-      const { data: activities } = await supabase
-        .from('activities')
-        .select('id, name, slug, capacity, start_time')
-        .or(`name.ilike.${searchPattern},slug.ilike.${searchPattern}`)
-        .limit(20);
+    if (types.includes('activity')) {
+      try {
+        const { data: activities, error: activitiesError } = await supabase
+          .from('activities')
+          .select('id, name, slug, start_time, capacity, location_id, locations(name)')
+          .or(`name.ilike.%${query}%,description.ilike.%${query}%`)
+          .is('deleted_at', null)
+          .order('start_time', { ascending: true })
+          .limit(10);
 
-      if (activities) {
-        // Get RSVP counts for capacity display
-        const activityIds = activities.map((a) => a.id);
-        const { data: rsvpCounts } = await supabase
-          .from('rsvps')
-          .select('activity_id')
-          .in('activity_id', activityIds)
-          .eq('status', 'attending');
-
-        const rsvpCountMap = new Map<string, number>();
-        rsvpCounts?.forEach((rsvp) => {
-          rsvpCountMap.set(rsvp.activity_id, (rsvpCountMap.get(rsvp.activity_id) || 0) + 1);
-        });
-
-        results.push(
-          ...activities.map((activity) => {
-            const attendees = rsvpCountMap.get(activity.id) || 0;
-            const capacityText = activity.capacity
-              ? `${attendees}/${activity.capacity} capacity`
-              : `${attendees} attendees`;
-
-            return {
-              id: activity.id,
-              name: activity.name,
-              type: 'activity',
-              slug: activity.slug,
-              preview: activity.start_time
-                ? `${new Date(activity.start_time).toLocaleDateString()} • ${capacityText}`
-                : capacityText,
-            };
-          })
-        );
-      }
-    }
-
-    // Search accommodations
-    if (entityTypes.includes('accommodation')) {
-      const { data: accommodations } = await supabase
-        .from('accommodations')
-        .select('id, name, slug, check_in_date, check_out_date')
-        .or(`name.ilike.${searchPattern},slug.ilike.${searchPattern}`)
-        .limit(20);
-
-      if (accommodations) {
-        results.push(
-          ...accommodations.map((accommodation) => ({
-            id: accommodation.id,
-            name: accommodation.name,
-            type: 'accommodation',
-            slug: accommodation.slug,
-            preview:
-              accommodation.check_in_date && accommodation.check_out_date
-                ? `${new Date(accommodation.check_in_date).toLocaleDateString()} - ${new Date(
-                    accommodation.check_out_date
-                  ).toLocaleDateString()}`
-                : undefined,
-          }))
-        );
-      }
-    }
-
-    // Search room types
-    if (entityTypes.includes('room_type')) {
-      const { data: roomTypes } = await supabase
-        .from('room_types')
-        .select('id, name, accommodation_id, capacity, price_per_night, accommodations(name)')
-        .or(`name.ilike.${searchPattern}`)
-        .limit(20);
-
-      if (roomTypes) {
-        results.push(
-          ...roomTypes.map((roomType) => ({
-            id: roomType.id,
-            name: roomType.name,
-            type: 'room_type',
-            preview: `${(roomType.accommodations as any)?.name || 'Unknown'} • Capacity: ${
-              roomType.capacity
-            } • $${roomType.price_per_night}/night`,
-          }))
-        );
+        if (activitiesError) {
+          console.error('Activities search error:', activitiesError);
+        } else if (activities) {
+          results.activities = activities.map((activity: any) => ({
+            id: activity.id,
+            name: activity.name,
+            slug: activity.slug,
+            date: activity.start_time,
+            capacity: activity.capacity,
+            location: activity.locations?.name,
+          }));
+        }
+      } catch (err) {
+        console.error('Activities search exception:', err);
       }
     }
 
     // Search content pages
-    if (entityTypes.includes('content_page')) {
-      const { data: pages } = await supabase
-        .from('content_pages')
-        .select('id, title, slug, status')
-        .or(`title.ilike.${searchPattern},slug.ilike.${searchPattern}`)
-        .limit(20);
+    if (types.includes('content_page')) {
+      try {
+        const { data: pages, error: pagesError } = await supabase
+          .from('content_pages')
+          .select('id, title, slug, type')
+          .or(`title.ilike.%${query}%,slug.ilike.%${query}%`)
+          .eq('status', 'published')
+          .is('deleted_at', null)
+          .order('title', { ascending: true })
+          .limit(10);
 
-      if (pages) {
-        results.push(
-          ...pages.map((page) => ({
+        if (pagesError) {
+          console.error('Content pages search error:', pagesError);
+        } else if (pages) {
+          results.content_pages = pages.map((page: any) => ({
             id: page.id,
-            name: page.title,
-            type: 'content_page',
+            title: page.title,
             slug: page.slug,
-            status: page.status,
-            preview: `${page.status === 'published' ? 'Published' : 'Draft'} • /${page.slug}`,
-          }))
-        );
+            type: page.type,
+          }));
+        }
+      } catch (err) {
+        console.error('Content pages search exception:', err);
       }
     }
 
-    // 4. Sort results by relevance (exact matches first, then partial)
-    // Add index to each result for stable sorting
-    const indexedResults = results.map((result, index) => ({ result, index }));
-    
-    indexedResults.sort((a, b) => {
-      const aExact = a.result.name.toLowerCase() === query.toLowerCase();
-      const bExact = b.result.name.toLowerCase() === query.toLowerCase();
+    // Search accommodations (no deleted_at column)
+    if (types.includes('accommodation')) {
+      try {
+        const { data: accommodations, error: accommodationsError } = await supabase
+          .from('accommodations')
+          .select('id, name, slug, location_id, locations(name)')
+          .or(`name.ilike.%${query}%,description.ilike.%${query}%`)
+          .order('name', { ascending: true })
+          .limit(10);
 
-      if (aExact && !bExact) return -1;
-      if (!aExact && bExact) return 1;
+        if (accommodationsError) {
+          console.error('Accommodations search error:', accommodationsError);
+        } else if (accommodations) {
+          // Get room counts separately for each accommodation
+          const accommodationsWithRoomCounts = await Promise.all(
+            accommodations.map(async (accommodation: any) => {
+              try {
+                const { count } = await supabase
+                  .from('room_types')
+                  .select('*', { count: 'exact', head: true })
+                  .eq('accommodation_id', accommodation.id);
+                
+                return {
+                  id: accommodation.id,
+                  name: accommodation.name,
+                  slug: accommodation.slug,
+                  location: accommodation.locations?.name,
+                  room_count: count || 0,
+                };
+              } catch (err) {
+                console.error(`Error fetching room count for accommodation ${accommodation.id}:`, err);
+                return {
+                  id: accommodation.id,
+                  name: accommodation.name,
+                  slug: accommodation.slug,
+                  location: accommodation.locations?.name,
+                  room_count: 0,
+                };
+              }
+            })
+          );
+          
+          results.accommodations = accommodationsWithRoomCounts;
+        }
+      } catch (err) {
+        console.error('Accommodations search exception:', err);
+      }
+    }
 
-      // Then sort alphabetically with normalization for consistent ordering
-      // Trim whitespace for comparison
-      const aName = a.result.name.trim().toLowerCase();
-      const bName = b.result.name.trim().toLowerCase();
-      
-      // Handle empty strings after trimming - sort them to the end
-      if (aName === '' && bName !== '') return 1;
-      if (aName !== '' && bName === '') return -1;
-      
-      // Use simple string comparison for deterministic ordering
-      // This is more predictable than localeCompare for special characters
-      if (aName < bName) return -1;
-      if (aName > bName) return 1;
-      
-      // If names are equal after normalization, maintain original order (stable sort)
-      return a.index - b.index;
-    });
-    
-    const sortedResults = indexedResults.map(({ result }) => result);
-
-    // 5. Return results
     return NextResponse.json({
       success: true,
-      data: {
-        results: sortedResults,
-        total: sortedResults.length,
-      },
+      data: results,
     });
   } catch (error) {
     console.error('Reference search error:', error);
@@ -269,7 +192,7 @@ export async function GET(request: Request): Promise<NextResponse> {
         success: false,
         error: {
           code: 'INTERNAL_ERROR',
-          message: error instanceof Error ? error.message : 'Unknown error',
+          message: error instanceof Error ? error.message : 'Search failed',
         },
       },
       { status: 500 }

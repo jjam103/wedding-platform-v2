@@ -513,11 +513,17 @@ test.describe('Home Page Editing', () => {
       await expect(editor).toBeVisible({ timeout: 5000 });
       await editor.click();
       
-      // PHASE 1 FIX: Clear and fill editor properly
+      // PHASE 2 P2: Clear and fill editor with proper condition checking
       await editor.clear();
-      await page.waitForTimeout(500); // Wait for clear to complete
+      await waitForCondition(async () => {
+        const value = await editor.inputValue();
+        return value === '';
+      }, 2000);
       await editor.fill('Welcome to our wedding celebration in Costa Rica!');
-      await page.waitForTimeout(500); // Wait for content to be set
+      await waitForCondition(async () => {
+        const value = await editor.inputValue();
+        return value.includes('Welcome');
+      }, 2000);
       
       // Wait for content to be set
       await page.waitForLoadState('networkidle');
@@ -635,8 +641,9 @@ test.describe('Inline Section Editor', () => {
       });
     });
     
-    // Wait for cleanup to complete
-    await page.waitForTimeout(1000);
+    // PHASE 2 P2: Wait for cleanup to complete with proper conditions
+    await waitForStyles(page);
+    await page.waitForLoadState('networkidle');
     
     await page.goto('http://localhost:3000/admin/home-page', { waitUntil: 'domcontentloaded' });
     await expect(page.locator('h1:has-text("Home Page Editor")')).toBeVisible({ timeout: 10000 });
@@ -647,8 +654,12 @@ test.describe('Inline Section Editor', () => {
     // PHASE 2 ROUND 8 BUG #3 FINAL FIX V2: Retry button click until state changes
     await page.waitForLoadState('networkidle');
     
-    // Wait for page to be fully interactive (React hydration)
-    await page.waitForTimeout(1000);
+    // PHASE 2 P2: Wait for page to be fully interactive (React hydration)
+    await waitForStyles(page);
+    await waitForCondition(async () => {
+      const button = page.locator('button:has-text("Show Inline Section Editor")');
+      return await button.isEnabled();
+    }, 5000);
     
     // Show inline editor - with retry logic for button click
     const toggleButton = page.locator('button:has-text("Show Inline Section Editor")');
@@ -658,13 +669,17 @@ test.describe('Inline Section Editor', () => {
     // Retry clicking until button text changes (state updates)
     console.log('[Test] Clicking "Show Inline Section Editor" button with retry...');
     await expect(async () => {
-      // Scroll into view
+      // PHASE 2 P2: Wait for scroll to complete with element stability
       await toggleButton.scrollIntoViewIfNeeded();
-      await page.waitForTimeout(200);
+      await waitForElementStable(page, toggleButton);
       
       // Click the button
       await toggleButton.click({ force: true });
-      await page.waitForTimeout(500);
+      // PHASE 2 P2: Wait for state change with proper condition
+      await waitForCondition(async () => {
+        const hideButton = page.locator('button:has-text("Hide Inline Section Editor")');
+        return await hideButton.isVisible();
+      }, 5000);
       
       // Verify button text changed (state updated)
       const hideButton = page.locator('button:has-text("Hide Inline Section Editor")');
@@ -684,9 +699,12 @@ test.describe('Inline Section Editor', () => {
     await expect(addSectionButton).toBeVisible({ timeout: 10000 });
     await addSectionButton.click();
     
-    // Wait for new section to appear
+    // PHASE 2 P2: Wait for new section to appear with proper condition
     await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(2000);
+    await waitForCondition(async () => {
+      const sections = page.locator('[data-testid="inline-section-editor"] [draggable="true"]');
+      return await sections.count() > sectionsBefore;
+    }, 5000);
     
     // Verify new section was added
     await expect(async () => {
@@ -711,8 +729,12 @@ test.describe('Inline Section Editor', () => {
     // PHASE 2 ROUND 8 BUG #3 FINAL FIX V2: Retry button click until state changes
     await page.waitForLoadState('networkidle');
     
-    // Wait for page to be fully interactive (React hydration)
-    await page.waitForTimeout(1000);
+    // PHASE 2 P2: Wait for page to be fully interactive (React hydration)
+    await waitForStyles(page);
+    await waitForCondition(async () => {
+      const button = page.locator('button:has-text("Show Inline Section Editor")');
+      return await button.isEnabled();
+    }, 5000);
     
     // Show inline editor - with retry logic for button click
     const toggleButton = page.locator('button:has-text("Show Inline Section Editor")');
@@ -722,13 +744,17 @@ test.describe('Inline Section Editor', () => {
     // Retry clicking until button text changes (state updates)
     console.log('[Test] Clicking "Show Inline Section Editor" button with retry...');
     await expect(async () => {
-      // Scroll into view
+      // PHASE 2 P2: Wait for scroll to complete with element stability
       await toggleButton.scrollIntoViewIfNeeded();
-      await page.waitForTimeout(200);
+      await waitForElementStable(page, toggleButton);
       
       // Click the button
       await toggleButton.click({ force: true });
-      await page.waitForTimeout(500);
+      // PHASE 2 P2: Wait for state change with proper condition
+      await waitForCondition(async () => {
+        const hideButton = page.locator('button:has-text("Hide Inline Section Editor")');
+        return await hideButton.isVisible();
+      }, 5000);
       
       // Verify button text changed (state updated)
       const hideButton = page.locator('button:has-text("Hide Inline Section Editor")');
@@ -744,9 +770,12 @@ test.describe('Inline Section Editor', () => {
     await expect(addSectionButton).toBeVisible({ timeout: 10000 });
     await addSectionButton.click();
     
-    // Wait for section to be added
+    // PHASE 2 P2: Wait for section to be added with proper condition
     await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(2000);
+    await waitForCondition(async () => {
+      const sections = page.locator('[data-testid="inline-section-editor"] [draggable="true"]');
+      return await sections.count() > 0;
+    }, 5000);
     await page.waitForSelector('[data-testid="inline-section-editor"] [draggable="true"]', { timeout: 10000 });
     
     // Edit section title
@@ -789,8 +818,12 @@ test.describe('Inline Section Editor', () => {
     // PHASE 2 ROUND 8 BUG #3 FINAL FIX V2: Retry button click until state changes
     await page.waitForLoadState('networkidle');
     
-    // Wait for page to be fully interactive (React hydration)
-    await page.waitForTimeout(1000);
+    // PHASE 2 P2: Wait for page to be fully interactive (React hydration)
+    await waitForStyles(page);
+    await waitForCondition(async () => {
+      const button = page.locator('button:has-text("Show Inline Section Editor")');
+      return await button.isEnabled();
+    }, 5000);
     
     // Show inline editor - with retry logic for button click
     const toggleButton = page.locator('button:has-text("Show Inline Section Editor")');
@@ -800,13 +833,17 @@ test.describe('Inline Section Editor', () => {
     // Retry clicking until button text changes (state updates)
     console.log('[Test] Clicking "Show Inline Section Editor" button with retry...');
     await expect(async () => {
-      // Scroll into view
+      // PHASE 2 P2: Wait for scroll to complete with element stability
       await toggleButton.scrollIntoViewIfNeeded();
-      await page.waitForTimeout(200);
+      await waitForElementStable(page, toggleButton);
       
       // Click the button
       await toggleButton.click({ force: true });
-      await page.waitForTimeout(500);
+      // PHASE 2 P2: Wait for state change with proper condition
+      await waitForCondition(async () => {
+        const hideButton = page.locator('button:has-text("Hide Inline Section Editor")');
+        return await hideButton.isVisible();
+      }, 5000);
       
       // Verify button text changed (state updated)
       const hideButton = page.locator('button:has-text("Hide Inline Section Editor")');

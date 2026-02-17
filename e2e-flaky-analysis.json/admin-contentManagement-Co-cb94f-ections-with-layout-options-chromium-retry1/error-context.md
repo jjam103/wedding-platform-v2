@@ -1,0 +1,45 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - link "Skip to main content" [ref=e2] [cursor=pointer]:
+    - /url: "#main-content"
+  - link "Skip to main content" [ref=e3] [cursor=pointer]:
+    - /url: "#main-content"
+  - generic [ref=e4]:
+    - navigation "Main navigation" [ref=e5]:
+      - generic [ref=e7]:
+        - link "Admin" [ref=e8] [cursor=pointer]:
+          - /url: /admin
+          - generic [ref=e9]: 🌴
+          - generic [ref=e10]: Admin
+        - button "Content" [ref=e11]:
+          - generic [ref=e12]: 📝
+          - generic [ref=e13]: Content
+        - button "Guests" [ref=e14]:
+          - generic [ref=e15]: 👥
+          - generic [ref=e16]: Guests
+        - button "RSVPs" [ref=e17]:
+          - generic [ref=e18]: ✓
+          - generic [ref=e19]: RSVPs
+        - button "Logistics" [ref=e20]:
+          - generic [ref=e21]: 🚗
+          - generic [ref=e22]: Logistics
+        - button "Admin" [ref=e23]:
+          - generic [ref=e24]: ⚙️
+          - generic [ref=e25]: Admin
+    - banner [ref=e26]:
+      - generic [ref=e27]:
+        - heading "Wedding Admin" [level=1] [ref=e29]
+        - toolbar "User actions" [ref=e30]:
+          - link "Preview guest portal in new tab" [ref=e31] [cursor=pointer]:
+            - /url: /
+            - generic [ref=e32]: 👁️
+            - generic [ref=e33]: Preview Guest Portal
+          - button "Notifications (coming soon)" [ref=e34]: 🔔
+          - button "User menu" [ref=e36]:
+            - generic [ref=e37]: A
+            - generic [ref=e38]: Admin
+            - generic [ref=e39]: ▼
+    - main [ref=e40]
+```

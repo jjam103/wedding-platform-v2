@@ -1,8 +1,7 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { CollapsibleForm } from '@/components/admin/CollapsibleForm';
-import { DataTable } from '@/components/ui/DataTable';
 import type { Location, LocationWithChildren } from '@/schemas/locationSchemas';
 import { createLocationSchema } from '@/schemas/locationSchemas';
 
@@ -15,24 +14,36 @@ export default function LocationManagementPage({}: LocationManagementPageProps) 
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingLocation, setEditingLocation] = useState<Location | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
-  const [expandedNodes, setExpandedNodes] = useState<Set<string>>(new Set());
+  const [expandedNodes, setExpandedNodes] = useState<Record<string, boolean>>({});
 
   // Load locations hierarchy
   const loadLocations = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
+      console.log('[LocationPage] Loading locations...');
       const response = await fetch('/api/admin/locations');
       const result = await response.json();
       
+      console.log('[LocationPage] Locations loaded:', {
+        success: result.success,
+        count: result.data?.length || 0,
+        locationNames: result.data?.map((l: any) => l.name) || [],
+        data: result.data
+      });
+      
       if (result.success) {
+        console.log('[LocationPage] Setting locations state with', result.data.length, 'locations');
         setLocations(result.data);
+        // Don't increment treeKey - this preserves expandedNodes state
+        console.log('[LocationPage] Locations state updated, expandedNodes preserved');
         setError(null);
       } else {
         setError(result.error.message);
         setLocations([]); // Keep locations as empty array on error
       }
     } catch (err) {
+      console.error('[LocationPage] Failed to load locations:', err);
       setError(err instanceof Error ? err.message : 'Failed to load locations');
       setLocations([]); // Keep locations as empty array on error
     } finally {
@@ -46,32 +57,64 @@ export default function LocationManagementPage({}: LocationManagementPageProps) 
 
   // Handle form submission
   const handleSubmit = useCallback(async (data: any) => {
-    try {
-      const url = editingLocation
-        ? `/api/admin/locations/${editingLocation.id}`
-        : '/api/admin/locations';
-      const method = editingLocation ? 'PUT' : 'POST';
+    // Convert empty string to null for parentLocationId
+    const submitData = {
+      ...data,
+      parentLocationId: data.parentLocationId === '' ? null : data.parentLocationId,
+    };
 
+    console.log('[LocationPage] Submitting location data:', submitData);
+
+    const url = editingLocation
+      ? `/api/admin/locations/${editingLocation.id}`
+      : '/api/admin/locations';
+    const method = editingLocation ? 'PUT' : 'POST';
+
+    try {
+      console.log('[LocationPage] Making API request:', { url, method, data: submitData });
       const response = await fetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
+        body: JSON.stringify(submitData),
       });
 
       const result = await response.json();
+      console.log('[LocationPage] Location API response:', result);
 
-      if (result.success) {
-        await loadLocations();
-        setIsFormOpen(false);
-        setEditingLocation(null);
-        setError(null);
-      } else {
-        setError(result.error.message);
+      if (!result.success) {
+        const errorMessage = result.error?.message || 'Failed to save location';
+        console.error('[LocationPage] Location save error:', result.error);
+        setError(errorMessage);
+        throw new Error(errorMessage);
       }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to save location');
+
+      console.log('[LocationPage] Location saved successfully:', result.data);
+
+      // If creating a new location with a parent, expand the parent node
+      if (!editingLocation && submitData.parentLocationId) {
+        console.log('[LocationPage] Expanding parent node:', submitData.parentLocationId);
+        setExpandedNodes((prev) => ({
+          ...prev,
+          [submitData.parentLocationId]: true
+        }));
+      }
+
+      // Reload locations to get updated hierarchy
+      console.log('[LocationPage] Reloading locations after save...');
+      await loadLocations();
+      console.log('[LocationPage] Locations reload complete, new count:', locations.length);
+      setError(null);
+      
+      // Close form after successful save and reload
+      setIsFormOpen(false);
+      setEditingLocation(null);
+      console.log('[LocationPage] Form closed, submission complete');
+    } catch (error) {
+      console.error('[LocationPage] Form submission error:', error);
+      // Error already set above, just re-throw to prevent form from closing
+      throw error;
     }
-  }, [editingLocation, loadLocations]);
+  }, [editingLocation, loadLocations, locations.length]);
 
   // Handle delete
   const handleDelete = useCallback(async (id: string) => {
@@ -102,36 +145,53 @@ export default function LocationManagementPage({}: LocationManagementPageProps) 
     setIsFormOpen(true);
   }, []);
 
-  // Toggle node expansion
+  // Toggle node expansion - FIXED: Force re-render by creating new object
   const toggleNode = useCallback((id: string) => {
+    console.log('[LocationPage] toggleNode called for:', id);
     setExpandedNodes((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) {
-        next.delete(id);
-      } else {
-        next.add(id);
-      }
-      return next;
+      const newExpanded = {
+        ...prev,
+        [id]: !prev[id]
+      };
+      console.log('[LocationPage] expandedNodes updated:', newExpanded);
+      return newExpanded;
     });
   }, []);
 
-  // Render tree node
+  // Render tree node - FIXED: Use key prop to force re-render on state changes
   const renderTreeNode = useCallback((location: LocationWithChildren, level: number = 0): React.JSX.Element => {
     const hasChildren = location.children && location.children.length > 0;
-    const isExpanded = expandedNodes.has(location.id);
+    const isExpanded = expandedNodes[location.id] || false;
     const indent = level * 24;
 
+    console.log('[LocationPage] Rendering tree node:', {
+      name: location.name,
+      id: location.id,
+      hasChildren,
+      childrenCount: location.children?.length || 0,
+      isExpanded,
+      level,
+      expandedNodes
+    });
+
     return (
-      <div key={location.id} className="border-b border-gray-200">
+      <div key={`${location.id}-${isExpanded}`} className="border-b border-gray-200">
         <div
           className="flex items-center py-3 px-4 hover:bg-gray-50"
           style={{ paddingLeft: `${indent + 16}px` }}
         >
           {hasChildren && (
             <button
-              onClick={() => toggleNode(location.id)}
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                console.log('[LocationPage] Toggle button clicked for:', location.id, 'current expanded:', isExpanded);
+                toggleNode(location.id);
+              }}
               className="mr-2 text-gray-500 hover:text-gray-700"
               aria-label={isExpanded ? 'Collapse' : 'Expand'}
+              aria-expanded={isExpanded}
+              type="button"
             >
               {isExpanded ? '▼' : '▶'}
             </button>
@@ -149,14 +209,26 @@ export default function LocationManagementPage({}: LocationManagementPageProps) 
 
           <div className="flex gap-2">
             <button
-              onClick={() => handleEdit(location)}
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                handleEdit(location);
+              }}
               className="px-3 py-1 text-sm text-blue-600 hover:text-blue-800"
+              title="Edit location"
+              type="button"
             >
               Edit
             </button>
             <button
-              onClick={() => handleDelete(location.id)}
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                handleDelete(location.id);
+              }}
               className="px-3 py-1 text-sm text-red-600 hover:text-red-800"
+              title="Delete location"
+              type="button"
             >
               Delete
             </button>
@@ -198,45 +270,72 @@ export default function LocationManagementPage({}: LocationManagementPageProps) 
     return filtered;
   }, []);
 
-  const filteredLocations = filterLocations(locations, searchQuery);
+  const filteredLocations = useMemo(() => {
+    const filtered = filterLocations(locations, searchQuery);
+    if (typeof window !== 'undefined') {
+      console.log('[LocationPage CLIENT] Filtered locations:', {
+        totalLocations: locations.length,
+        searchQuery,
+        filteredCount: filtered.length,
+        locationNames: locations.map(l => l.name),
+        expandedNodesCount: Object.keys(expandedNodes).length
+      });
+    }
+    return filtered;
+  }, [locations, searchQuery, filterLocations, expandedNodes]);
 
-  // Form fields
-  const formFields = [
-    {
-      name: 'name',
-      label: 'Location Name',
-      type: 'text' as const,
-      required: true,
-      placeholder: 'e.g., Tamarindo Beach',
-    },
-    {
-      name: 'parentLocationId',
-      label: 'Parent Location',
-      type: 'select' as const,
-      required: false,
-      options: [
-        { value: '', label: 'None (Root Location)' },
-        ...flattenLocations(locations).map((loc) => ({
+  // Form fields - recalculated when locations or editingLocation changes
+  const formFields = useMemo(() => {
+    const flatLocations = flattenLocations(locations);
+    const parentOptions = [
+      { value: '', label: 'None (Root Location)' },
+      ...flatLocations
+        .filter((loc) => !editingLocation || loc.id !== editingLocation.id) // Exclude current location when editing
+        .map((loc) => ({
           value: loc.id,
           label: loc.name,
         })),
-      ],
-    },
-    {
-      name: 'address',
-      label: 'Address',
-      type: 'text' as const,
-      required: false,
-      placeholder: 'e.g., Tamarindo, Guanacaste, Costa Rica',
-    },
-    {
-      name: 'description',
-      label: 'Description',
-      type: 'textarea' as const,
-      required: false,
-      placeholder: 'Optional description',
-    },
-  ];
+    ];
+    
+    console.log('[LocationPage] Recalculating formFields:', {
+      locationsCount: locations.length,
+      flatLocationsCount: flatLocations.length,
+      parentOptionsCount: parentOptions.length,
+      locationNames: flatLocations.map(l => l.name),
+      editingLocationId: editingLocation?.id
+    });
+    
+    return [
+      {
+        name: 'name',
+        label: 'Location Name',
+        type: 'text' as const,
+        required: true,
+        placeholder: 'e.g., Tamarindo Beach',
+      },
+      {
+        name: 'parentLocationId',
+        label: 'Parent Location',
+        type: 'select' as const,
+        required: false,
+        options: parentOptions,
+      },
+      {
+        name: 'address',
+        label: 'Address',
+        type: 'text' as const,
+        required: false,
+        placeholder: 'e.g., Tamarindo, Guanacaste, Costa Rica',
+      },
+      {
+        name: 'description',
+        label: 'Description',
+        type: 'textarea' as const,
+        required: false,
+        placeholder: 'Optional description',
+      },
+    ];
+  }, [locations, editingLocation]);
 
   return (
     <div className="p-6">
@@ -265,12 +364,14 @@ export default function LocationManagementPage({}: LocationManagementPageProps) 
             setIsFormOpen(!isFormOpen);
           }}
           className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+          data-testid="add-location-button"
         >
           {isFormOpen ? 'Cancel' : '+ Add Location'}
         </button>
       </div>
 
       <CollapsibleForm
+        key={`location-form-${editingLocation?.id || 'new'}-${locations.length}`}
         title={editingLocation ? 'Edit Location' : 'Add New Location'}
         fields={formFields}
         schema={createLocationSchema}
@@ -282,6 +383,7 @@ export default function LocationManagementPage({}: LocationManagementPageProps) 
         initialData={editingLocation || undefined}
         isOpen={isFormOpen}
         onToggle={() => setIsFormOpen(!isFormOpen)}
+        submitLabel={editingLocation ? "Save" : "Create"}
       />
 
       <div className="mt-6 bg-white rounded-lg shadow">

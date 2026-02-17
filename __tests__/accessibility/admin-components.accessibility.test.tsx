@@ -86,7 +86,7 @@ describe('Admin Components Accessibility Tests', () => {
 
     it('should have no accessibility violations', async () => {
       const { container } = render(
-        <GroupedNavigation groups={mockGroups} activeItem="guests" />
+        <GroupedNavigation groups={mockGroups} activeItem="guests" /> as any
       );
 
       const results = await axe(container);
@@ -95,7 +95,7 @@ describe('Admin Components Accessibility Tests', () => {
 
     it('should have proper ARIA attributes for expandable groups', async () => {
       const { container } = render(
-        <GroupedNavigation groups={mockGroups} activeItem="guests" />
+        <GroupedNavigation groups={mockGroups} activeItem="guests" /> as any
       );
 
       const results = await axe(container);
@@ -104,7 +104,7 @@ describe('Admin Components Accessibility Tests', () => {
 
     it('should have accessible badge indicators', async () => {
       const { container } = render(
-        <GroupedNavigation groups={mockGroups} activeItem="events" />
+        <GroupedNavigation groups={mockGroups} activeItem="events" /> as any
       );
 
       const results = await axe(container);
@@ -219,7 +219,7 @@ describe('Admin Components Accessibility Tests', () => {
           onChange={() => {}}
           locations={mockLocations}
           label="Select Location"
-        />
+        /> as any
       );
 
       const results = await axe(container);
@@ -315,14 +315,14 @@ describe('Admin Components Accessibility Tests', () => {
 
   describe('BudgetDashboard', () => {
     it('should have no accessibility violations', async () => {
-      const { container } = renderWithToast(<BudgetDashboard />);
+      const { container } = renderWithToast(<BudgetDashboard /> as any);
 
       const results = await axe(container);
       expect(results).toHaveNoViolations();
     });
 
     it('should have accessible table structure', async () => {
-      const { container } = renderWithToast(<BudgetDashboard />);
+      const { container } = renderWithToast(<BudgetDashboard /> as any);
 
       const results = await axe(container, {
         rules: {
@@ -336,14 +336,14 @@ describe('Admin Components Accessibility Tests', () => {
 
   describe('EmailComposer', () => {
     it('should have no accessibility violations', async () => {
-      const { container } = renderWithToast(<EmailComposer />);
+      const { container } = renderWithToast(<EmailComposer /> as any);
 
       const results = await axe(container);
       expect(results).toHaveNoViolations();
     });
 
     it('should have proper form field labels', async () => {
-      const { container } = renderWithToast(<EmailComposer />);
+      const { container } = renderWithToast(<EmailComposer /> as any);
 
       const results = await axe(container, {
         rules: {
@@ -357,14 +357,14 @@ describe('Admin Components Accessibility Tests', () => {
 
   describe('SettingsForm', () => {
     it('should have no accessibility violations', async () => {
-      const { container } = renderWithToast(<SettingsForm />);
+      const { container } = renderWithToast(<SettingsForm /> as any);
 
       const results = await axe(container);
       expect(results).toHaveNoViolations();
     });
 
     it('should have accessible form controls', async () => {
-      const { container } = renderWithToast(<SettingsForm />);
+      const { container } = renderWithToast(<SettingsForm /> as any);
 
       const results = await axe(container, {
         rules: {

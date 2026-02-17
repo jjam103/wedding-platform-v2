@@ -7,7 +7,7 @@ process.env.SUPABASE_SERVICE_ROLE_KEY = 'test-service-role-key';
 
 // Mock Supabase before importing budgetService - Pattern A
 jest.mock('@supabase/supabase-js', () => {
-  const mockFrom = jest.fn();
+  const mockFrom = (jest.fn() as any);
   const mockSupabaseClient = {
     from: mockFrom,
   };
@@ -56,11 +56,11 @@ describe('budgetService', () => {
 
       // Mock successful vendor query with filtering
       // Service calls: supabase.from('vendors').select('*').in('category', [...])
-      const mockIn = jest.fn().mockResolvedValue({
+      const mockIn = (jest.fn() as any).mockResolvedValue({
         data: [],
         error: null,
       });
-      const mockSelect = jest.fn().mockReturnValue({ in: mockIn });
+      const mockSelect = (jest.fn() as any).mockReturnValue({ in: mockIn });
       mockFrom.mockReturnValue({ select: mockSelect });
 
       const result = await budgetService.calculateTotal(validOptions);
@@ -73,7 +73,7 @@ describe('budgetService', () => {
 
     it('should use default options when none provided', async () => {
       // Mock vendor query - service calls: supabase.from('vendors').select('*')
-      const mockSelect = jest.fn().mockResolvedValue({
+      const mockSelect = (jest.fn() as any).mockResolvedValue({
         data: [],
         error: null,
       });
@@ -117,14 +117,14 @@ describe('budgetService', () => {
       ];
 
       // Mock vendor query - service calls: supabase.from('vendors').select('*').order('category').order('name')
-      const mockOrder2 = jest.fn().mockResolvedValue({
+      const mockOrder2 = (jest.fn() as any).mockResolvedValue({
         data: mockVendors,
         error: null,
       });
-      const mockOrder1 = jest.fn().mockReturnValue({
+      const mockOrder1 = (jest.fn() as any).mockReturnValue({
         order: mockOrder2,
       });
-      const mockSelect = jest.fn().mockReturnValue({
+      const mockSelect = (jest.fn() as any).mockReturnValue({
         order: mockOrder1,
       });
       mockFrom.mockReturnValue({ select: mockSelect });
@@ -152,14 +152,14 @@ describe('budgetService', () => {
 
     it('should handle empty vendor list', async () => {
       // Mock vendor query - service calls: supabase.from('vendors').select('*').order('category').order('name')
-      const mockOrder2 = jest.fn().mockResolvedValue({
+      const mockOrder2 = (jest.fn() as any).mockResolvedValue({
         data: [],
         error: null,
       });
-      const mockOrder1 = jest.fn().mockReturnValue({
+      const mockOrder1 = (jest.fn() as any).mockReturnValue({
         order: mockOrder2,
       });
-      const mockSelect = jest.fn().mockReturnValue({
+      const mockSelect = (jest.fn() as any).mockReturnValue({
         order: mockOrder1,
       });
       mockFrom.mockReturnValue({ select: mockSelect });
@@ -181,11 +181,11 @@ describe('budgetService', () => {
   describe('trackSubsidies - subsidy calculation logic', () => {
     it('should handle empty activity list', async () => {
       // Mock activity query - service calls: supabase.from('activities').select(...).not('host_subsidy', 'is', null)
-      const mockNot = jest.fn().mockResolvedValue({
+      const mockNot = (jest.fn() as any).mockResolvedValue({
         data: [],
         error: null,
       });
-      const mockActivitySelect = jest.fn().mockReturnValue({ not: mockNot });
+      const mockActivitySelect = (jest.fn() as any).mockReturnValue({ not: mockNot });
       mockFrom.mockReturnValue({ select: mockActivitySelect });
 
       const result = await budgetService.trackSubsidies();
@@ -201,11 +201,11 @@ describe('budgetService', () => {
 
     it('should query activities with subsidies only', async () => {
       // Mock activity query - service calls: supabase.from('activities').select(...).not('host_subsidy', 'is', null)
-      const mockNot = jest.fn().mockResolvedValue({
+      const mockNot = (jest.fn() as any).mockResolvedValue({
         data: [],
         error: null,
       });
-      const mockActivitySelect = jest.fn().mockReturnValue({ not: mockNot });
+      const mockActivitySelect = (jest.fn() as any).mockReturnValue({ not: mockNot });
       mockFrom.mockReturnValue({ select: mockActivitySelect });
 
       await budgetService.trackSubsidies();
@@ -221,11 +221,11 @@ describe('budgetService', () => {
     it('should return complete budget breakdown structure', async () => {
       // generateReport calls calculateTotal with all options enabled
       // Mock vendor query - service calls: supabase.from('vendors').select('*')
-      const mockVendorSelect = jest.fn().mockResolvedValue({ data: [], error: null });
+      const mockVendorSelect = (jest.fn() as any).mockResolvedValue({ data: [], error: null });
       
       // Mock activity query - service calls: supabase.from('activities').select(...).not('cost_per_person', 'is', null)
-      const mockActivityNot = jest.fn().mockResolvedValue({ data: [], error: null });
-      const mockActivitySelect = jest.fn().mockReturnValue({
+      const mockActivityNot = (jest.fn() as any).mockResolvedValue({ data: [], error: null });
+      const mockActivitySelect = (jest.fn() as any).mockReturnValue({
         not: mockActivityNot,
       });
 
@@ -268,7 +268,7 @@ describe('budgetService', () => {
 
   describe('error handling', () => {
     it('should return DATABASE_ERROR when query fails', async () => {
-      const mockSelect = jest.fn().mockResolvedValue({
+      const mockSelect = (jest.fn() as any).mockResolvedValue({
         data: null,
         error: { message: 'Connection failed', code: 'CONNECTION_ERROR' },
       });

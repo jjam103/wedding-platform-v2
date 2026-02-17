@@ -1,6 +1,5 @@
-import { createServerClient } from '@supabase/ssr';
-import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
+import { createAuthenticatedClient } from '@/lib/supabaseServer';
 import { getSetting, upsertHomePageConfig } from '@/services/settingsService';
 import { homePageConfigSchema } from '@/schemas/settingsSchemas';
 import { sanitizeRichText } from '@/utils/sanitization';
@@ -29,23 +28,7 @@ function getStatusCode(errorCode: string): number {
 export async function GET() {
   try {
     // 1. Authenticate
-    const cookieStore = await cookies();
-    const supabase = createServerClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      {
-        cookies: {
-          getAll() {
-            return cookieStore.getAll();
-          },
-          setAll(cookiesToSet) {
-            cookiesToSet.forEach(({ name, value }) => {
-              cookieStore.set(name, value);
-            });
-          },
-        },
-      }
-    );
+    const supabase = await createAuthenticatedClient();
     const { data: { session }, error: authError } = await supabase.auth.getSession();
     
     if (authError || !session) {
@@ -71,8 +54,12 @@ export async function GET() {
       heroImageUrl: heroImageResult.success ? heroImageResult.data : null,
     };
     
-    return NextResponse.json({ success: true, data: homePageConfig });
+    return NextResponse.json({ success: true, data: homePageConfig }, { status: 200 });
   } catch (error) {
+    console.error('Home page GET API error:', { 
+      error: error instanceof Error ? error.message : 'Unknown error',
+      stack: error instanceof Error ? error.stack : undefined 
+    });
     return NextResponse.json(
       { 
         success: false, 
@@ -93,23 +80,7 @@ export async function GET() {
 export async function PUT(request: Request) {
   try {
     // 1. AUTHENTICATION
-    const cookieStore = await cookies();
-    const supabase = createServerClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      {
-        cookies: {
-          getAll() {
-            return cookieStore.getAll();
-          },
-          setAll(cookiesToSet) {
-            cookiesToSet.forEach(({ name, value }) => {
-              cookieStore.set(name, value);
-            });
-          },
-        },
-      }
-    );
+    const supabase = await createAuthenticatedClient();
     const { data: { session }, error: authError } = await supabase.auth.getSession();
     
     if (authError || !session) {
@@ -156,7 +127,12 @@ export async function PUT(request: Request) {
     return NextResponse.json(result, { status: 200 });
     
   } catch (error) {
-    console.error('Home page API error:', { path: request.url, method: request.method, error });
+    console.error('Home page PUT API error:', { 
+      path: request.url, 
+      method: request.method, 
+      error: error instanceof Error ? error.message : 'Unknown error',
+      stack: error instanceof Error ? error.stack : undefined
+    });
     return NextResponse.json(
       { 
         success: false, 

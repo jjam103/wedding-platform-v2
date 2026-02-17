@@ -4,7 +4,9 @@ import type { Result } from '@/types';
 import { ERROR_CODES } from '@/types';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+// Use service role key for admin operations to bypass RLS
+// This service is only called from authenticated admin API routes
+const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 /**
@@ -199,17 +201,19 @@ export async function listRSVPs(
     }
 
     // Apply search query (searches guest name and email)
-    if (validFilters.searchQuery) {
-      const searchTerm = `%${validFilters.searchQuery}%`;
-      query = query.or(
-        `guests.first_name.ilike.${searchTerm},guests.last_name.ilike.${searchTerm},guests.email.ilike.${searchTerm}`
-      );
+    // Note: Supabase doesn't support .or() with joined table filters
+    // We need to fetch all data and filter in memory for search
+    // For production, consider using a database view or full-text search
+    const hasSearchQuery = !!validFilters.searchQuery;
+    
+    // If we have a search query, we need to fetch ALL matching records first,
+    // then filter in memory, then paginate
+    if (!hasSearchQuery) {
+      // No search - apply pagination at database level
+      const from = (validPagination.page - 1) * validPagination.limit;
+      const to = from + validPagination.limit - 1;
+      query = query.range(from, to);
     }
-
-    // Apply pagination
-    const from = (validPagination.page - 1) * validPagination.limit;
-    const to = from + validPagination.limit - 1;
-    query = query.range(from, to);
 
     // Order by created_at descending
     query = query.order('created_at', { ascending: false });
@@ -228,8 +232,32 @@ export async function listRSVPs(
       };
     }
 
-    // 4. Transform to view model
-    const viewModels: RSVPViewModel[] = (data || []).map((rsvp: any) => ({
+    // 4. Apply search filter in memory if needed (after fetching with joins)
+    let filteredData = data || [];
+    if (hasSearchQuery && filteredData.length > 0) {
+      const searchLower = validFilters.searchQuery!.toLowerCase();
+      filteredData = filteredData.filter((rsvp: any) => {
+        const firstName = rsvp.guests?.first_name?.toLowerCase() || '';
+        const lastName = rsvp.guests?.last_name?.toLowerCase() || '';
+        const email = rsvp.guests?.email?.toLowerCase() || '';
+        return firstName.includes(searchLower) || 
+               lastName.includes(searchLower) || 
+               email.includes(searchLower);
+      });
+    }
+
+    // Calculate total count (use database count if no search, filtered length if search)
+    const totalCount = hasSearchQuery ? filteredData.length : (count || 0);
+
+    // Apply pagination in memory if we did search filtering
+    if (hasSearchQuery) {
+      const from = (validPagination.page - 1) * validPagination.limit;
+      const to = from + validPagination.limit;
+      filteredData = filteredData.slice(from, to);
+    }
+
+    // 5. Transform to view model
+    const viewModels: RSVPViewModel[] = filteredData.map((rsvp: any) => ({
       id: rsvp.id,
       guestId: rsvp.guest_id,
       guestFirstName: rsvp.guests?.first_name || '',
@@ -249,18 +277,18 @@ export async function listRSVPs(
       updatedAt: rsvp.updated_at,
     }));
 
-    // 5. Calculate statistics
+    // 6. Calculate statistics (use same filters as main query)
     const statisticsResult = await getRSVPStatistics(validFilters);
     const statistics = statisticsResult.success 
       ? statisticsResult.data 
       : {
-          totalRSVPs: count || 0,
+          totalRSVPs: 0,
           byStatus: { attending: 0, declined: 0, maybe: 0, pending: 0 },
           totalGuestCount: 0,
         };
 
-    // 6. Build response
-    const totalPages = Math.ceil((count || 0) / validPagination.limit);
+    // 7. Build response
+    const totalPages = Math.ceil(totalCount / validPagination.limit);
 
     return {
       success: true,
@@ -269,7 +297,7 @@ export async function listRSVPs(
         pagination: {
           page: validPagination.page,
           limit: validPagination.limit,
-          total: count || 0,
+          total: totalCount,
           totalPages,
         },
         statistics,

@@ -26,7 +26,7 @@ describe('Feature: destination-wedding-platform, Property 28: Circular Reference
   it('should detect direct self-reference (page references itself)', async () => {
     await fc.assert(
       fc.asyncProperty(fc.uuid(), referenceTypeArbitrary, async (pageId, pageType) => {
-        const selfReference = { type: pageType, id: pageId, name: 'Self' };
+        const selfReference = { type: pageType as 'activity' | 'event' | 'accommodation' | 'content_page' | 'location', id: pageId, name: 'Self' };
 
         const result = await sectionsService.detectCircularReferences(pageId, [selfReference]);
 
@@ -100,7 +100,7 @@ describe('Feature: destination-wedding-platform, Property 28: Circular Reference
           fc.pre(pageAId !== pageBId);
 
           // Page A references Page B
-          const refToB = { type: pageType, id: pageBId, name: 'Page B' };
+          const refToB = { type: pageType as 'activity' | 'event' | 'accommodation' | 'content_page' | 'location', id: pageBId, name: 'Page B' };
 
           // Mock: Page B has sections that reference back to Page A
           let callCount = 0;
@@ -129,7 +129,7 @@ describe('Feature: destination-wedding-platform, Property 28: Circular Reference
                       data: [
                         {
                           content_data: {
-                            references: [{ type: pageType, id: pageAId, name: 'Page A' }],
+                            references: [{ type: pageType as 'activity' | 'event' | 'accommodation' | 'content_page' | 'location', id: pageAId, name: 'Page A' }],
                           },
                         },
                       ],
@@ -174,7 +174,7 @@ describe('Feature: destination-wedding-platform, Property 28: Circular Reference
           fc.pre(pageAId !== pageBId && pageBId !== pageCId && pageAId !== pageCId);
 
           // Page A references Page B
-          const refToB = { type: pageType, id: pageBId, name: 'Page B' };
+          const refToB = { type: pageType as 'activity' | 'event' | 'accommodation' | 'content_page' | 'location', id: pageBId, name: 'Page B' };
 
           // Mock complex reference chain: A -> B -> C -> A
           let sectionCallCount = 0;
@@ -202,7 +202,7 @@ describe('Feature: destination-wedding-platform, Property 28: Circular Reference
                           data: [
                             {
                               content_data: {
-                                references: [{ type: pageType, id: pageCId, name: 'Page C' }],
+                                references: [{ type: pageType as 'activity' | 'event' | 'accommodation' | 'content_page' | 'location', id: pageCId, name: 'Page C' }],
                               },
                             },
                           ],
@@ -214,7 +214,7 @@ describe('Feature: destination-wedding-platform, Property 28: Circular Reference
                           data: [
                             {
                               content_data: {
-                                references: [{ type: pageType, id: pageAId, name: 'Page A' }],
+                                references: [{ type: pageType as 'activity' | 'event' | 'accommodation' | 'content_page' | 'location', id: pageAId, name: 'Page A' }],
                               },
                             },
                           ],
@@ -323,7 +323,7 @@ describe('Feature: destination-wedding-platform, Property 28: Circular Reference
           fc.pre(pageAId !== pageBId);
 
           // Page A references Page B
-          const refToB = { type: pageType, id: pageBId, name: 'Page B' };
+          const refToB = { type: pageType as 'activity' | 'event' | 'accommodation' | 'content_page' | 'location', id: pageBId, name: 'Page B' };
 
           // Mock: Page B references itself (but not back to A)
           const mockFrom = jest.fn().mockImplementation((table) => {
@@ -346,7 +346,7 @@ describe('Feature: destination-wedding-platform, Property 28: Circular Reference
                       data: [
                         {
                           content_data: {
-                            references: [{ type: pageType, id: pageBId, name: 'Page B' }],
+                            references: [{ type: pageType as 'activity' | 'event' | 'accommodation' | 'content_page' | 'location', id: pageBId, name: 'Page B' }],
                           },
                         },
                       ],

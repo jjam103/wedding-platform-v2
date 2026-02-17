@@ -1,9 +1,9 @@
 export const dynamic = 'force-dynamic';
 
-import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { GuestDashboard } from '@/components/guest/GuestDashboard';
+import { createSupabaseClient } from '@/lib/supabase';
 
 /**
  * Guest Dashboard Page
@@ -17,38 +17,49 @@ import { GuestDashboard } from '@/components/guest/GuestDashboard';
  */
 export default async function GuestDashboardPage() {
   const cookieStore = await cookies();
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        getAll() {
-          return cookieStore.getAll();
-        },
-        setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value, options }) =>
-            cookieStore.set(name, value, options)
-          );
-        },
-      },
-    }
-  );
+  const sessionToken = cookieStore.get('guest_session')?.value;
   
-  // Check authentication
-  const { data: { session }, error: authError } = await supabase.auth.getSession();
-  
-  if (authError || !session) {
-    redirect('/auth/login?redirect=/guest/dashboard');
+  // Check if guest session exists
+  if (!sessionToken) {
+    redirect('/auth/guest-login');
   }
   
-  // Get guest information for the logged-in user
-  const { data: guest, error: guestError } = await supabase
-    .from('guests')
-    .select('*')
-    .eq('email', session.user.email)
+  // Verify session and get guest information in a single query (optimized)
+  const supabase = createSupabaseClient();
+  const { data: session, error: sessionError } = await supabase
+    .from('guest_sessions')
+    .select(`
+      guest_id,
+      expires_at,
+      guests (
+        id,
+        first_name,
+        last_name,
+        email,
+        group_id,
+        age_type,
+        guest_type,
+        auth_method
+      )
+    `)
+    .eq('token', sessionToken)
     .single();
   
-  if (guestError || !guest) {
+  if (sessionError || !session || !session.guests) {
+    // Invalid session or guest not found
+    redirect('/auth/guest-login');
+  }
+  
+  // Check if session has expired
+  if (new Date(session.expires_at) < new Date()) {
+    // Session expired
+    redirect('/auth/guest-login');
+  }
+  
+  // Extract guest data from the joined query
+  const guestData = Array.isArray(session.guests) ? session.guests[0] : session.guests;
+  
+  if (!guestData) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-jungle-50 to-ocean-50 flex items-center justify-center p-4">
         <div className="bg-white rounded-lg shadow-lg p-8 max-w-md w-full">
@@ -60,6 +71,21 @@ export default async function GuestDashboardPage() {
       </div>
     );
   }
+  
+  // Map database fields to Guest type
+  const guest = {
+    id: guestData.id,
+    first_name: guestData.first_name,
+    last_name: guestData.last_name,
+    email: guestData.email,
+    group_id: guestData.group_id,
+    age_type: guestData.age_type,
+    guest_type: guestData.guest_type,
+    auth_method: guestData.auth_method,
+    invitation_sent: false, // Default value
+    created_at: new Date().toISOString(), // Default value
+    updated_at: new Date().toISOString(), // Default value
+  };
   
   return <GuestDashboard guest={guest} />;
 }

@@ -4,6 +4,17 @@ import { useState, useCallback, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Pencil, Save, X } from 'lucide-react';
 import { AuthMethodSettings } from './AuthMethodSettings';
+import dynamic from 'next/dynamic';
+
+// Dynamically import AdminUserManager to avoid SSR issues
+const AdminUserManager = dynamic(() => import('./AdminUserManager').then(mod => ({ default: mod.AdminUserManager })), {
+  ssr: false,
+  loading: () => (
+    <div className="flex items-center justify-center py-8">
+      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-jungle-600"></div>
+    </div>
+  ),
+});
 
 interface SettingRow {
   id: string;
@@ -18,9 +29,11 @@ interface SettingRow {
 
 interface SettingsManagerProps {
   initialSettings: SettingRow[];
+  currentUserId?: string;
+  currentUserRole?: 'owner' | 'admin';
 }
 
-export default function SettingsManager({ initialSettings }: SettingsManagerProps) {
+export default function SettingsManager({ initialSettings, currentUserId, currentUserRole }: SettingsManagerProps) {
   const router = useRouter();
   const [settings, setSettings] = useState(initialSettings);
   const [editingKey, setEditingKey] = useState<string | null>(null);
@@ -29,6 +42,7 @@ export default function SettingsManager({ initialSettings }: SettingsManagerProp
   const [toast, setToast] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
   const [currentAuthMethod, setCurrentAuthMethod] = useState<'email_matching' | 'magic_link'>('email_matching');
   const [loadingAuthMethod, setLoadingAuthMethod] = useState(true);
+  const [activeTab, setActiveTab] = useState<'authentication' | 'admin-users' | 'settings'>('authentication');
 
   // Fetch current auth method on mount
   useEffect(() => {
@@ -176,109 +190,166 @@ export default function SettingsManager({ initialSettings }: SettingsManagerProp
         </div>
       )}
 
-      {/* Authentication Settings Section */}
-      <div className="mb-6 bg-white rounded-lg shadow-md overflow-hidden">
-        <div className="bg-sage-50 px-6 py-4 border-b border-sage-200">
-          <h2 className="text-xl font-semibold text-sage-900">Authentication</h2>
-        </div>
-        <div className="p-6">
-          {loadingAuthMethod ? (
-            <div className="flex items-center justify-center py-8">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-jungle-600"></div>
-            </div>
-          ) : (
-            <AuthMethodSettings
-              currentMethod={currentAuthMethod}
-              onUpdate={handleAuthMethodUpdate}
-            />
+      {/* Tab Navigation */}
+      <div className="mb-6 border-b border-sage-200">
+        <nav className="-mb-px flex space-x-8">
+          <button
+            onClick={() => setActiveTab('authentication')}
+            className={`py-4 px-1 border-b-2 font-medium text-sm ${
+              activeTab === 'authentication'
+                ? 'border-jungle-500 text-jungle-600'
+                : 'border-transparent text-sage-500 hover:text-sage-700 hover:border-sage-300'
+            }`}
+          >
+            Authentication
+          </button>
+          {currentUserRole === 'owner' && (
+            <button
+              onClick={() => setActiveTab('admin-users')}
+              className={`py-4 px-1 border-b-2 font-medium text-sm ${
+                activeTab === 'admin-users'
+                  ? 'border-jungle-500 text-jungle-600'
+                  : 'border-transparent text-sage-500 hover:text-sage-700 hover:border-sage-300'
+              }`}
+            >
+              Admin Users
+            </button>
           )}
-        </div>
+          <button
+            onClick={() => setActiveTab('settings')}
+            className={`py-4 px-1 border-b-2 font-medium text-sm ${
+              activeTab === 'settings'
+                ? 'border-jungle-500 text-jungle-600'
+                : 'border-transparent text-sage-500 hover:text-sage-700 hover:border-sage-300'
+            }`}
+          >
+            System Settings
+          </button>
+        </nav>
       </div>
 
-      {/* Settings by category */}
-      <div className="space-y-6">
-        {Object.entries(settingsByCategory).map(([category, categorySettings]) => (
-          <div key={category} className="bg-white rounded-lg shadow-md overflow-hidden">
-            <div className="bg-sage-50 px-6 py-4 border-b border-sage-200">
-              <h2 className="text-xl font-semibold text-sage-900 capitalize">{category}</h2>
-            </div>
+      {/* Authentication Tab */}
+      {activeTab === 'authentication' && (
+        <div className="bg-white rounded-lg shadow-md overflow-hidden">
+          <div className="bg-sage-50 px-6 py-4 border-b border-sage-200">
+            <h2 className="text-xl font-semibold text-sage-900">Authentication</h2>
+          </div>
+          <div className="p-6">
+            {loadingAuthMethod ? (
+              <div className="flex items-center justify-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-jungle-600"></div>
+              </div>
+            ) : (
+              <AuthMethodSettings
+                currentMethod={currentAuthMethod}
+                onUpdate={handleAuthMethodUpdate}
+              />
+            )}
+          </div>
+        </div>
+      )}
 
-            <div className="divide-y divide-sage-100">
-              {categorySettings.map((setting) => (
-                <div key={setting.key} className="p-6">
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-3 mb-2">
-                        <h3 className="font-medium text-sage-900">{setting.key}</h3>
-                        {setting.is_public && (
-                          <span className="px-2 py-0.5 text-xs font-medium bg-ocean-100 text-ocean-800 rounded">
-                            Public
-                          </span>
+      {/* Admin Users Tab */}
+      {activeTab === 'admin-users' && currentUserRole === 'owner' && currentUserId && (
+        <div className="bg-white rounded-lg shadow-md overflow-hidden">
+          <div className="bg-sage-50 px-6 py-4 border-b border-sage-200">
+            <h2 className="text-xl font-semibold text-sage-900">Admin Users</h2>
+          </div>
+          <div className="p-6">
+            <AdminUserManager
+              currentUserId={currentUserId}
+              currentUserRole={currentUserRole}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* System Settings Tab */}
+      {activeTab === 'settings' && (
+        <div className="space-y-6">
+          {Object.entries(settingsByCategory).map(([category, categorySettings]) => (
+            <div key={category} className="bg-white rounded-lg shadow-md overflow-hidden">
+              <div className="bg-sage-50 px-6 py-4 border-b border-sage-200">
+                <h2 className="text-xl font-semibold text-sage-900 capitalize">{category}</h2>
+              </div>
+
+              <div className="divide-y divide-sage-100">
+                {categorySettings.map((setting) => (
+                  <div key={setting.key} className="p-6">
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-3 mb-2">
+                          <h3 className="font-medium text-sage-900">{setting.key}</h3>
+                          {setting.is_public && (
+                            <span className="px-2 py-0.5 text-xs font-medium bg-ocean-100 text-ocean-800 rounded">
+                              Public
+                            </span>
+                          )}
+                        </div>
+                        {setting.description && (
+                          <p className="text-sm text-sage-600 mb-3">{setting.description}</p>
+                        )}
+
+                        {editingKey === setting.key ? (
+                          <div className="space-y-3">
+                            <textarea
+                              value={editValue}
+                              onChange={(e) => setEditValue(e.target.value)}
+                              rows={3}
+                              className="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-jungle-500 focus:border-transparent font-mono text-sm"
+                              placeholder="Enter value (JSON format for objects/arrays)"
+                            />
+                            <div className="flex gap-2">
+                              <button
+                                onClick={() => saveSetting(setting.key)}
+                                disabled={loading}
+                                className="flex items-center gap-2 px-4 py-2 bg-jungle-500 text-white rounded-lg hover:bg-jungle-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                              >
+                                <Save className="w-4 h-4" />
+                                Save
+                              </button>
+                              <button
+                                onClick={cancelEdit}
+                                disabled={loading}
+                                className="flex items-center gap-2 px-4 py-2 bg-sage-200 text-sage-700 rounded-lg hover:bg-sage-300 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                              >
+                                <X className="w-4 h-4" />
+                                Cancel
+                              </button>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="flex items-center gap-3">
+                            <code className="px-3 py-2 bg-sage-50 border border-sage-200 rounded text-sm font-mono">
+                              {formatValue(setting.value)}
+                            </code>
+                          </div>
                         )}
                       </div>
-                      {setting.description && (
-                        <p className="text-sm text-sage-600 mb-3">{setting.description}</p>
-                      )}
 
-                      {editingKey === setting.key ? (
-                        <div className="space-y-3">
-                          <textarea
-                            value={editValue}
-                            onChange={(e) => setEditValue(e.target.value)}
-                            rows={3}
-                            className="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-jungle-500 focus:border-transparent font-mono text-sm"
-                            placeholder="Enter value (JSON format for objects/arrays)"
-                          />
-                          <div className="flex gap-2">
-                            <button
-                              onClick={() => saveSetting(setting.key)}
-                              disabled={loading}
-                              className="flex items-center gap-2 px-4 py-2 bg-jungle-500 text-white rounded-lg hover:bg-jungle-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                            >
-                              <Save className="w-4 h-4" />
-                              Save
-                            </button>
-                            <button
-                              onClick={cancelEdit}
-                              disabled={loading}
-                              className="flex items-center gap-2 px-4 py-2 bg-sage-200 text-sage-700 rounded-lg hover:bg-sage-300 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                            >
-                              <X className="w-4 h-4" />
-                              Cancel
-                            </button>
-                          </div>
-                        </div>
-                      ) : (
-                        <div className="flex items-center gap-3">
-                          <code className="px-3 py-2 bg-sage-50 border border-sage-200 rounded text-sm font-mono">
-                            {formatValue(setting.value)}
-                          </code>
-                        </div>
+                      {editingKey !== setting.key && (
+                        <button
+                          onClick={() => startEdit(setting)}
+                          className="flex items-center gap-2 px-3 py-2 text-sage-600 hover:text-jungle-600 hover:bg-jungle-50 rounded-lg transition-colors"
+                        >
+                          <Pencil className="w-4 h-4" />
+                          Edit
+                        </button>
                       )}
                     </div>
 
-                    {editingKey !== setting.key && (
-                      <button
-                        onClick={() => startEdit(setting)}
-                        className="flex items-center gap-2 px-3 py-2 text-sage-600 hover:text-jungle-600 hover:bg-jungle-50 rounded-lg transition-colors"
-                      >
-                        <Pencil className="w-4 h-4" />
-                        Edit
-                      </button>
-                    )}
+                    <div className="mt-3 text-xs text-sage-500">
+                      Last updated: {new Date(setting.updated_at).toLocaleString()}
+                    </div>
                   </div>
-
-                  <div className="mt-3 text-xs text-sage-500">
-                    Last updated: {new Date(setting.updated_at).toLocaleString()}
-                  </div>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
 
-      {settings.length === 0 && (
+      {settings.length === 0 && activeTab === 'settings' && (
         <div className="bg-white rounded-lg shadow-md p-12 text-center">
           <p className="text-sage-600">No settings found. Default settings will be used.</p>
         </div>

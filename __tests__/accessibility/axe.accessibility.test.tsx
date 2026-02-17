@@ -161,10 +161,11 @@ describe('Accessibility Tests - axe-core', () => {
       age_type: 'adult' as const,
       guest_type: 'wedding_guest' as const,
       group_id: 'group-123',
-      airport_code: 'SJO',
+      airport_code: 'SJO' as const,
       flight_number: 'AA123',
       arrival_date: '2024-06-01',
       departure_date: '2024-06-07',
+      invitation_sent: false,
       created_at: '2024-01-01T00:00:00Z',
       updated_at: '2024-01-01T00:00:00Z',
     };
@@ -172,37 +173,37 @@ describe('Accessibility Tests - axe-core', () => {
     // Skip complex components that require extensive mocking
     // These are better tested in E2E tests
     it.skip('should have no accessibility violations in GuestDashboard', async () => {
-      const { container } = render(<GuestDashboard />);
+      const { container } = render(<GuestDashboard guest={mockGuest} />);
       const results = await axe(container);
       expect(results).toHaveNoViolations();
     });
 
     it.skip('should have no accessibility violations in RSVPManager', async () => {
-      const { container } = render(<RSVPManager />);
+      const { container } = render(<RSVPManager guest={mockGuest} />);
       const results = await axe(container);
       expect(results).toHaveNoViolations();
     });
 
     it.skip('should have no accessibility violations in FamilyManager', async () => {
-      const { container } = render(<FamilyManager />);
+      const { container} = render(<FamilyManager currentGuest={mockGuest} familyMembers={[]} rsvpsByGuest={{}} />);
       const results = await axe(container);
       expect(results).toHaveNoViolations();
     });
 
     it('should have no accessibility violations in PhotoUpload', async () => {
-      const { container } = render(<PhotoUpload />);
+      const { container } = render(<PhotoUpload guest={mockGuest} />);
       const results = await axe(container);
       expect(results).toHaveNoViolations();
     });
 
     it.skip('should have no accessibility violations in ItineraryViewer', async () => {
-      const { container } = render(<ItineraryViewer />);
+      const { container } = render(<ItineraryViewer guest={mockGuest} />);
       const results = await axe(container);
       expect(results).toHaveNoViolations();
     });
 
     it('should have no accessibility violations in AccommodationViewer', async () => {
-      const { container } = render(<AccommodationViewer />);
+      const { container } = render(<AccommodationViewer guest={mockGuest} assignment={null} />);
       const results = await axe(container);
       expect(results).toHaveNoViolations();
     });

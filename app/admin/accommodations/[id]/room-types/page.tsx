@@ -212,9 +212,24 @@ export default function RoomTypesPage({ params }: { params: Promise<{ id: string
           }, 100);
         }
       } else {
+        // Display validation error details if available
+        let errorMessage = result.error?.message || 'Operation failed';
+        
+        // If validation error with details, show specific field errors
+        if (result.error?.code === 'VALIDATION_ERROR' && result.error?.details) {
+          const fieldErrors = result.error.details
+            .map((detail: any) => detail.message || detail.path?.join('.'))
+            .filter(Boolean)
+            .join(', ');
+          
+          if (fieldErrors) {
+            errorMessage = fieldErrors;
+          }
+        }
+        
         addToast({
           type: 'error',
-          message: result.error?.message || 'Operation failed',
+          message: errorMessage,
         });
       }
     } catch (error) {

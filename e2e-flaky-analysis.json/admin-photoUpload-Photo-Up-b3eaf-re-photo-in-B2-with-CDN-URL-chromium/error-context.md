@@ -1,0 +1,125 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - link "Skip to main content" [ref=e2] [cursor=pointer]:
+    - /url: "#main-content"
+  - link "Skip to main content" [ref=e3] [cursor=pointer]:
+    - /url: "#main-content"
+  - generic [ref=e4]:
+    - navigation "Main navigation" [ref=e5]:
+      - generic [ref=e7]:
+        - link "Admin" [ref=e8] [cursor=pointer]:
+          - /url: /admin
+          - generic [ref=e9]: 🌴
+          - generic [ref=e10]: Admin
+        - button "Content" [ref=e11]:
+          - generic [ref=e12]: 📝
+          - generic [ref=e13]: Content
+        - button "Guests" [ref=e14]:
+          - generic [ref=e15]: 👥
+          - generic [ref=e16]: Guests
+        - button "RSVPs" [ref=e17]:
+          - generic [ref=e18]: ✓
+          - generic [ref=e19]: RSVPs
+        - button "Logistics" [ref=e20]:
+          - generic [ref=e21]: 🚗
+          - generic [ref=e22]: Logistics
+        - button "Admin" [ref=e23]:
+          - generic [ref=e24]: ⚙️
+          - generic [ref=e25]: Admin
+    - banner [ref=e26]:
+      - generic [ref=e27]:
+        - heading "Wedding Admin" [level=1] [ref=e29]
+        - toolbar "User actions" [ref=e30]:
+          - link "Preview guest portal in new tab" [ref=e31] [cursor=pointer]:
+            - /url: /
+            - generic [ref=e32]: 👁️
+            - generic [ref=e33]: Preview Guest Portal
+          - button "Notifications (coming soon)" [ref=e34]: 🔔
+          - button "User menu" [ref=e36]:
+            - generic [ref=e37]: A
+            - generic [ref=e38]: Admin
+            - generic [ref=e39]: ▼
+    - main [ref=e40]:
+      - generic [ref=e42]:
+        - navigation "Main navigation" [ref=e43]:
+          - generic [ref=e45]:
+            - link "Admin" [ref=e46] [cursor=pointer]:
+              - /url: /admin
+              - generic [ref=e47]: 🌴
+              - generic [ref=e48]: Admin
+            - button "Content" [ref=e49]:
+              - generic [ref=e50]: 📝
+              - generic [ref=e51]: Content
+            - button "Guests" [ref=e52]:
+              - generic [ref=e53]: 👥
+              - generic [ref=e54]: Guests
+            - button "RSVPs" [ref=e55]:
+              - generic [ref=e56]: ✓
+              - generic [ref=e57]: RSVPs
+            - button "Logistics" [ref=e58]:
+              - generic [ref=e59]: 🚗
+              - generic [ref=e60]: Logistics
+            - button "Admin" [ref=e61]:
+              - generic [ref=e62]: ⚙️
+              - generic [ref=e63]: Admin
+        - main [ref=e64]:
+          - generic [ref=e66]:
+            - generic [ref=e67]:
+              - generic [ref=e68]:
+                - heading "Photo Gallery" [level=1] [ref=e69]
+                - paragraph [ref=e70]: Manage and moderate wedding photos
+              - generic [ref=e71]:
+                - button "Upload Photos" [ref=e72]:
+                  - img [ref=e73]
+                  - text: Upload Photos
+                - button "Check Storage" [ref=e75]:
+                  - img [ref=e76]
+                  - text: Check Storage
+            - generic [ref=e78]:
+              - button "Approved" [ref=e79]
+              - button "Pending" [ref=e80]
+              - button "Rejected" [ref=e81]
+            - status "Loading grid" [ref=e82]:
+              - generic [ref=e83]:
+                - status "Loading content" [ref=e84]
+                - generic [ref=e85]:
+                  - status "Loading content" [ref=e86]
+                  - status "Loading content" [ref=e87]
+              - generic [ref=e88]:
+                - status "Loading content" [ref=e89]
+                - generic [ref=e90]:
+                  - status "Loading content" [ref=e91]
+                  - status "Loading content" [ref=e92]
+              - generic [ref=e93]:
+                - status "Loading content" [ref=e94]
+                - generic [ref=e95]:
+                  - status "Loading content" [ref=e96]
+                  - status "Loading content" [ref=e97]
+              - generic [ref=e98]:
+                - status "Loading content" [ref=e99]
+                - generic [ref=e100]:
+                  - status "Loading content" [ref=e101]
+                  - status "Loading content" [ref=e102]
+              - generic [ref=e103]:
+                - status "Loading content" [ref=e104]
+                - generic [ref=e105]:
+                  - status "Loading content" [ref=e106]
+                  - status "Loading content" [ref=e107]
+              - generic [ref=e108]:
+                - status "Loading content" [ref=e109]
+                - generic [ref=e110]:
+                  - status "Loading content" [ref=e111]
+                  - status "Loading content" [ref=e112]
+              - generic [ref=e113]:
+                - status "Loading content" [ref=e114]
+                - generic [ref=e115]:
+                  - status "Loading content" [ref=e116]
+                  - status "Loading content" [ref=e117]
+              - generic [ref=e118]:
+                - status "Loading content" [ref=e119]
+                - generic [ref=e120]:
+                  - status "Loading content" [ref=e121]
+                  - status "Loading content" [ref=e122]
+```

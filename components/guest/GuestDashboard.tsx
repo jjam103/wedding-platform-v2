@@ -66,6 +66,28 @@ export function GuestDashboard({ guest }: GuestDashboardProps) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const handleLogout = async () => {
+    try {
+      const response = await fetch('/api/guest-auth/logout', {
+        method: 'POST',
+        credentials: 'include', // Include cookies
+      });
+
+      if (response.ok) {
+        // Redirect to login page
+        window.location.href = '/auth/guest-login';
+      } else {
+        console.error('Logout failed');
+        // Still redirect to login page even if logout fails
+        window.location.href = '/auth/guest-login';
+      }
+    } catch (error) {
+      console.error('Logout error:', error);
+      // Still redirect to login page even if logout fails
+      window.location.href = '/auth/guest-login';
+    }
+  };
+
   useEffect(() => {
     async function loadDashboardData() {
       try {
@@ -74,20 +96,54 @@ export function GuestDashboard({ guest }: GuestDashboardProps) {
 
         // Fetch dashboard data
         const [eventsResponse, rsvpsResponse, weddingResponse, announcementsResponse] = await Promise.all([
-          fetch('/api/guest/events'),
-          fetch('/api/guest/rsvps'),
-          fetch('/api/guest/wedding-info'),
-          fetch('/api/guest/announcements'),
+          fetch('/api/guest/events', { credentials: 'include' }),
+          fetch('/api/guest/rsvps', { credentials: 'include' }),
+          fetch('/api/guest/wedding-info', { credentials: 'include' }),
+          fetch('/api/guest/announcements', { credentials: 'include' }),
         ]);
 
+        // Check for authentication errors (401) - redirect to login
+        if (eventsResponse.status === 401 || rsvpsResponse.status === 401) {
+          console.log('Authentication failed, redirecting to login');
+          window.location.href = '/auth/guest-login';
+          return;
+        }
+
+        // Check for other errors
         if (!eventsResponse.ok || !rsvpsResponse.ok) {
           throw new Error('Failed to load dashboard data');
         }
 
-        const eventsData = await eventsResponse.json();
-        const rsvpsData = await rsvpsResponse.json();
-        const weddingData = weddingResponse.ok ? await weddingResponse.json() : null;
-        const announcementsData = announcementsResponse.ok ? await announcementsResponse.json() : null;
+        // Parse JSON responses with error handling
+        let eventsData, rsvpsData, weddingData, announcementsData;
+        
+        try {
+          eventsData = await eventsResponse.json();
+        } catch (e) {
+          console.error('Failed to parse events response:', e);
+          throw new Error('Failed to load events data');
+        }
+        
+        try {
+          rsvpsData = await rsvpsResponse.json();
+        } catch (e) {
+          console.error('Failed to parse RSVPs response:', e);
+          throw new Error('Failed to load RSVP data');
+        }
+        
+        try {
+          weddingData = weddingResponse.ok ? await weddingResponse.json() : null;
+        } catch (e) {
+          console.error('Failed to parse wedding info response:', e);
+          weddingData = null;
+        }
+        
+        try {
+          announcementsData = announcementsResponse.ok ? await announcementsResponse.json() : null;
+        } catch (e) {
+          console.error('Failed to parse announcements response:', e);
+          announcementsData = null;
+        }
 
         if (eventsData.success && rsvpsData.success) {
           // Process upcoming events
@@ -204,12 +260,12 @@ export function GuestDashboard({ guest }: GuestDashboardProps) {
               >
                 My Profile
               </a>
-              <a
-                href="/api/auth/logout"
+              <button
+                onClick={handleLogout}
                 className="text-sage-600 hover:text-sage-700 font-medium"
               >
-                Logout
-              </a>
+                Log Out
+              </button>
             </div>
           </div>
         </div>

@@ -1,0 +1,1778 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - link "Skip to main content" [ref=e2] [cursor=pointer]:
+    - /url: "#main-content"
+  - link "Skip to main content" [ref=e3] [cursor=pointer]:
+    - /url: "#main-content"
+  - generic [ref=e4]:
+    - navigation "Main navigation" [ref=e5]:
+      - generic [ref=e6]:
+        - generic [ref=e7]:
+          - link "Admin" [ref=e8] [cursor=pointer]:
+            - /url: /admin
+            - generic [ref=e9]: 🌴
+            - generic [ref=e10]: Admin
+          - button "Content" [expanded] [ref=e11]:
+            - generic [ref=e12]: 📝
+            - generic [ref=e13]: Content
+          - button "Guests" [ref=e14]:
+            - generic [ref=e15]: 👥
+            - generic [ref=e16]: Guests
+          - button "RSVPs" [ref=e17]:
+            - generic [ref=e18]: ✓
+            - generic [ref=e19]: RSVPs
+          - button "Logistics" [ref=e20]:
+            - generic [ref=e21]: 🚗
+            - generic [ref=e22]: Logistics
+          - button "Admin" [ref=e23]:
+            - generic [ref=e24]: ⚙️
+            - generic [ref=e25]: Admin
+        - tabpanel [ref=e26]:
+          - link "Home Page" [ref=e27] [cursor=pointer]:
+            - /url: /admin/home-page
+          - link "Activities" [ref=e28] [cursor=pointer]:
+            - /url: /admin/activities
+          - link "Events" [ref=e29] [cursor=pointer]:
+            - /url: /admin/events
+          - link "Content Pages" [ref=e30] [cursor=pointer]:
+            - /url: /admin/content-pages
+          - link "Locations" [ref=e31] [cursor=pointer]:
+            - /url: /admin/locations
+          - link "Photos" [ref=e32] [cursor=pointer]:
+            - /url: /admin/photos
+    - banner [ref=e33]:
+      - generic [ref=e34]:
+        - heading "Wedding Admin" [level=1] [ref=e36]
+        - toolbar "User actions" [ref=e37]:
+          - link "Preview guest portal in new tab" [ref=e38] [cursor=pointer]:
+            - /url: /
+            - generic [ref=e39]: 👁️
+            - generic [ref=e40]: Preview Guest Portal
+          - button "Notifications (coming soon)" [ref=e41]: 🔔
+          - button "User menu" [ref=e43]:
+            - generic [ref=e44]: A
+            - generic [ref=e45]: Admin
+            - generic [ref=e46]: ▼
+    - main [ref=e47]:
+      - generic [ref=e49]:
+        - generic [ref=e50]:
+          - generic [ref=e51]:
+            - heading "Content Pages" [level=1] [ref=e52]
+            - paragraph [ref=e53]: Manage custom content pages with rich text and sections
+          - button "Add new content page" [ref=e54] [cursor=pointer]: Add Page
+        - generic [ref=e55]:
+          - button "Add Content Page" [ref=e56]:
+            - generic [ref=e57]: Add Content Page
+            - generic [ref=e58]: ▼
+          - generic [ref=e59]:
+            - generic [ref=e60]:
+              - generic [ref=e61]:
+                - generic [ref=e62]: Title*
+                - textbox [ref=e63]:
+                  - /placeholder: Our Story
+              - generic [ref=e64]:
+                - generic [ref=e65]: Status*
+                - combobox [ref=e66]
+              - generic [ref=e67]:
+                - generic [ref=e68]: Slug*
+                - textbox [ref=e69]:
+                  - /placeholder: our-story
+                - paragraph [ref=e70]: URL-safe identifier (lowercase, hyphens only). Auto-generated from title.
+            - generic [ref=e71]:
+              - button [ref=e72]: Create
+              - button [ref=e73]: Cancel
+        - generic [ref=e75]:
+          - generic [ref=e77]:
+            - generic [ref=e78]:
+              - generic [ref=e79]:
+                - generic [ref=e80]: Test Page 1770916192893
+                - code [ref=e81]: /test-page-1770916192893
+              - 'status "Status: Published" [ref=e83]': Published
+            - generic [ref=e84]:
+              - button "View Test Page 1770916192893 as guest" [ref=e85] [cursor=pointer]: View
+              - button "Edit Test Page 1770916192893" [ref=e86] [cursor=pointer]: Edit
+              - button "Show sections for Test Page 1770916192893" [ref=e87] [cursor=pointer]: ▶ Manage Sections
+              - button "Delete Test Page 1770916192893" [ref=e88] [cursor=pointer]: Delete
+          - generic [ref=e90]:
+            - generic [ref=e91]:
+              - generic [ref=e92]:
+                - generic [ref=e93]: Test Our Story
+                - code [ref=e94]: /test-our-story
+              - 'status "Status: Published" [ref=e96]': Published
+            - generic [ref=e97]:
+              - button "View Test Our Story as guest" [ref=e98] [cursor=pointer]: View
+              - button "Edit Test Our Story" [ref=e99] [cursor=pointer]: Edit
+              - button "Show sections for Test Our Story" [ref=e100] [cursor=pointer]: ▶ Manage Sections
+              - button "Delete Test Our Story" [ref=e101] [cursor=pointer]: Delete
+          - generic [ref=e103]:
+            - generic [ref=e104]:
+              - generic [ref=e105]:
+                - generic [ref=e106]: Event Reference Test 1770914132827
+                - code [ref=e107]: /event-reference-test-1770914132827
+              - 'status "Status: Draft" [ref=e109]': Draft
+            - generic [ref=e110]:
+              - button "View Event Reference Test 1770914132827 as guest" [ref=e111] [cursor=pointer]: View
+              - button "Edit Event Reference Test 1770914132827" [ref=e112] [cursor=pointer]: Edit
+              - button "Show sections for Event Reference Test 1770914132827" [ref=e113] [cursor=pointer]: ▶ Manage Sections
+              - button "Delete Event Reference Test 1770914132827" [ref=e114] [cursor=pointer]: Delete
+          - generic [ref=e116]:
+            - generic [ref=e117]:
+              - generic [ref=e118]:
+                - generic [ref=e119]: Section Test 1770914083505
+                - code [ref=e120]: /section-test-1770914083505
+              - 'status "Status: Draft" [ref=e122]': Draft
+            - generic [ref=e123]:
+              - button "View Section Test 1770914083505 as guest" [ref=e124] [cursor=pointer]: View
+              - button "Edit Section Test 1770914083505" [ref=e125] [cursor=pointer]: Edit
+              - button "Show sections for Section Test 1770914083505" [ref=e126] [cursor=pointer]: ▶ Manage Sections
+              - button "Delete Section Test 1770914083505" [ref=e127] [cursor=pointer]: Delete
+          - generic [ref=e129]:
+            - generic [ref=e130]:
+              - generic [ref=e131]:
+                - generic [ref=e132]: Event Reference Test 1770912154009
+                - code [ref=e133]: /event-reference-test-1770912154009
+              - 'status "Status: Draft" [ref=e135]': Draft
+            - generic [ref=e136]:
+              - button "View Event Reference Test 1770912154009 as guest" [ref=e137] [cursor=pointer]: View
+              - button "Edit Event Reference Test 1770912154009" [ref=e138] [cursor=pointer]: Edit
+              - button "Show sections for Event Reference Test 1770912154009" [ref=e139] [cursor=pointer]: ▶ Manage Sections
+              - button "Delete Event Reference Test 1770912154009" [ref=e140] [cursor=pointer]: Delete
+          - generic [ref=e142]:
+            - generic [ref=e143]:
+              - generic [ref=e144]:
+                - generic [ref=e145]: Section Test 1770912115232
+                - code [ref=e146]: /section-test-1770912115232
+              - 'status "Status: Draft" [ref=e148]': Draft
+            - generic [ref=e149]:
+              - button "View Section Test 1770912115232 as guest" [ref=e150] [cursor=pointer]: View
+              - button "Edit Section Test 1770912115232" [ref=e151] [cursor=pointer]: Edit
+              - button "Show sections for Section Test 1770912115232" [ref=e152] [cursor=pointer]: ▶ Manage Sections
+              - button "Delete Section Test 1770912115232" [ref=e153] [cursor=pointer]: Delete
+          - generic [ref=e155]:
+            - generic [ref=e156]:
+              - generic [ref=e157]:
+                - generic [ref=e158]: Event Reference Test 1770875764659
+                - code [ref=e159]: /event-reference-test-1770875764659
+              - 'status "Status: Draft" [ref=e161]': Draft
+            - generic [ref=e162]:
+              - button "View Event Reference Test 1770875764659 as guest" [ref=e163] [cursor=pointer]: View
+              - button "Edit Event Reference Test 1770875764659" [ref=e164] [cursor=pointer]: Edit
+              - button "Show sections for Event Reference Test 1770875764659" [ref=e165] [cursor=pointer]: ▶ Manage Sections
+              - button "Delete Event Reference Test 1770875764659" [ref=e166] [cursor=pointer]: Delete
+          - generic [ref=e168]:
+            - generic [ref=e169]:
+              - generic [ref=e170]:
+                - generic [ref=e171]: Section Test 1770875678173
+                - code [ref=e172]: /section-test-1770875678173
+              - 'status "Status: Draft" [ref=e174]': Draft
+            - generic [ref=e175]:
+              - button "View Section Test 1770875678173 as guest" [ref=e176] [cursor=pointer]: View
+              - button "Edit Section Test 1770875678173" [ref=e177] [cursor=pointer]: Edit
+              - button "Show sections for Section Test 1770875678173" [ref=e178] [cursor=pointer]: ▶ Manage Sections
+              - button "Delete Section Test 1770875678173" [ref=e179] [cursor=pointer]: Delete
+          - generic [ref=e181]:
+            - generic [ref=e182]:
+              - generic [ref=e183]:
+                - generic [ref=e184]: Event Reference Test 1770873185301
+                - code [ref=e185]: /event-reference-test-1770873185301
+              - 'status "Status: Draft" [ref=e187]': Draft
+            - generic [ref=e188]:
+              - button "View Event Reference Test 1770873185301 as guest" [ref=e189] [cursor=pointer]: View
+              - button "Edit Event Reference Test 1770873185301" [ref=e190] [cursor=pointer]: Edit
+              - button "Show sections for Event Reference Test 1770873185301" [ref=e191] [cursor=pointer]: ▶ Manage Sections
+              - button "Delete Event Reference Test 1770873185301" [ref=e192] [cursor=pointer]: Delete
+          - generic [ref=e194]:
+            - generic [ref=e195]:
+              - generic [ref=e196]:
+                - generic [ref=e197]: Section Test 1770873172733
+                - code [ref=e198]: /section-test-1770873172733
+              - 'status "Status: Draft" [ref=e200]': Draft
+            - generic [ref=e201]:
+              - button "View Section Test 1770873172733 as guest" [ref=e202] [cursor=pointer]: View
+              - button "Edit Section Test 1770873172733" [ref=e203] [cursor=pointer]: Edit
+              - button "Show sections for Section Test 1770873172733" [ref=e204] [cursor=pointer]: ▶ Manage Sections
+              - button "Delete Section Test 1770873172733" [ref=e205] [cursor=pointer]: Delete
+          - generic [ref=e207]:
+            - generic [ref=e208]:
+              - generic [ref=e209]:
+                - generic [ref=e210]: Event Reference Test 1770870222801
+                - code [ref=e211]: /event-reference-test-1770870222801
+              - 'status "Status: Draft" [ref=e213]': Draft
+            - generic [ref=e214]:
+              - button "View Event Reference Test 1770870222801 as guest" [ref=e215] [cursor=pointer]: View
+              - button "Edit Event Reference Test 1770870222801" [ref=e216] [cursor=pointer]: Edit
+              - button "Show sections for Event Reference Test 1770870222801" [ref=e217] [cursor=pointer]: ▶ Manage Sections
+              - button "Delete Event Reference Test 1770870222801" [ref=e218] [cursor=pointer]: Delete
+          - generic [ref=e220]:
+            - generic [ref=e221]:
+              - generic [ref=e222]:
+                - generic [ref=e223]: Section Test 1770870187626
+                - code [ref=e224]: /section-test-1770870187626
+              - 'status "Status: Draft" [ref=e226]': Draft
+            - generic [ref=e227]:
+              - button "View Section Test 1770870187626 as guest" [ref=e228] [cursor=pointer]: View
+              - button "Edit Section Test 1770870187626" [ref=e229] [cursor=pointer]: Edit
+              - button "Show sections for Section Test 1770870187626" [ref=e230] [cursor=pointer]: ▶ Manage Sections
+              - button "Delete Section Test 1770870187626" [ref=e231] [cursor=pointer]: Delete
+          - generic [ref=e233]:
+            - generic [ref=e234]:
+              - generic [ref=e235]:
+                - generic [ref=e236]: Event Reference Test 1770867390410
+                - code [ref=e237]: /event-reference-test-1770867390410
+              - 'status "Status: Draft" [ref=e239]': Draft
+            - generic [ref=e240]:
+              - button "View Event Reference Test 1770867390410 as guest" [ref=e241] [cursor=pointer]: View
+              - button "Edit Event Reference Test 1770867390410" [ref=e242] [cursor=pointer]: Edit
+              - button "Show sections for Event Reference Test 1770867390410" [ref=e243] [cursor=pointer]: ▶ Manage Sections
+              - button "Delete Event Reference Test 1770867390410" [ref=e244] [cursor=pointer]: Delete
+          - generic [ref=e246]:
+            - generic [ref=e247]:
+              - generic [ref=e248]:
+                - generic [ref=e249]: Event Reference Test 1770867363941
+                - code [ref=e250]: /event-reference-test-1770867363941
+              - 'status "Status: Draft" [ref=e252]': Draft
+            - generic [ref=e253]:
+              - button "View Event Reference Test 1770867363941 as guest" [ref=e254] [cursor=pointer]: View
+              - button "Edit Event Reference Test 1770867363941" [ref=e255] [cursor=pointer]: Edit
+              - button "Show sections for Event Reference Test 1770867363941" [ref=e256] [cursor=pointer]: ▶ Manage Sections
+              - button "Delete Event Reference Test 1770867363941" [ref=e257] [cursor=pointer]: Delete
+          - generic [ref=e259]:
+            - generic [ref=e260]:
+              - generic [ref=e261]:
+                - generic [ref=e262]: Section Test 1770867287078
+                - code [ref=e263]: /section-test-1770867287078
+              - 'status "Status: Draft" [ref=e265]': Draft
+            - generic [ref=e266]:
+              - button "View Section Test 1770867287078 as guest" [ref=e267] [cursor=pointer]: View
+              - button "Edit Section Test 1770867287078" [ref=e268] [cursor=pointer]: Edit
+              - button "Show sections for Section Test 1770867287078" [ref=e269] [cursor=pointer]: ▶ Manage Sections
+              - button "Delete Section Test 1770867287078" [ref=e270] [cursor=pointer]: Delete
+          - generic [ref=e272]:
+            - generic [ref=e273]:
+              - generic [ref=e274]:
+                - generic [ref=e275]: Event Reference Test 1770857447488
+                - code [ref=e276]: /event-reference-test-1770857447488
+              - 'status "Status: Draft" [ref=e278]': Draft
+            - generic [ref=e279]:
+              - button "View Event Reference Test 1770857447488 as guest" [ref=e280] [cursor=pointer]: View
+              - button "Edit Event Reference Test 1770857447488" [ref=e281] [cursor=pointer]: Edit
+              - button "Show sections for Event Reference Test 1770857447488" [ref=e282] [cursor=pointer]: ▶ Manage Sections
+              - button "Delete Event Reference Test 1770857447488" [ref=e283] [cursor=pointer]: Delete
+          - generic [ref=e285]:
+            - generic [ref=e286]:
+              - generic [ref=e287]:
+                - generic [ref=e288]: Section Test 1770857398426
+                - code [ref=e289]: /section-test-1770857398426
+              - 'status "Status: Draft" [ref=e291]': Draft
+            - generic [ref=e292]:
+              - button "View Section Test 1770857398426 as guest" [ref=e293] [cursor=pointer]: View
+              - button "Edit Section Test 1770857398426" [ref=e294] [cursor=pointer]: Edit
+              - button "Show sections for Section Test 1770857398426" [ref=e295] [cursor=pointer]: ▶ Manage Sections
+              - button "Delete Section Test 1770857398426" [ref=e296] [cursor=pointer]: Delete
+          - generic [ref=e298]:
+            - generic [ref=e299]:
+              - generic [ref=e300]:
+                - generic [ref=e301]: Event Reference Test 1770857151003
+                - code [ref=e302]: /event-reference-test-1770857151003
+              - 'status "Status: Draft" [ref=e304]': Draft
+            - generic [ref=e305]:
+              - button "View Event Reference Test 1770857151003 as guest" [ref=e306] [cursor=pointer]: View
+              - button "Edit Event Reference Test 1770857151003" [ref=e307] [cursor=pointer]: Edit
+              - button "Show sections for Event Reference Test 1770857151003" [ref=e308] [cursor=pointer]: ▶ Manage Sections
+              - button "Delete Event Reference Test 1770857151003" [ref=e309] [cursor=pointer]: Delete
+          - generic [ref=e311]:
+            - generic [ref=e312]:
+              - generic [ref=e313]:
+                - generic [ref=e314]: Section Test 1770857124589
+                - code [ref=e315]: /section-test-1770857124589
+              - 'status "Status: Draft" [ref=e317]': Draft
+            - generic [ref=e318]:
+              - button "View Section Test 1770857124589 as guest" [ref=e319] [cursor=pointer]: View
+              - button "Edit Section Test 1770857124589" [ref=e320] [cursor=pointer]: Edit
+              - button "Show sections for Section Test 1770857124589" [ref=e321] [cursor=pointer]: ▶ Manage Sections
+              - button "Delete Section Test 1770857124589" [ref=e322] [cursor=pointer]: Delete
+          - generic [ref=e324]:
+            - generic [ref=e325]:
+              - generic [ref=e326]:
+                - generic [ref=e327]: Event Reference Test 1770857088135
+                - code [ref=e328]: /event-reference-test-1770857088135
+              - 'status "Status: Draft" [ref=e330]': Draft
+            - generic [ref=e331]:
+              - button "View Event Reference Test 1770857088135 as guest" [ref=e332] [cursor=pointer]: View
+              - button "Edit Event Reference Test 1770857088135" [ref=e333] [cursor=pointer]: Edit
+              - button "Show sections for Event Reference Test 1770857088135" [ref=e334] [cursor=pointer]: ▶ Manage Sections
+              - button "Delete Event Reference Test 1770857088135" [ref=e335] [cursor=pointer]: Delete
+          - generic [ref=e337]:
+            - generic [ref=e338]:
+              - generic [ref=e339]:
+                - generic [ref=e340]: Section Test 1770857062390
+                - code [ref=e341]: /section-test-1770857062390
+              - 'status "Status: Draft" [ref=e343]': Draft
+            - generic [ref=e344]:
+              - button "View Section Test 1770857062390 as guest" [ref=e345] [cursor=pointer]: View
+              - button "Edit Section Test 1770857062390" [ref=e346] [cursor=pointer]: Edit
+              - button "Show sections for Section Test 1770857062390" [ref=e347] [cursor=pointer]: ▶ Manage Sections
+              - button "Delete Section Test 1770857062390" [ref=e348] [cursor=pointer]: Delete
+          - generic [ref=e350]:
+            - generic [ref=e351]:
+              - generic [ref=e352]:
+                - generic [ref=e353]: Event Reference Test 1770856922642
+                - code [ref=e354]: /event-reference-test-1770856922642
+              - 'status "Status: Draft" [ref=e356]': Draft
+            - generic [ref=e357]:
+              - button "View Event Reference Test 1770856922642 as guest" [ref=e358] [cursor=pointer]: View
+              - button "Edit Event Reference Test 1770856922642" [ref=e359] [cursor=pointer]: Edit
+              - button "Show sections for Event Reference Test 1770856922642" [ref=e360] [cursor=pointer]: ▶ Manage Sections
+              - button "Delete Event Reference Test 1770856922642" [ref=e361] [cursor=pointer]: Delete
+          - generic [ref=e363]:
+            - generic [ref=e364]:
+              - generic [ref=e365]:
+                - generic [ref=e366]: Section Test 1770856896958
+                - code [ref=e367]: /section-test-1770856896958
+              - 'status "Status: Draft" [ref=e369]': Draft
+            - generic [ref=e370]:
+              - button "View Section Test 1770856896958 as guest" [ref=e371] [cursor=pointer]: View
+              - button "Edit Section Test 1770856896958" [ref=e372] [cursor=pointer]: Edit
+              - button "Show sections for Section Test 1770856896958" [ref=e373] [cursor=pointer]: ▶ Manage Sections
+              - button "Delete Section Test 1770856896958" [ref=e374] [cursor=pointer]: Delete
+          - generic [ref=e376]:
+            - generic [ref=e377]:
+              - generic [ref=e378]:
+                - generic [ref=e379]: Event Reference Test 1770856867085
+                - code [ref=e380]: /event-reference-test-1770856867085
+              - 'status "Status: Draft" [ref=e382]': Draft
+            - generic [ref=e383]:
+              - button "View Event Reference Test 1770856867085 as guest" [ref=e384] [cursor=pointer]: View
+              - button "Edit Event Reference Test 1770856867085" [ref=e385] [cursor=pointer]: Edit
+              - button "Show sections for Event Reference Test 1770856867085" [ref=e386] [cursor=pointer]: ▶ Manage Sections
+              - button "Delete Event Reference Test 1770856867085" [ref=e387] [cursor=pointer]: Delete
+          - generic [ref=e389]:
+            - generic [ref=e390]:
+              - generic [ref=e391]:
+                - generic [ref=e392]: Section Test 1770856839760
+                - code [ref=e393]: /section-test-1770856839760
+              - 'status "Status: Draft" [ref=e395]': Draft
+            - generic [ref=e396]:
+              - button "View Section Test 1770856839760 as guest" [ref=e397] [cursor=pointer]: View
+              - button "Edit Section Test 1770856839760" [ref=e398] [cursor=pointer]: Edit
+              - button "Show sections for Section Test 1770856839760" [ref=e399] [cursor=pointer]: ▶ Manage Sections
+              - button "Delete Section Test 1770856839760" [ref=e400] [cursor=pointer]: Delete
+          - generic [ref=e402]:
+            - generic [ref=e403]:
+              - generic [ref=e404]:
+                - generic [ref=e405]: E2E Test Content Page
+                - code [ref=e406]: /e2e-test-content-381cd7e4
+              - 'status "Status: Published" [ref=e408]': Published
+            - generic [ref=e409]:
+              - button "View E2E Test Content Page as guest" [ref=e410] [cursor=pointer]: View
+              - button "Edit E2E Test Content Page" [ref=e411] [cursor=pointer]: Edit
+              - button "Show sections for E2E Test Content Page" [ref=e412] [cursor=pointer]: ▶ Manage Sections
+              - button "Delete E2E Test Content Page" [ref=e413] [cursor=pointer]: Delete
+          - generic [ref=e415]:
+            - generic [ref=e416]:
+              - generic [ref=e417]:
+                - generic [ref=e418]: E2E Test Content Page
+                - code [ref=e419]: /e2e-test-content-94033c71
+              - 'status "Status: Published" [ref=e421]': Published
+            - generic [ref=e422]:
+              - button "View E2E Test Content Page as guest" [ref=e423] [cursor=pointer]: View
+              - button "Edit E2E Test Content Page" [ref=e424] [cursor=pointer]: Edit
+              - button "Show sections for E2E Test Content Page" [ref=e425] [cursor=pointer]: ▶ Manage Sections
+              - button "Delete E2E Test Content Page" [ref=e426] [cursor=pointer]: Delete
+          - generic [ref=e428]:
+            - generic [ref=e429]:
+              - generic [ref=e430]:
+                - generic [ref=e431]: E2E Test Content Page
+                - code [ref=e432]: /e2e-test-content-61027d9b
+              - 'status "Status: Published" [ref=e434]': Published
+            - generic [ref=e435]:
+              - button "View E2E Test Content Page as guest" [ref=e436] [cursor=pointer]: View
+              - button "Edit E2E Test Content Page" [ref=e437] [cursor=pointer]: Edit
+              - button "Show sections for E2E Test Content Page" [ref=e438] [cursor=pointer]: ▶ Manage Sections
+              - button "Delete E2E Test Content Page" [ref=e439] [cursor=pointer]: Delete
+          - generic [ref=e441]:
+            - generic [ref=e442]:
+              - generic [ref=e443]:
+                - generic [ref=e444]: E2E Test Content Page
+                - code [ref=e445]: /e2e-test-content-a746c3c6
+              - 'status "Status: Published" [ref=e447]': Published
+            - generic [ref=e448]:
+              - button "View E2E Test Content Page as guest" [ref=e449] [cursor=pointer]: View
+              - button "Edit E2E Test Content Page" [ref=e450] [cursor=pointer]: Edit
+              - button "Show sections for E2E Test Content Page" [ref=e451] [cursor=pointer]: ▶ Manage Sections
+              - button "Delete E2E Test Content Page" [ref=e452] [cursor=pointer]: Delete
+          - generic [ref=e454]:
+            - generic [ref=e455]:
+              - generic [ref=e456]:
+                - generic [ref=e457]: E2E Test Content Page
+                - code [ref=e458]: /e2e-test-content-7ef1cda9
+              - 'status "Status: Published" [ref=e460]': Published
+            - generic [ref=e461]:
+              - button "View E2E Test Content Page as guest" [ref=e462] [cursor=pointer]: View
+              - button "Edit E2E Test Content Page" [ref=e463] [cursor=pointer]: Edit
+              - button "Show sections for E2E Test Content Page" [ref=e464] [cursor=pointer]: ▶ Manage Sections
+              - button "Delete E2E Test Content Page" [ref=e465] [cursor=pointer]: Delete
+          - generic [ref=e467]:
+            - generic [ref=e468]:
+              - generic [ref=e469]:
+                - generic [ref=e470]: E2E Test Content Page
+                - code [ref=e471]: /e2e-test-content-a2d27feb
+              - 'status "Status: Published" [ref=e473]': Published
+            - generic [ref=e474]:
+              - button "View E2E Test Content Page as guest" [ref=e475] [cursor=pointer]: View
+              - button "Edit E2E Test Content Page" [ref=e476] [cursor=pointer]: Edit
+              - button "Show sections for E2E Test Content Page" [ref=e477] [cursor=pointer]: ▶ Manage Sections
+              - button "Delete E2E Test Content Page" [ref=e478] [cursor=pointer]: Delete
+          - generic [ref=e480]:
+            - generic [ref=e481]:
+              - generic [ref=e482]:
+                - generic [ref=e483]: E2E Test Content Page
+                - code [ref=e484]: /e2e-test-content-e7db61d8
+              - 'status "Status: Published" [ref=e486]': Published
+            - generic [ref=e487]:
+              - button "View E2E Test Content Page as guest" [ref=e488] [cursor=pointer]: View
+              - button "Edit E2E Test Content Page" [ref=e489] [cursor=pointer]: Edit
+              - button "Show sections for E2E Test Content Page" [ref=e490] [cursor=pointer]: ▶ Manage Sections
+              - button "Delete E2E Test Content Page" [ref=e491] [cursor=pointer]: Delete
+          - generic [ref=e493]:
+            - generic [ref=e494]:
+              - generic [ref=e495]:
+                - generic [ref=e496]: E2E Test Content Page
+                - code [ref=e497]: /e2e-test-content-db67fafa
+              - 'status "Status: Published" [ref=e499]': Published
+            - generic [ref=e500]:
+              - button "View E2E Test Content Page as guest" [ref=e501] [cursor=pointer]: View
+              - button "Edit E2E Test Content Page" [ref=e502] [cursor=pointer]: Edit
+              - button "Show sections for E2E Test Content Page" [ref=e503] [cursor=pointer]: ▶ Manage Sections
+              - button "Delete E2E Test Content Page" [ref=e504] [cursor=pointer]: Delete
+          - generic [ref=e506]:
+            - generic [ref=e507]:
+              - generic [ref=e508]:
+                - generic [ref=e509]: Event Reference Test 1770831090462
+                - code [ref=e510]: /event-reference-test-1770831090462
+              - 'status "Status: Draft" [ref=e512]': Draft
+            - generic [ref=e513]:
+              - button "View Event Reference Test 1770831090462 as guest" [ref=e514] [cursor=pointer]: View
+              - button "Edit Event Reference Test 1770831090462" [ref=e515] [cursor=pointer]: Edit
+              - button "Show sections for Event Reference Test 1770831090462" [ref=e516] [cursor=pointer]: ▶ Manage Sections
+              - button "Delete Event Reference Test 1770831090462" [ref=e517] [cursor=pointer]: Delete
+          - generic [ref=e519]:
+            - generic [ref=e520]:
+              - generic [ref=e521]:
+                - generic [ref=e522]: Section Test 1770831044358
+                - code [ref=e523]: /section-test-1770831044358
+              - 'status "Status: Draft" [ref=e525]': Draft
+            - generic [ref=e526]:
+              - button "View Section Test 1770831044358 as guest" [ref=e527] [cursor=pointer]: View
+              - button "Edit Section Test 1770831044358" [ref=e528] [cursor=pointer]: Edit
+              - button "Show sections for Section Test 1770831044358" [ref=e529] [cursor=pointer]: ▶ Manage Sections
+              - button "Delete Section Test 1770831044358" [ref=e530] [cursor=pointer]: Delete
+          - generic [ref=e532]:
+            - generic [ref=e533]:
+              - generic [ref=e534]:
+                - generic [ref=e535]: Section Test 1770831023066
+                - code [ref=e536]: /section-test-1770831023066
+              - 'status "Status: Draft" [ref=e538]': Draft
+            - generic [ref=e539]:
+              - button "View Section Test 1770831023066 as guest" [ref=e540] [cursor=pointer]: View
+              - button "Edit Section Test 1770831023066" [ref=e541] [cursor=pointer]: Edit
+              - button "Show sections for Section Test 1770831023066" [ref=e542] [cursor=pointer]: ▶ Manage Sections
+              - button "Delete Section Test 1770831023066" [ref=e543] [cursor=pointer]: Delete
+          - generic [ref=e545]:
+            - generic [ref=e546]:
+              - generic [ref=e547]:
+                - generic [ref=e548]: Section Test 1770828495414
+                - code [ref=e549]: /section-test-1770828495414
+              - 'status "Status: Draft" [ref=e551]': Draft
+            - generic [ref=e552]:
+              - button "View Section Test 1770828495414 as guest" [ref=e553] [cursor=pointer]: View
+              - button "Edit Section Test 1770828495414" [ref=e554] [cursor=pointer]: Edit
+              - button "Show sections for Section Test 1770828495414" [ref=e555] [cursor=pointer]: ▶ Manage Sections
+              - button "Delete Section Test 1770828495414" [ref=e556] [cursor=pointer]: Delete
+          - generic [ref=e558]:
+            - generic [ref=e559]:
+              - generic [ref=e560]:
+                - generic [ref=e561]: Event Reference Test 1770827386943
+                - code [ref=e562]: /event-reference-test-1770827386943
+              - 'status "Status: Draft" [ref=e564]': Draft
+            - generic [ref=e565]:
+              - button "View Event Reference Test 1770827386943 as guest" [ref=e566] [cursor=pointer]: View
+              - button "Edit Event Reference Test 1770827386943" [ref=e567] [cursor=pointer]: Edit
+              - button "Show sections for Event Reference Test 1770827386943" [ref=e568] [cursor=pointer]: ▶ Manage Sections
+              - button "Delete Event Reference Test 1770827386943" [ref=e569] [cursor=pointer]: Delete
+          - generic [ref=e571]:
+            - generic [ref=e572]:
+              - generic [ref=e573]:
+                - generic [ref=e574]: Section Test 1770827337915
+                - code [ref=e575]: /section-test-1770827337915
+              - 'status "Status: Draft" [ref=e577]': Draft
+            - generic [ref=e578]:
+              - button "View Section Test 1770827337915 as guest" [ref=e579] [cursor=pointer]: View
+              - button "Edit Section Test 1770827337915" [ref=e580] [cursor=pointer]: Edit
+              - button "Show sections for Section Test 1770827337915" [ref=e581] [cursor=pointer]: ▶ Manage Sections
+              - button "Delete Section Test 1770827337915" [ref=e582] [cursor=pointer]: Delete
+          - generic [ref=e584]:
+            - generic [ref=e585]:
+              - generic [ref=e586]:
+                - generic [ref=e587]: Event Reference Test 1770826234566
+                - code [ref=e588]: /event-reference-test-1770826234566
+              - 'status "Status: Draft" [ref=e590]': Draft
+            - generic [ref=e591]:
+              - button "View Event Reference Test 1770826234566 as guest" [ref=e592] [cursor=pointer]: View
+              - button "Edit Event Reference Test 1770826234566" [ref=e593] [cursor=pointer]: Edit
+              - button "Show sections for Event Reference Test 1770826234566" [ref=e594] [cursor=pointer]: ▶ Manage Sections
+              - button "Delete Event Reference Test 1770826234566" [ref=e595] [cursor=pointer]: Delete
+          - generic [ref=e597]:
+            - generic [ref=e598]:
+              - generic [ref=e599]:
+                - generic [ref=e600]: Section Test 1770826195505
+                - code [ref=e601]: /section-test-1770826195505
+              - 'status "Status: Draft" [ref=e603]': Draft
+            - generic [ref=e604]:
+              - button "View Section Test 1770826195505 as guest" [ref=e605] [cursor=pointer]: View
+              - button "Edit Section Test 1770826195505" [ref=e606] [cursor=pointer]: Edit
+              - button "Show sections for Section Test 1770826195505" [ref=e607] [cursor=pointer]: ▶ Manage Sections
+              - button "Delete Section Test 1770826195505" [ref=e608] [cursor=pointer]: Delete
+          - generic [ref=e610]:
+            - generic [ref=e611]:
+              - generic [ref=e612]:
+                - generic [ref=e613]: Event Reference Test 1770791618625
+                - code [ref=e614]: /event-reference-test-1770791618625
+              - 'status "Status: Draft" [ref=e616]': Draft
+            - generic [ref=e617]:
+              - button "View Event Reference Test 1770791618625 as guest" [ref=e618] [cursor=pointer]: View
+              - button "Edit Event Reference Test 1770791618625" [ref=e619] [cursor=pointer]: Edit
+              - button "Show sections for Event Reference Test 1770791618625" [ref=e620] [cursor=pointer]: ▶ Manage Sections
+              - button "Delete Event Reference Test 1770791618625" [ref=e621] [cursor=pointer]: Delete
+          - generic [ref=e623]:
+            - generic [ref=e624]:
+              - generic [ref=e625]:
+                - generic [ref=e626]: Section Test 1770791592539
+                - code [ref=e627]: /section-test-1770791592539
+              - 'status "Status: Draft" [ref=e629]': Draft
+            - generic [ref=e630]:
+              - button "View Section Test 1770791592539 as guest" [ref=e631] [cursor=pointer]: View
+              - button "Edit Section Test 1770791592539" [ref=e632] [cursor=pointer]: Edit
+              - button "Show sections for Section Test 1770791592539" [ref=e633] [cursor=pointer]: ▶ Manage Sections
+              - button "Delete Section Test 1770791592539" [ref=e634] [cursor=pointer]: Delete
+          - generic [ref=e636]:
+            - generic [ref=e637]:
+              - generic [ref=e638]:
+                - generic [ref=e639]: Event Reference Test 1770784652357
+                - code [ref=e640]: /event-reference-test-1770784652357
+              - 'status "Status: Draft" [ref=e642]': Draft
+            - generic [ref=e643]:
+              - button "View Event Reference Test 1770784652357 as guest" [ref=e644] [cursor=pointer]: View
+              - button "Edit Event Reference Test 1770784652357" [ref=e645] [cursor=pointer]: Edit
+              - button "Show sections for Event Reference Test 1770784652357" [ref=e646] [cursor=pointer]: ▶ Manage Sections
+              - button "Delete Event Reference Test 1770784652357" [ref=e647] [cursor=pointer]: Delete
+          - generic [ref=e649]:
+            - generic [ref=e650]:
+              - generic [ref=e651]:
+                - generic [ref=e652]: Section Test 1770784621630
+                - code [ref=e653]: /section-test-1770784621630
+              - 'status "Status: Draft" [ref=e655]': Draft
+            - generic [ref=e656]:
+              - button "View Section Test 1770784621630 as guest" [ref=e657] [cursor=pointer]: View
+              - button "Edit Section Test 1770784621630" [ref=e658] [cursor=pointer]: Edit
+              - button "Show sections for Section Test 1770784621630" [ref=e659] [cursor=pointer]: ▶ Manage Sections
+              - button "Delete Section Test 1770784621630" [ref=e660] [cursor=pointer]: Delete
+          - generic [ref=e662]:
+            - generic [ref=e663]:
+              - generic [ref=e664]:
+                - generic [ref=e665]: Event Reference Test 1770767285268
+                - code [ref=e666]: /event-reference-test-1770767285268
+              - 'status "Status: Draft" [ref=e668]': Draft
+            - generic [ref=e669]:
+              - button "View Event Reference Test 1770767285268 as guest" [ref=e670] [cursor=pointer]: View
+              - button "Edit Event Reference Test 1770767285268" [ref=e671] [cursor=pointer]: Edit
+              - button "Show sections for Event Reference Test 1770767285268" [ref=e672] [cursor=pointer]: ▶ Manage Sections
+              - button "Delete Event Reference Test 1770767285268" [ref=e673] [cursor=pointer]: Delete
+          - generic [ref=e675]:
+            - generic [ref=e676]:
+              - generic [ref=e677]:
+                - generic [ref=e678]: Section Test 1770767255984
+                - code [ref=e679]: /section-test-1770767255984
+              - 'status "Status: Draft" [ref=e681]': Draft
+            - generic [ref=e682]:
+              - button "View Section Test 1770767255984 as guest" [ref=e683] [cursor=pointer]: View
+              - button "Edit Section Test 1770767255984" [ref=e684] [cursor=pointer]: Edit
+              - button "Show sections for Section Test 1770767255984" [ref=e685] [cursor=pointer]: ▶ Manage Sections
+              - button "Delete Section Test 1770767255984" [ref=e686] [cursor=pointer]: Delete
+          - generic [ref=e688]:
+            - generic [ref=e689]:
+              - generic [ref=e690]:
+                - generic [ref=e691]: Section Test 1770763729041
+                - code [ref=e692]: /section-test-1770763729041
+              - 'status "Status: Draft" [ref=e694]': Draft
+            - generic [ref=e695]:
+              - button "View Section Test 1770763729041 as guest" [ref=e696] [cursor=pointer]: View
+              - button "Edit Section Test 1770763729041" [ref=e697] [cursor=pointer]: Edit
+              - button "Show sections for Section Test 1770763729041" [ref=e698] [cursor=pointer]: ▶ Manage Sections
+              - button "Delete Section Test 1770763729041" [ref=e699] [cursor=pointer]: Delete
+          - generic [ref=e701]:
+            - generic [ref=e702]:
+              - generic [ref=e703]:
+                - generic [ref=e704]: Section Test 1770763704565
+                - code [ref=e705]: /section-test-1770763704565
+              - 'status "Status: Draft" [ref=e707]': Draft
+            - generic [ref=e708]:
+              - button "View Section Test 1770763704565 as guest" [ref=e709] [cursor=pointer]: View
+              - button "Edit Section Test 1770763704565" [ref=e710] [cursor=pointer]: Edit
+              - button "Show sections for Section Test 1770763704565" [ref=e711] [cursor=pointer]: ▶ Manage Sections
+              - button "Delete Section Test 1770763704565" [ref=e712] [cursor=pointer]: Delete
+          - generic [ref=e714]:
+            - generic [ref=e715]:
+              - generic [ref=e716]:
+                - generic [ref=e717]: Section Test 1770761141072
+                - code [ref=e718]: /section-test-1770761141072
+              - 'status "Status: Draft" [ref=e720]': Draft
+            - generic [ref=e721]:
+              - button "View Section Test 1770761141072 as guest" [ref=e722] [cursor=pointer]: View
+              - button "Edit Section Test 1770761141072" [ref=e723] [cursor=pointer]: Edit
+              - button "Show sections for Section Test 1770761141072" [ref=e724] [cursor=pointer]: ▶ Manage Sections
+              - button "Delete Section Test 1770761141072" [ref=e725] [cursor=pointer]: Delete
+          - generic [ref=e727]:
+            - generic [ref=e728]:
+              - generic [ref=e729]:
+                - generic [ref=e730]: Event Reference Test 1770743479367
+                - code [ref=e731]: /event-reference-test-1770743479367
+              - 'status "Status: Draft" [ref=e733]': Draft
+            - generic [ref=e734]:
+              - button "View Event Reference Test 1770743479367 as guest" [ref=e735] [cursor=pointer]: View
+              - button "Edit Event Reference Test 1770743479367" [ref=e736] [cursor=pointer]: Edit
+              - button "Show sections for Event Reference Test 1770743479367" [ref=e737] [cursor=pointer]: ▶ Manage Sections
+              - button "Delete Event Reference Test 1770743479367" [ref=e738] [cursor=pointer]: Delete
+          - generic [ref=e740]:
+            - generic [ref=e741]:
+              - generic [ref=e742]:
+                - generic [ref=e743]: Keyboard Test 1770743479573
+                - code [ref=e744]: /keyboard-test-1770743479573
+              - 'status "Status: Draft" [ref=e746]': Draft
+            - generic [ref=e747]:
+              - button "View Keyboard Test 1770743479573 as guest" [ref=e748] [cursor=pointer]: View
+              - button "Edit Keyboard Test 1770743479573" [ref=e749] [cursor=pointer]: Edit
+              - button "Show sections for Keyboard Test 1770743479573" [ref=e750] [cursor=pointer]: ▶ Manage Sections
+              - button "Delete Keyboard Test 1770743479573" [ref=e751] [cursor=pointer]: Delete
+          - generic [ref=e753]:
+            - generic [ref=e754]:
+              - generic [ref=e755]:
+                - generic [ref=e756]: Reference Test 1770743473026
+                - code [ref=e757]: /reference-test-1770743473026
+              - 'status "Status: Draft" [ref=e759]': Draft
+            - generic [ref=e760]:
+              - button "View Reference Test 1770743473026 as guest" [ref=e761] [cursor=pointer]: View
+              - button "Edit Reference Test 1770743473026" [ref=e762] [cursor=pointer]: Edit
+              - button "Show sections for Reference Test 1770743473026" [ref=e763] [cursor=pointer]: ▶ Manage Sections
+              - button "Delete Reference Test 1770743473026" [ref=e764] [cursor=pointer]: Delete
+          - generic [ref=e766]:
+            - generic [ref=e767]:
+              - generic [ref=e768]:
+                - generic [ref=e769]: Section Test 1770743441010
+                - code [ref=e770]: /section-test-1770743441010
+              - 'status "Status: Draft" [ref=e772]': Draft
+            - generic [ref=e773]:
+              - button "View Section Test 1770743441010 as guest" [ref=e774] [cursor=pointer]: View
+              - button "Edit Section Test 1770743441010" [ref=e775] [cursor=pointer]: Edit
+              - button "Show sections for Section Test 1770743441010" [ref=e776] [cursor=pointer]: ▶ Manage Sections
+              - button "Delete Section Test 1770743441010" [ref=e777] [cursor=pointer]: Delete
+          - generic [ref=e779]:
+            - generic [ref=e780]:
+              - generic [ref=e781]:
+                - generic [ref=e782]: Event Reference Test 1770739385587
+                - code [ref=e783]: /event-reference-test-1770739385587
+              - 'status "Status: Draft" [ref=e785]': Draft
+            - generic [ref=e786]:
+              - button "View Event Reference Test 1770739385587 as guest" [ref=e787] [cursor=pointer]: View
+              - button "Edit Event Reference Test 1770739385587" [ref=e788] [cursor=pointer]: Edit
+              - button "Show sections for Event Reference Test 1770739385587" [ref=e789] [cursor=pointer]: ▶ Manage Sections
+              - button "Delete Event Reference Test 1770739385587" [ref=e790] [cursor=pointer]: Delete
+          - generic [ref=e792]:
+            - generic [ref=e793]:
+              - generic [ref=e794]:
+                - generic [ref=e795]: Keyboard Test 1770739383551
+                - code [ref=e796]: /keyboard-test-1770739383551
+              - 'status "Status: Draft" [ref=e798]': Draft
+            - generic [ref=e799]:
+              - button "View Keyboard Test 1770739383551 as guest" [ref=e800] [cursor=pointer]: View
+              - button "Edit Keyboard Test 1770739383551" [ref=e801] [cursor=pointer]: Edit
+              - button "Show sections for Keyboard Test 1770739383551" [ref=e802] [cursor=pointer]: ▶ Manage Sections
+              - button "Delete Keyboard Test 1770739383551" [ref=e803] [cursor=pointer]: Delete
+          - generic [ref=e805]:
+            - generic [ref=e806]:
+              - generic [ref=e807]:
+                - generic [ref=e808]: Reference Test 1770739374780
+                - code [ref=e809]: /reference-test-1770739374780
+              - 'status "Status: Draft" [ref=e811]': Draft
+            - generic [ref=e812]:
+              - button "View Reference Test 1770739374780 as guest" [ref=e813] [cursor=pointer]: View
+              - button "Edit Reference Test 1770739374780" [ref=e814] [cursor=pointer]: Edit
+              - button "Show sections for Reference Test 1770739374780" [ref=e815] [cursor=pointer]: ▶ Manage Sections
+              - button "Delete Reference Test 1770739374780" [ref=e816] [cursor=pointer]: Delete
+          - generic [ref=e818]:
+            - generic [ref=e819]:
+              - generic [ref=e820]:
+                - generic [ref=e821]: Section Test 1770739332499
+                - code [ref=e822]: /section-test-1770739332499
+              - 'status "Status: Draft" [ref=e824]': Draft
+            - generic [ref=e825]:
+              - button "View Section Test 1770739332499 as guest" [ref=e826] [cursor=pointer]: View
+              - button "Edit Section Test 1770739332499" [ref=e827] [cursor=pointer]: Edit
+              - button "Show sections for Section Test 1770739332499" [ref=e828] [cursor=pointer]: ▶ Manage Sections
+              - button "Delete Section Test 1770739332499" [ref=e829] [cursor=pointer]: Delete
+          - generic [ref=e831]:
+            - generic [ref=e832]:
+              - generic [ref=e833]:
+                - generic [ref=e834]: Keyboard Test 1770704672723
+                - code [ref=e835]: /keyboard-test-1770704672723
+              - 'status "Status: Draft" [ref=e837]': Draft
+            - generic [ref=e838]:
+              - button "View Keyboard Test 1770704672723 as guest" [ref=e839] [cursor=pointer]: View
+              - button "Edit Keyboard Test 1770704672723" [ref=e840] [cursor=pointer]: Edit
+              - button "Show sections for Keyboard Test 1770704672723" [ref=e841] [cursor=pointer]: ▶ Manage Sections
+              - button "Delete Keyboard Test 1770704672723" [ref=e842] [cursor=pointer]: Delete
+          - generic [ref=e844]:
+            - generic [ref=e845]:
+              - generic [ref=e846]:
+                - generic [ref=e847]: Section Test 1770704563754
+                - code [ref=e848]: /section-test-1770704563754
+              - 'status "Status: Draft" [ref=e850]': Draft
+            - generic [ref=e851]:
+              - button "View Section Test 1770704563754 as guest" [ref=e852] [cursor=pointer]: View
+              - button "Edit Section Test 1770704563754" [ref=e853] [cursor=pointer]: Edit
+              - button "Show sections for Section Test 1770704563754" [ref=e854] [cursor=pointer]: ▶ Manage Sections
+              - button "Delete Section Test 1770704563754" [ref=e855] [cursor=pointer]: Delete
+          - generic [ref=e857]:
+            - generic [ref=e858]:
+              - generic [ref=e859]:
+                - generic [ref=e860]: Event Reference Test 1770681581616
+                - code [ref=e861]: /event-reference-test-1770681581616
+              - 'status "Status: Draft" [ref=e863]': Draft
+            - generic [ref=e864]:
+              - button "View Event Reference Test 1770681581616 as guest" [ref=e865] [cursor=pointer]: View
+              - button "Edit Event Reference Test 1770681581616" [ref=e866] [cursor=pointer]: Edit
+              - button "Show sections for Event Reference Test 1770681581616" [ref=e867] [cursor=pointer]: ▶ Manage Sections
+              - button "Delete Event Reference Test 1770681581616" [ref=e868] [cursor=pointer]: Delete
+          - generic [ref=e870]:
+            - generic [ref=e871]:
+              - generic [ref=e872]:
+                - generic [ref=e873]: Keyboard Test 1770681579840
+                - code [ref=e874]: /keyboard-test-1770681579840
+              - 'status "Status: Draft" [ref=e876]': Draft
+            - generic [ref=e877]:
+              - button "View Keyboard Test 1770681579840 as guest" [ref=e878] [cursor=pointer]: View
+              - button "Edit Keyboard Test 1770681579840" [ref=e879] [cursor=pointer]: Edit
+              - button "Show sections for Keyboard Test 1770681579840" [ref=e880] [cursor=pointer]: ▶ Manage Sections
+              - button "Delete Keyboard Test 1770681579840" [ref=e881] [cursor=pointer]: Delete
+          - generic [ref=e883]:
+            - generic [ref=e884]:
+              - generic [ref=e885]:
+                - generic [ref=e886]: Reference Test 1770681563943
+                - code [ref=e887]: /reference-test-1770681563943
+              - 'status "Status: Draft" [ref=e889]': Draft
+            - generic [ref=e890]:
+              - button "View Reference Test 1770681563943 as guest" [ref=e891] [cursor=pointer]: View
+              - button "Edit Reference Test 1770681563943" [ref=e892] [cursor=pointer]: Edit
+              - button "Show sections for Reference Test 1770681563943" [ref=e893] [cursor=pointer]: ▶ Manage Sections
+              - button "Delete Reference Test 1770681563943" [ref=e894] [cursor=pointer]: Delete
+          - generic [ref=e896]:
+            - generic [ref=e897]:
+              - generic [ref=e898]:
+                - generic [ref=e899]: Section Test 1770681525197
+                - code [ref=e900]: /section-test-1770681525197
+              - 'status "Status: Draft" [ref=e902]': Draft
+            - generic [ref=e903]:
+              - button "View Section Test 1770681525197 as guest" [ref=e904] [cursor=pointer]: View
+              - button "Edit Section Test 1770681525197" [ref=e905] [cursor=pointer]: Edit
+              - button "Show sections for Section Test 1770681525197" [ref=e906] [cursor=pointer]: ▶ Manage Sections
+              - button "Delete Section Test 1770681525197" [ref=e907] [cursor=pointer]: Delete
+          - generic [ref=e909]:
+            - generic [ref=e910]:
+              - generic [ref=e911]:
+                - generic [ref=e912]: Event Reference Test 1770678999433
+                - code [ref=e913]: /event-reference-test-1770678999433
+              - 'status "Status: Draft" [ref=e915]': Draft
+            - generic [ref=e916]:
+              - button "View Event Reference Test 1770678999433 as guest" [ref=e917] [cursor=pointer]: View
+              - button "Edit Event Reference Test 1770678999433" [ref=e918] [cursor=pointer]: Edit
+              - button "Show sections for Event Reference Test 1770678999433" [ref=e919] [cursor=pointer]: ▶ Manage Sections
+              - button "Delete Event Reference Test 1770678999433" [ref=e920] [cursor=pointer]: Delete
+          - generic [ref=e922]:
+            - generic [ref=e923]:
+              - generic [ref=e924]:
+                - generic [ref=e925]: Reference Test 1770678996989
+                - code [ref=e926]: /reference-test-1770678996989
+              - 'status "Status: Draft" [ref=e928]': Draft
+            - generic [ref=e929]:
+              - button "View Reference Test 1770678996989 as guest" [ref=e930] [cursor=pointer]: View
+              - button "Edit Reference Test 1770678996989" [ref=e931] [cursor=pointer]: Edit
+              - button "Show sections for Reference Test 1770678996989" [ref=e932] [cursor=pointer]: ▶ Manage Sections
+              - button "Delete Reference Test 1770678996989" [ref=e933] [cursor=pointer]: Delete
+          - generic [ref=e935]:
+            - generic [ref=e936]:
+              - generic [ref=e937]:
+                - generic [ref=e938]: Section Test 1770678957322
+                - code [ref=e939]: /section-test-1770678957322
+              - 'status "Status: Draft" [ref=e941]': Draft
+            - generic [ref=e942]:
+              - button "View Section Test 1770678957322 as guest" [ref=e943] [cursor=pointer]: View
+              - button "Edit Section Test 1770678957322" [ref=e944] [cursor=pointer]: Edit
+              - button "Show sections for Section Test 1770678957322" [ref=e945] [cursor=pointer]: ▶ Manage Sections
+              - button "Delete Section Test 1770678957322" [ref=e946] [cursor=pointer]: Delete
+          - generic [ref=e948]:
+            - generic [ref=e949]:
+              - generic [ref=e950]:
+                - generic [ref=e951]: Keyboard Test 1770672698250
+                - code [ref=e952]: /keyboard-test-1770672698250
+              - 'status "Status: Draft" [ref=e954]': Draft
+            - generic [ref=e955]:
+              - button "View Keyboard Test 1770672698250 as guest" [ref=e956] [cursor=pointer]: View
+              - button "Edit Keyboard Test 1770672698250" [ref=e957] [cursor=pointer]: Edit
+              - button "Show sections for Keyboard Test 1770672698250" [ref=e958] [cursor=pointer]: ▶ Manage Sections
+              - button "Delete Keyboard Test 1770672698250" [ref=e959] [cursor=pointer]: Delete
+          - generic [ref=e961]:
+            - generic [ref=e962]:
+              - generic [ref=e963]:
+                - generic [ref=e964]: Event Reference Test 1770672696159
+                - code [ref=e965]: /event-reference-test-1770672696159
+              - 'status "Status: Draft" [ref=e967]': Draft
+            - generic [ref=e968]:
+              - button "View Event Reference Test 1770672696159 as guest" [ref=e969] [cursor=pointer]: View
+              - button "Edit Event Reference Test 1770672696159" [ref=e970] [cursor=pointer]: Edit
+              - button "Show sections for Event Reference Test 1770672696159" [ref=e971] [cursor=pointer]: ▶ Manage Sections
+              - button "Delete Event Reference Test 1770672696159" [ref=e972] [cursor=pointer]: Delete
+          - generic [ref=e974]:
+            - generic [ref=e975]:
+              - generic [ref=e976]:
+                - generic [ref=e977]: Reference Test 1770672693194
+                - code [ref=e978]: /reference-test-1770672693194
+              - 'status "Status: Draft" [ref=e980]': Draft
+            - generic [ref=e981]:
+              - button "View Reference Test 1770672693194 as guest" [ref=e982] [cursor=pointer]: View
+              - button "Edit Reference Test 1770672693194" [ref=e983] [cursor=pointer]: Edit
+              - button "Show sections for Reference Test 1770672693194" [ref=e984] [cursor=pointer]: ▶ Manage Sections
+              - button "Delete Reference Test 1770672693194" [ref=e985] [cursor=pointer]: Delete
+          - generic [ref=e987]:
+            - generic [ref=e988]:
+              - generic [ref=e989]:
+                - generic [ref=e990]: Section Test 1770672663595
+                - code [ref=e991]: /section-test-1770672663595
+              - 'status "Status: Draft" [ref=e993]': Draft
+            - generic [ref=e994]:
+              - button "View Section Test 1770672663595 as guest" [ref=e995] [cursor=pointer]: View
+              - button "Edit Section Test 1770672663595" [ref=e996] [cursor=pointer]: Edit
+              - button "Show sections for Section Test 1770672663595" [ref=e997] [cursor=pointer]: ▶ Manage Sections
+              - button "Delete Section Test 1770672663595" [ref=e998] [cursor=pointer]: Delete
+          - generic [ref=e1000]:
+            - generic [ref=e1001]:
+              - generic [ref=e1002]:
+                - generic [ref=e1003]: Event Reference Test 1770672520603
+                - code [ref=e1004]: /event-reference-test-1770672520603
+              - 'status "Status: Draft" [ref=e1006]': Draft
+            - generic [ref=e1007]:
+              - button "View Event Reference Test 1770672520603 as guest" [ref=e1008] [cursor=pointer]: View
+              - button "Edit Event Reference Test 1770672520603" [ref=e1009] [cursor=pointer]: Edit
+              - button "Show sections for Event Reference Test 1770672520603" [ref=e1010] [cursor=pointer]: ▶ Manage Sections
+              - button "Delete Event Reference Test 1770672520603" [ref=e1011] [cursor=pointer]: Delete
+          - generic [ref=e1013]:
+            - generic [ref=e1014]:
+              - generic [ref=e1015]:
+                - generic [ref=e1016]: Section Test 1770672492717
+                - code [ref=e1017]: /section-test-1770672492717
+              - 'status "Status: Draft" [ref=e1019]': Draft
+            - generic [ref=e1020]:
+              - button "View Section Test 1770672492717 as guest" [ref=e1021] [cursor=pointer]: View
+              - button "Edit Section Test 1770672492717" [ref=e1022] [cursor=pointer]: Edit
+              - button "Show sections for Section Test 1770672492717" [ref=e1023] [cursor=pointer]: ▶ Manage Sections
+              - button "Delete Section Test 1770672492717" [ref=e1024] [cursor=pointer]: Delete
+          - generic [ref=e1026]:
+            - generic [ref=e1027]:
+              - generic [ref=e1028]:
+                - generic [ref=e1029]: Event Reference Test 1770672461014
+                - code [ref=e1030]: /event-reference-test-1770672461014
+              - 'status "Status: Draft" [ref=e1032]': Draft
+            - generic [ref=e1033]:
+              - button "View Event Reference Test 1770672461014 as guest" [ref=e1034] [cursor=pointer]: View
+              - button "Edit Event Reference Test 1770672461014" [ref=e1035] [cursor=pointer]: Edit
+              - button "Show sections for Event Reference Test 1770672461014" [ref=e1036] [cursor=pointer]: ▶ Manage Sections
+              - button "Delete Event Reference Test 1770672461014" [ref=e1037] [cursor=pointer]: Delete
+          - generic [ref=e1039]:
+            - generic [ref=e1040]:
+              - generic [ref=e1041]:
+                - generic [ref=e1042]: Event Reference Test 1770672414755
+                - code [ref=e1043]: /event-reference-test-1770672414755
+              - 'status "Status: Draft" [ref=e1045]': Draft
+            - generic [ref=e1046]:
+              - button "View Event Reference Test 1770672414755 as guest" [ref=e1047] [cursor=pointer]: View
+              - button "Edit Event Reference Test 1770672414755" [ref=e1048] [cursor=pointer]: Edit
+              - button "Show sections for Event Reference Test 1770672414755" [ref=e1049] [cursor=pointer]: ▶ Manage Sections
+              - button "Delete Event Reference Test 1770672414755" [ref=e1050] [cursor=pointer]: Delete
+          - generic [ref=e1052]:
+            - generic [ref=e1053]:
+              - generic [ref=e1054]:
+                - generic [ref=e1055]: Keyboard Test 1770672412491
+                - code [ref=e1056]: /keyboard-test-1770672412491
+              - 'status "Status: Draft" [ref=e1058]': Draft
+            - generic [ref=e1059]:
+              - button "View Keyboard Test 1770672412491 as guest" [ref=e1060] [cursor=pointer]: View
+              - button "Edit Keyboard Test 1770672412491" [ref=e1061] [cursor=pointer]: Edit
+              - button "Show sections for Keyboard Test 1770672412491" [ref=e1062] [cursor=pointer]: ▶ Manage Sections
+              - button "Delete Keyboard Test 1770672412491" [ref=e1063] [cursor=pointer]: Delete
+          - generic [ref=e1065]:
+            - generic [ref=e1066]:
+              - generic [ref=e1067]:
+                - generic [ref=e1068]: Section Test 1770672382987
+                - code [ref=e1069]: /section-test-1770672382987
+              - 'status "Status: Draft" [ref=e1071]': Draft
+            - generic [ref=e1072]:
+              - button "View Section Test 1770672382987 as guest" [ref=e1073] [cursor=pointer]: View
+              - button "Edit Section Test 1770672382987" [ref=e1074] [cursor=pointer]: Edit
+              - button "Show sections for Section Test 1770672382987" [ref=e1075] [cursor=pointer]: ▶ Manage Sections
+              - button "Delete Section Test 1770672382987" [ref=e1076] [cursor=pointer]: Delete
+          - generic [ref=e1078]:
+            - generic [ref=e1079]:
+              - generic [ref=e1080]:
+                - generic [ref=e1081]: Event Reference Test 1770672357260
+                - code [ref=e1082]: /event-reference-test-1770672357260
+              - 'status "Status: Draft" [ref=e1084]': Draft
+            - generic [ref=e1085]:
+              - button "View Event Reference Test 1770672357260 as guest" [ref=e1086] [cursor=pointer]: View
+              - button "Edit Event Reference Test 1770672357260" [ref=e1087] [cursor=pointer]: Edit
+              - button "Show sections for Event Reference Test 1770672357260" [ref=e1088] [cursor=pointer]: ▶ Manage Sections
+              - button "Delete Event Reference Test 1770672357260" [ref=e1089] [cursor=pointer]: Delete
+          - generic [ref=e1091]:
+            - generic [ref=e1092]:
+              - generic [ref=e1093]:
+                - generic [ref=e1094]: Keyboard Test 1770672356547
+                - code [ref=e1095]: /keyboard-test-1770672356547
+              - 'status "Status: Draft" [ref=e1097]': Draft
+            - generic [ref=e1098]:
+              - button "View Keyboard Test 1770672356547 as guest" [ref=e1099] [cursor=pointer]: View
+              - button "Edit Keyboard Test 1770672356547" [ref=e1100] [cursor=pointer]: Edit
+              - button "Show sections for Keyboard Test 1770672356547" [ref=e1101] [cursor=pointer]: ▶ Manage Sections
+              - button "Delete Keyboard Test 1770672356547" [ref=e1102] [cursor=pointer]: Delete
+          - generic [ref=e1104]:
+            - generic [ref=e1105]:
+              - generic [ref=e1106]:
+                - generic [ref=e1107]: Reference Test 1770672351799
+                - code [ref=e1108]: /reference-test-1770672351799
+              - 'status "Status: Draft" [ref=e1110]': Draft
+            - generic [ref=e1111]:
+              - button "View Reference Test 1770672351799 as guest" [ref=e1112] [cursor=pointer]: View
+              - button "Edit Reference Test 1770672351799" [ref=e1113] [cursor=pointer]: Edit
+              - button "Show sections for Reference Test 1770672351799" [ref=e1114] [cursor=pointer]: ▶ Manage Sections
+              - button "Delete Reference Test 1770672351799" [ref=e1115] [cursor=pointer]: Delete
+          - generic [ref=e1117]:
+            - generic [ref=e1118]:
+              - generic [ref=e1119]:
+                - generic [ref=e1120]: Section Test 1770672327738
+                - code [ref=e1121]: /section-test-1770672327738
+              - 'status "Status: Draft" [ref=e1123]': Draft
+            - generic [ref=e1124]:
+              - button "View Section Test 1770672327738 as guest" [ref=e1125] [cursor=pointer]: View
+              - button "Edit Section Test 1770672327738" [ref=e1126] [cursor=pointer]: Edit
+              - button "Show sections for Section Test 1770672327738" [ref=e1127] [cursor=pointer]: ▶ Manage Sections
+              - button "Delete Section Test 1770672327738" [ref=e1128] [cursor=pointer]: Delete
+          - generic [ref=e1130]:
+            - generic [ref=e1131]:
+              - generic [ref=e1132]:
+                - generic [ref=e1133]: Event Reference Test 1770672284649
+                - code [ref=e1134]: /event-reference-test-1770672284649
+              - 'status "Status: Draft" [ref=e1136]': Draft
+            - generic [ref=e1137]:
+              - button "View Event Reference Test 1770672284649 as guest" [ref=e1138] [cursor=pointer]: View
+              - button "Edit Event Reference Test 1770672284649" [ref=e1139] [cursor=pointer]: Edit
+              - button "Show sections for Event Reference Test 1770672284649" [ref=e1140] [cursor=pointer]: ▶ Manage Sections
+              - button "Delete Event Reference Test 1770672284649" [ref=e1141] [cursor=pointer]: Delete
+          - generic [ref=e1143]:
+            - generic [ref=e1144]:
+              - generic [ref=e1145]:
+                - generic [ref=e1146]: Keyboard Test 1770672270047
+                - code [ref=e1147]: /keyboard-test-1770672270047
+              - 'status "Status: Draft" [ref=e1149]': Draft
+            - generic [ref=e1150]:
+              - button "View Keyboard Test 1770672270047 as guest" [ref=e1151] [cursor=pointer]: View
+              - button "Edit Keyboard Test 1770672270047" [ref=e1152] [cursor=pointer]: Edit
+              - button "Show sections for Keyboard Test 1770672270047" [ref=e1153] [cursor=pointer]: ▶ Manage Sections
+              - button "Delete Keyboard Test 1770672270047" [ref=e1154] [cursor=pointer]: Delete
+          - generic [ref=e1156]:
+            - generic [ref=e1157]:
+              - generic [ref=e1158]:
+                - generic [ref=e1159]: Event Reference Test 1770672266057
+                - code [ref=e1160]: /event-reference-test-1770672266057
+              - 'status "Status: Draft" [ref=e1162]': Draft
+            - generic [ref=e1163]:
+              - button "View Event Reference Test 1770672266057 as guest" [ref=e1164] [cursor=pointer]: View
+              - button "Edit Event Reference Test 1770672266057" [ref=e1165] [cursor=pointer]: Edit
+              - button "Show sections for Event Reference Test 1770672266057" [ref=e1166] [cursor=pointer]: ▶ Manage Sections
+              - button "Delete Event Reference Test 1770672266057" [ref=e1167] [cursor=pointer]: Delete
+          - generic [ref=e1169]:
+            - generic [ref=e1170]:
+              - generic [ref=e1171]:
+                - generic [ref=e1172]: Reference Test 1770672262637
+                - code [ref=e1173]: /reference-test-1770672262637
+              - 'status "Status: Draft" [ref=e1175]': Draft
+            - generic [ref=e1176]:
+              - button "View Reference Test 1770672262637 as guest" [ref=e1177] [cursor=pointer]: View
+              - button "Edit Reference Test 1770672262637" [ref=e1178] [cursor=pointer]: Edit
+              - button "Show sections for Reference Test 1770672262637" [ref=e1179] [cursor=pointer]: ▶ Manage Sections
+              - button "Delete Reference Test 1770672262637" [ref=e1180] [cursor=pointer]: Delete
+          - generic [ref=e1182]:
+            - generic [ref=e1183]:
+              - generic [ref=e1184]:
+                - generic [ref=e1185]: Section Test 1770672236915
+                - code [ref=e1186]: /section-test-1770672236915
+              - 'status "Status: Draft" [ref=e1188]': Draft
+            - generic [ref=e1189]:
+              - button "View Section Test 1770672236915 as guest" [ref=e1190] [cursor=pointer]: View
+              - button "Edit Section Test 1770672236915" [ref=e1191] [cursor=pointer]: Edit
+              - button "Show sections for Section Test 1770672236915" [ref=e1192] [cursor=pointer]: ▶ Manage Sections
+              - button "Delete Section Test 1770672236915" [ref=e1193] [cursor=pointer]: Delete
+          - generic [ref=e1195]:
+            - generic [ref=e1196]:
+              - generic [ref=e1197]:
+                - generic [ref=e1198]: Keyboard Test 1770672205957
+                - code [ref=e1199]: /keyboard-test-1770672205957
+              - 'status "Status: Draft" [ref=e1201]': Draft
+            - generic [ref=e1202]:
+              - button "View Keyboard Test 1770672205957 as guest" [ref=e1203] [cursor=pointer]: View
+              - button "Edit Keyboard Test 1770672205957" [ref=e1204] [cursor=pointer]: Edit
+              - button "Show sections for Keyboard Test 1770672205957" [ref=e1205] [cursor=pointer]: ▶ Manage Sections
+              - button "Delete Keyboard Test 1770672205957" [ref=e1206] [cursor=pointer]: Delete
+          - generic [ref=e1208]:
+            - generic [ref=e1209]:
+              - generic [ref=e1210]:
+                - generic [ref=e1211]: Event Reference Test 1770672205482
+                - code [ref=e1212]: /event-reference-test-1770672205482
+              - 'status "Status: Draft" [ref=e1214]': Draft
+            - generic [ref=e1215]:
+              - button "View Event Reference Test 1770672205482 as guest" [ref=e1216] [cursor=pointer]: View
+              - button "Edit Event Reference Test 1770672205482" [ref=e1217] [cursor=pointer]: Edit
+              - button "Show sections for Event Reference Test 1770672205482" [ref=e1218] [cursor=pointer]: ▶ Manage Sections
+              - button "Delete Event Reference Test 1770672205482" [ref=e1219] [cursor=pointer]: Delete
+          - generic [ref=e1221]:
+            - generic [ref=e1222]:
+              - generic [ref=e1223]:
+                - generic [ref=e1224]: Reference Test 1770672200588
+                - code [ref=e1225]: /reference-test-1770672200588
+              - 'status "Status: Draft" [ref=e1227]': Draft
+            - generic [ref=e1228]:
+              - button "View Reference Test 1770672200588 as guest" [ref=e1229] [cursor=pointer]: View
+              - button "Edit Reference Test 1770672200588" [ref=e1230] [cursor=pointer]: Edit
+              - button "Show sections for Reference Test 1770672200588" [ref=e1231] [cursor=pointer]: ▶ Manage Sections
+              - button "Delete Reference Test 1770672200588" [ref=e1232] [cursor=pointer]: Delete
+          - generic [ref=e1234]:
+            - generic [ref=e1235]:
+              - generic [ref=e1236]:
+                - generic [ref=e1237]: Section Test 1770672177241
+                - code [ref=e1238]: /section-test-1770672177241
+              - 'status "Status: Draft" [ref=e1240]': Draft
+            - generic [ref=e1241]:
+              - button "View Section Test 1770672177241 as guest" [ref=e1242] [cursor=pointer]: View
+              - button "Edit Section Test 1770672177241" [ref=e1243] [cursor=pointer]: Edit
+              - button "Show sections for Section Test 1770672177241" [ref=e1244] [cursor=pointer]: ▶ Manage Sections
+              - button "Delete Section Test 1770672177241" [ref=e1245] [cursor=pointer]: Delete
+          - generic [ref=e1247]:
+            - generic [ref=e1248]:
+              - generic [ref=e1249]:
+                - generic [ref=e1250]: Keyboard Test 1770672024951
+                - code [ref=e1251]: /keyboard-test-1770672024951
+              - 'status "Status: Draft" [ref=e1253]': Draft
+            - generic [ref=e1254]:
+              - button "View Keyboard Test 1770672024951 as guest" [ref=e1255] [cursor=pointer]: View
+              - button "Edit Keyboard Test 1770672024951" [ref=e1256] [cursor=pointer]: Edit
+              - button "Show sections for Keyboard Test 1770672024951" [ref=e1257] [cursor=pointer]: ▶ Manage Sections
+              - button "Delete Keyboard Test 1770672024951" [ref=e1258] [cursor=pointer]: Delete
+          - generic [ref=e1260]:
+            - generic [ref=e1261]:
+              - generic [ref=e1262]:
+                - generic [ref=e1263]: Reference Test 1770672016234
+                - code [ref=e1264]: /reference-test-1770672016234
+              - 'status "Status: Draft" [ref=e1266]': Draft
+            - generic [ref=e1267]:
+              - button "View Reference Test 1770672016234 as guest" [ref=e1268] [cursor=pointer]: View
+              - button "Edit Reference Test 1770672016234" [ref=e1269] [cursor=pointer]: Edit
+              - button "Show sections for Reference Test 1770672016234" [ref=e1270] [cursor=pointer]: ▶ Manage Sections
+              - button "Delete Reference Test 1770672016234" [ref=e1271] [cursor=pointer]: Delete
+          - generic [ref=e1273]:
+            - generic [ref=e1274]:
+              - generic [ref=e1275]:
+                - generic [ref=e1276]: Section Test 1770671988055
+                - code [ref=e1277]: /section-test-1770671988055
+              - 'status "Status: Draft" [ref=e1279]': Draft
+            - generic [ref=e1280]:
+              - button "View Section Test 1770671988055 as guest" [ref=e1281] [cursor=pointer]: View
+              - button "Edit Section Test 1770671988055" [ref=e1282] [cursor=pointer]: Edit
+              - button "Show sections for Section Test 1770671988055" [ref=e1283] [cursor=pointer]: ▶ Manage Sections
+              - button "Delete Section Test 1770671988055" [ref=e1284] [cursor=pointer]: Delete
+          - generic [ref=e1286]:
+            - generic [ref=e1287]:
+              - generic [ref=e1288]:
+                - generic [ref=e1289]: Reference Test 1770671930227
+                - code [ref=e1290]: /reference-test-1770671930227
+              - 'status "Status: Draft" [ref=e1292]': Draft
+            - generic [ref=e1293]:
+              - button "View Reference Test 1770671930227 as guest" [ref=e1294] [cursor=pointer]: View
+              - button "Edit Reference Test 1770671930227" [ref=e1295] [cursor=pointer]: Edit
+              - button "Show sections for Reference Test 1770671930227" [ref=e1296] [cursor=pointer]: ▶ Manage Sections
+              - button "Delete Reference Test 1770671930227" [ref=e1297] [cursor=pointer]: Delete
+          - generic [ref=e1299]:
+            - generic [ref=e1300]:
+              - generic [ref=e1301]:
+                - generic [ref=e1302]: Keyboard Test 1770671910464
+                - code [ref=e1303]: /keyboard-test-1770671910464
+              - 'status "Status: Draft" [ref=e1305]': Draft
+            - generic [ref=e1306]:
+              - button "View Keyboard Test 1770671910464 as guest" [ref=e1307] [cursor=pointer]: View
+              - button "Edit Keyboard Test 1770671910464" [ref=e1308] [cursor=pointer]: Edit
+              - button "Show sections for Keyboard Test 1770671910464" [ref=e1309] [cursor=pointer]: ▶ Manage Sections
+              - button "Delete Keyboard Test 1770671910464" [ref=e1310] [cursor=pointer]: Delete
+          - generic [ref=e1312]:
+            - generic [ref=e1313]:
+              - generic [ref=e1314]:
+                - generic [ref=e1315]: Section Test 1770671878114
+                - code [ref=e1316]: /section-test-1770671878114
+              - 'status "Status: Draft" [ref=e1318]': Draft
+            - generic [ref=e1319]:
+              - button "View Section Test 1770671878114 as guest" [ref=e1320] [cursor=pointer]: View
+              - button "Edit Section Test 1770671878114" [ref=e1321] [cursor=pointer]: Edit
+              - button "Show sections for Section Test 1770671878114" [ref=e1322] [cursor=pointer]: ▶ Manage Sections
+              - button "Delete Section Test 1770671878114" [ref=e1323] [cursor=pointer]: Delete
+          - generic [ref=e1325]:
+            - generic [ref=e1326]:
+              - generic [ref=e1327]:
+                - generic [ref=e1328]: Keyboard Test 1770671642610
+                - code [ref=e1329]: /keyboard-test-1770671642610
+              - 'status "Status: Draft" [ref=e1331]': Draft
+            - generic [ref=e1332]:
+              - button "View Keyboard Test 1770671642610 as guest" [ref=e1333] [cursor=pointer]: View
+              - button "Edit Keyboard Test 1770671642610" [ref=e1334] [cursor=pointer]: Edit
+              - button "Show sections for Keyboard Test 1770671642610" [ref=e1335] [cursor=pointer]: ▶ Manage Sections
+              - button "Delete Keyboard Test 1770671642610" [ref=e1336] [cursor=pointer]: Delete
+          - generic [ref=e1338]:
+            - generic [ref=e1339]:
+              - generic [ref=e1340]:
+                - generic [ref=e1341]: Reference Test 1770671631070
+                - code [ref=e1342]: /reference-test-1770671631070
+              - 'status "Status: Draft" [ref=e1344]': Draft
+            - generic [ref=e1345]:
+              - button "View Reference Test 1770671631070 as guest" [ref=e1346] [cursor=pointer]: View
+              - button "Edit Reference Test 1770671631070" [ref=e1347] [cursor=pointer]: Edit
+              - button "Show sections for Reference Test 1770671631070" [ref=e1348] [cursor=pointer]: ▶ Manage Sections
+              - button "Delete Reference Test 1770671631070" [ref=e1349] [cursor=pointer]: Delete
+          - generic [ref=e1351]:
+            - generic [ref=e1352]:
+              - generic [ref=e1353]:
+                - generic [ref=e1354]: Section Test 1770671597182
+                - code [ref=e1355]: /section-test-1770671597182
+              - 'status "Status: Draft" [ref=e1357]': Draft
+            - generic [ref=e1358]:
+              - button "View Section Test 1770671597182 as guest" [ref=e1359] [cursor=pointer]: View
+              - button "Edit Section Test 1770671597182" [ref=e1360] [cursor=pointer]: Edit
+              - button "Show sections for Section Test 1770671597182" [ref=e1361] [cursor=pointer]: ▶ Manage Sections
+              - button "Delete Section Test 1770671597182" [ref=e1362] [cursor=pointer]: Delete
+          - generic [ref=e1364]:
+            - generic [ref=e1365]:
+              - generic [ref=e1366]:
+                - generic [ref=e1367]: Reference Test 1770671513603
+                - code [ref=e1368]: /reference-test-1770671513603
+              - 'status "Status: Draft" [ref=e1370]': Draft
+            - generic [ref=e1371]:
+              - button "View Reference Test 1770671513603 as guest" [ref=e1372] [cursor=pointer]: View
+              - button "Edit Reference Test 1770671513603" [ref=e1373] [cursor=pointer]: Edit
+              - button "Show sections for Reference Test 1770671513603" [ref=e1374] [cursor=pointer]: ▶ Manage Sections
+              - button "Delete Reference Test 1770671513603" [ref=e1375] [cursor=pointer]: Delete
+          - generic [ref=e1377]:
+            - generic [ref=e1378]:
+              - generic [ref=e1379]:
+                - generic [ref=e1380]: Keyboard Test 1770671505315
+                - code [ref=e1381]: /keyboard-test-1770671505315
+              - 'status "Status: Draft" [ref=e1383]': Draft
+            - generic [ref=e1384]:
+              - button "View Keyboard Test 1770671505315 as guest" [ref=e1385] [cursor=pointer]: View
+              - button "Edit Keyboard Test 1770671505315" [ref=e1386] [cursor=pointer]: Edit
+              - button "Show sections for Keyboard Test 1770671505315" [ref=e1387] [cursor=pointer]: ▶ Manage Sections
+              - button "Delete Keyboard Test 1770671505315" [ref=e1388] [cursor=pointer]: Delete
+          - generic [ref=e1390]:
+            - generic [ref=e1391]:
+              - generic [ref=e1392]:
+                - generic [ref=e1393]: Section Test 1770671452371
+                - code [ref=e1394]: /section-test-1770671452371
+              - 'status "Status: Draft" [ref=e1396]': Draft
+            - generic [ref=e1397]:
+              - button "View Section Test 1770671452371 as guest" [ref=e1398] [cursor=pointer]: View
+              - button "Edit Section Test 1770671452371" [ref=e1399] [cursor=pointer]: Edit
+              - button "Show sections for Section Test 1770671452371" [ref=e1400] [cursor=pointer]: ▶ Manage Sections
+              - button "Delete Section Test 1770671452371" [ref=e1401] [cursor=pointer]: Delete
+          - generic [ref=e1403]:
+            - generic [ref=e1404]:
+              - generic [ref=e1405]:
+                - generic [ref=e1406]: Keyboard Test 1770671400627
+                - code [ref=e1407]: /keyboard-test-1770671400627
+              - 'status "Status: Draft" [ref=e1409]': Draft
+            - generic [ref=e1410]:
+              - button "View Keyboard Test 1770671400627 as guest" [ref=e1411] [cursor=pointer]: View
+              - button "Edit Keyboard Test 1770671400627" [ref=e1412] [cursor=pointer]: Edit
+              - button "Show sections for Keyboard Test 1770671400627" [ref=e1413] [cursor=pointer]: ▶ Manage Sections
+              - button "Delete Keyboard Test 1770671400627" [ref=e1414] [cursor=pointer]: Delete
+          - generic [ref=e1416]:
+            - generic [ref=e1417]:
+              - generic [ref=e1418]:
+                - generic [ref=e1419]: Reference Test 1770671395152
+                - code [ref=e1420]: /reference-test-1770671395152
+              - 'status "Status: Draft" [ref=e1422]': Draft
+            - generic [ref=e1423]:
+              - button "View Reference Test 1770671395152 as guest" [ref=e1424] [cursor=pointer]: View
+              - button "Edit Reference Test 1770671395152" [ref=e1425] [cursor=pointer]: Edit
+              - button "Show sections for Reference Test 1770671395152" [ref=e1426] [cursor=pointer]: ▶ Manage Sections
+              - button "Delete Reference Test 1770671395152" [ref=e1427] [cursor=pointer]: Delete
+          - generic [ref=e1429]:
+            - generic [ref=e1430]:
+              - generic [ref=e1431]:
+                - generic [ref=e1432]: Section Test 1770671366933
+                - code [ref=e1433]: /section-test-1770671366933
+              - 'status "Status: Draft" [ref=e1435]': Draft
+            - generic [ref=e1436]:
+              - button "View Section Test 1770671366933 as guest" [ref=e1437] [cursor=pointer]: View
+              - button "Edit Section Test 1770671366933" [ref=e1438] [cursor=pointer]: Edit
+              - button "Show sections for Section Test 1770671366933" [ref=e1439] [cursor=pointer]: ▶ Manage Sections
+              - button "Delete Section Test 1770671366933" [ref=e1440] [cursor=pointer]: Delete
+          - generic [ref=e1442]:
+            - generic [ref=e1443]:
+              - generic [ref=e1444]:
+                - generic [ref=e1445]: Section Test 1770671335264
+                - code [ref=e1446]: /section-test-1770671335264
+              - 'status "Status: Draft" [ref=e1448]': Draft
+            - generic [ref=e1449]:
+              - button "View Section Test 1770671335264 as guest" [ref=e1450] [cursor=pointer]: View
+              - button "Edit Section Test 1770671335264" [ref=e1451] [cursor=pointer]: Edit
+              - button "Show sections for Section Test 1770671335264" [ref=e1452] [cursor=pointer]: ▶ Manage Sections
+              - button "Delete Section Test 1770671335264" [ref=e1453] [cursor=pointer]: Delete
+          - generic [ref=e1455]:
+            - generic [ref=e1456]:
+              - generic [ref=e1457]:
+                - generic [ref=e1458]: Keyboard Test 1770668397845
+                - code [ref=e1459]: /keyboard-test-1770668397845
+              - 'status "Status: Draft" [ref=e1461]': Draft
+            - generic [ref=e1462]:
+              - button "View Keyboard Test 1770668397845 as guest" [ref=e1463] [cursor=pointer]: View
+              - button "Edit Keyboard Test 1770668397845" [ref=e1464] [cursor=pointer]: Edit
+              - button "Show sections for Keyboard Test 1770668397845" [ref=e1465] [cursor=pointer]: ▶ Manage Sections
+              - button "Delete Keyboard Test 1770668397845" [ref=e1466] [cursor=pointer]: Delete
+          - generic [ref=e1468]:
+            - generic [ref=e1469]:
+              - generic [ref=e1470]:
+                - generic [ref=e1471]: Reference Test 1770668393245
+                - code [ref=e1472]: /reference-test-1770668393245
+              - 'status "Status: Draft" [ref=e1474]': Draft
+            - generic [ref=e1475]:
+              - button "View Reference Test 1770668393245 as guest" [ref=e1476] [cursor=pointer]: View
+              - button "Edit Reference Test 1770668393245" [ref=e1477] [cursor=pointer]: Edit
+              - button "Show sections for Reference Test 1770668393245" [ref=e1478] [cursor=pointer]: ▶ Manage Sections
+              - button "Delete Reference Test 1770668393245" [ref=e1479] [cursor=pointer]: Delete
+          - generic [ref=e1481]:
+            - generic [ref=e1482]:
+              - generic [ref=e1483]:
+                - generic [ref=e1484]: Section Test 1770668371036
+                - code [ref=e1485]: /section-test-1770668371036
+              - 'status "Status: Draft" [ref=e1487]': Draft
+            - generic [ref=e1488]:
+              - button "View Section Test 1770668371036 as guest" [ref=e1489] [cursor=pointer]: View
+              - button "Edit Section Test 1770668371036" [ref=e1490] [cursor=pointer]: Edit
+              - button "Show sections for Section Test 1770668371036" [ref=e1491] [cursor=pointer]: ▶ Manage Sections
+              - button "Delete Section Test 1770668371036" [ref=e1492] [cursor=pointer]: Delete
+          - generic [ref=e1494]:
+            - generic [ref=e1495]:
+              - generic [ref=e1496]:
+                - generic [ref=e1497]: Keyboard Test 1770668201937
+                - code [ref=e1498]: /keyboard-test-1770668201937
+              - 'status "Status: Draft" [ref=e1500]': Draft
+            - generic [ref=e1501]:
+              - button "View Keyboard Test 1770668201937 as guest" [ref=e1502] [cursor=pointer]: View
+              - button "Edit Keyboard Test 1770668201937" [ref=e1503] [cursor=pointer]: Edit
+              - button "Show sections for Keyboard Test 1770668201937" [ref=e1504] [cursor=pointer]: ▶ Manage Sections
+              - button "Delete Keyboard Test 1770668201937" [ref=e1505] [cursor=pointer]: Delete
+          - generic [ref=e1507]:
+            - generic [ref=e1508]:
+              - generic [ref=e1509]:
+                - generic [ref=e1510]: Reference Test 1770668195229
+                - code [ref=e1511]: /reference-test-1770668195229
+              - 'status "Status: Draft" [ref=e1513]': Draft
+            - generic [ref=e1514]:
+              - button "View Reference Test 1770668195229 as guest" [ref=e1515] [cursor=pointer]: View
+              - button "Edit Reference Test 1770668195229" [ref=e1516] [cursor=pointer]: Edit
+              - button "Show sections for Reference Test 1770668195229" [ref=e1517] [cursor=pointer]: ▶ Manage Sections
+              - button "Delete Reference Test 1770668195229" [ref=e1518] [cursor=pointer]: Delete
+          - generic [ref=e1520]:
+            - generic [ref=e1521]:
+              - generic [ref=e1522]:
+                - generic [ref=e1523]: Section Test 1770668164309
+                - code [ref=e1524]: /section-test-1770668164309
+              - 'status "Status: Draft" [ref=e1526]': Draft
+            - generic [ref=e1527]:
+              - button "View Section Test 1770668164309 as guest" [ref=e1528] [cursor=pointer]: View
+              - button "Edit Section Test 1770668164309" [ref=e1529] [cursor=pointer]: Edit
+              - button "Show sections for Section Test 1770668164309" [ref=e1530] [cursor=pointer]: ▶ Manage Sections
+              - button "Delete Section Test 1770668164309" [ref=e1531] [cursor=pointer]: Delete
+          - generic [ref=e1533]:
+            - generic [ref=e1534]:
+              - generic [ref=e1535]:
+                - generic [ref=e1536]: Keyboard Test 1770668059785
+                - code [ref=e1537]: /keyboard-test-1770668059785
+              - 'status "Status: Draft" [ref=e1539]': Draft
+            - generic [ref=e1540]:
+              - button "View Keyboard Test 1770668059785 as guest" [ref=e1541] [cursor=pointer]: View
+              - button "Edit Keyboard Test 1770668059785" [ref=e1542] [cursor=pointer]: Edit
+              - button "Show sections for Keyboard Test 1770668059785" [ref=e1543] [cursor=pointer]: ▶ Manage Sections
+              - button "Delete Keyboard Test 1770668059785" [ref=e1544] [cursor=pointer]: Delete
+          - generic [ref=e1546]:
+            - generic [ref=e1547]:
+              - generic [ref=e1548]:
+                - generic [ref=e1549]: Reference Test 1770668055938
+                - code [ref=e1550]: /reference-test-1770668055938
+              - 'status "Status: Draft" [ref=e1552]': Draft
+            - generic [ref=e1553]:
+              - button "View Reference Test 1770668055938 as guest" [ref=e1554] [cursor=pointer]: View
+              - button "Edit Reference Test 1770668055938" [ref=e1555] [cursor=pointer]: Edit
+              - button "Show sections for Reference Test 1770668055938" [ref=e1556] [cursor=pointer]: ▶ Manage Sections
+              - button "Delete Reference Test 1770668055938" [ref=e1557] [cursor=pointer]: Delete
+          - generic [ref=e1559]:
+            - generic [ref=e1560]:
+              - generic [ref=e1561]:
+                - generic [ref=e1562]: Section Test 1770668029362
+                - code [ref=e1563]: /section-test-1770668029362
+              - 'status "Status: Draft" [ref=e1565]': Draft
+            - generic [ref=e1566]:
+              - button "View Section Test 1770668029362 as guest" [ref=e1567] [cursor=pointer]: View
+              - button "Edit Section Test 1770668029362" [ref=e1568] [cursor=pointer]: Edit
+              - button "Show sections for Section Test 1770668029362" [ref=e1569] [cursor=pointer]: ▶ Manage Sections
+              - button "Delete Section Test 1770668029362" [ref=e1570] [cursor=pointer]: Delete
+          - generic [ref=e1572]:
+            - generic [ref=e1573]:
+              - generic [ref=e1574]:
+                - generic [ref=e1575]: Keyboard Test 1770667940488
+                - code [ref=e1576]: /keyboard-test-1770667940488
+              - 'status "Status: Draft" [ref=e1578]': Draft
+            - generic [ref=e1579]:
+              - button "View Keyboard Test 1770667940488 as guest" [ref=e1580] [cursor=pointer]: View
+              - button "Edit Keyboard Test 1770667940488" [ref=e1581] [cursor=pointer]: Edit
+              - button "Show sections for Keyboard Test 1770667940488" [ref=e1582] [cursor=pointer]: ▶ Manage Sections
+              - button "Delete Keyboard Test 1770667940488" [ref=e1583] [cursor=pointer]: Delete
+          - generic [ref=e1585]:
+            - generic [ref=e1586]:
+              - generic [ref=e1587]:
+                - generic [ref=e1588]: Reference Test 1770667935701
+                - code [ref=e1589]: /reference-test-1770667935701
+              - 'status "Status: Draft" [ref=e1591]': Draft
+            - generic [ref=e1592]:
+              - button "View Reference Test 1770667935701 as guest" [ref=e1593] [cursor=pointer]: View
+              - button "Edit Reference Test 1770667935701" [ref=e1594] [cursor=pointer]: Edit
+              - button "Show sections for Reference Test 1770667935701" [ref=e1595] [cursor=pointer]: ▶ Manage Sections
+              - button "Delete Reference Test 1770667935701" [ref=e1596] [cursor=pointer]: Delete
+          - generic [ref=e1598]:
+            - generic [ref=e1599]:
+              - generic [ref=e1600]:
+                - generic [ref=e1601]: Section Test 1770667903739
+                - code [ref=e1602]: /section-test-1770667903739
+              - 'status "Status: Draft" [ref=e1604]': Draft
+            - generic [ref=e1605]:
+              - button "View Section Test 1770667903739 as guest" [ref=e1606] [cursor=pointer]: View
+              - button "Edit Section Test 1770667903739" [ref=e1607] [cursor=pointer]: Edit
+              - button "Show sections for Section Test 1770667903739" [ref=e1608] [cursor=pointer]: ▶ Manage Sections
+              - button "Delete Section Test 1770667903739" [ref=e1609] [cursor=pointer]: Delete
+          - generic [ref=e1611]:
+            - generic [ref=e1612]:
+              - generic [ref=e1613]:
+                - generic [ref=e1614]: Keyboard Test 1770667799605
+                - code [ref=e1615]: /keyboard-test-1770667799605
+              - 'status "Status: Draft" [ref=e1617]': Draft
+            - generic [ref=e1618]:
+              - button "View Keyboard Test 1770667799605 as guest" [ref=e1619] [cursor=pointer]: View
+              - button "Edit Keyboard Test 1770667799605" [ref=e1620] [cursor=pointer]: Edit
+              - button "Show sections for Keyboard Test 1770667799605" [ref=e1621] [cursor=pointer]: ▶ Manage Sections
+              - button "Delete Keyboard Test 1770667799605" [ref=e1622] [cursor=pointer]: Delete
+          - generic [ref=e1624]:
+            - generic [ref=e1625]:
+              - generic [ref=e1626]:
+                - generic [ref=e1627]: Reference Test 1770667790441
+                - code [ref=e1628]: /reference-test-1770667790441
+              - 'status "Status: Draft" [ref=e1630]': Draft
+            - generic [ref=e1631]:
+              - button "View Reference Test 1770667790441 as guest" [ref=e1632] [cursor=pointer]: View
+              - button "Edit Reference Test 1770667790441" [ref=e1633] [cursor=pointer]: Edit
+              - button "Show sections for Reference Test 1770667790441" [ref=e1634] [cursor=pointer]: ▶ Manage Sections
+              - button "Delete Reference Test 1770667790441" [ref=e1635] [cursor=pointer]: Delete
+          - generic [ref=e1637]:
+            - generic [ref=e1638]:
+              - generic [ref=e1639]:
+                - generic [ref=e1640]: Section Test 1770667763368
+                - code [ref=e1641]: /section-test-1770667763368
+              - 'status "Status: Draft" [ref=e1643]': Draft
+            - generic [ref=e1644]:
+              - button "View Section Test 1770667763368 as guest" [ref=e1645] [cursor=pointer]: View
+              - button "Edit Section Test 1770667763368" [ref=e1646] [cursor=pointer]: Edit
+              - button "Show sections for Section Test 1770667763368" [ref=e1647] [cursor=pointer]: ▶ Manage Sections
+              - button "Delete Section Test 1770667763368" [ref=e1648] [cursor=pointer]: Delete
+          - generic [ref=e1650]:
+            - generic [ref=e1651]:
+              - generic [ref=e1652]:
+                - generic [ref=e1653]: Section Test 1770667726946
+                - code [ref=e1654]: /section-test-1770667726946
+              - 'status "Status: Draft" [ref=e1656]': Draft
+            - generic [ref=e1657]:
+              - button "View Section Test 1770667726946 as guest" [ref=e1658] [cursor=pointer]: View
+              - button "Edit Section Test 1770667726946" [ref=e1659] [cursor=pointer]: Edit
+              - button "Show sections for Section Test 1770667726946" [ref=e1660] [cursor=pointer]: ▶ Manage Sections
+              - button "Delete Section Test 1770667726946" [ref=e1661] [cursor=pointer]: Delete
+          - generic [ref=e1663]:
+            - generic [ref=e1664]:
+              - generic [ref=e1665]:
+                - generic [ref=e1666]: Keyboard Test 1770667319540
+                - code [ref=e1667]: /keyboard-test-1770667319540
+              - 'status "Status: Draft" [ref=e1669]': Draft
+            - generic [ref=e1670]:
+              - button "View Keyboard Test 1770667319540 as guest" [ref=e1671] [cursor=pointer]: View
+              - button "Edit Keyboard Test 1770667319540" [ref=e1672] [cursor=pointer]: Edit
+              - button "Show sections for Keyboard Test 1770667319540" [ref=e1673] [cursor=pointer]: ▶ Manage Sections
+              - button "Delete Keyboard Test 1770667319540" [ref=e1674] [cursor=pointer]: Delete
+          - generic [ref=e1676]:
+            - generic [ref=e1677]:
+              - generic [ref=e1678]:
+                - generic [ref=e1679]: Reference Test 1770667310321
+                - code [ref=e1680]: /reference-test-1770667310321
+              - 'status "Status: Draft" [ref=e1682]': Draft
+            - generic [ref=e1683]:
+              - button "View Reference Test 1770667310321 as guest" [ref=e1684] [cursor=pointer]: View
+              - button "Edit Reference Test 1770667310321" [ref=e1685] [cursor=pointer]: Edit
+              - button "Show sections for Reference Test 1770667310321" [ref=e1686] [cursor=pointer]: ▶ Manage Sections
+              - button "Delete Reference Test 1770667310321" [ref=e1687] [cursor=pointer]: Delete
+          - generic [ref=e1689]:
+            - generic [ref=e1690]:
+              - generic [ref=e1691]:
+                - generic [ref=e1692]: Section Test 1770667282408
+                - code [ref=e1693]: /section-test-1770667282408
+              - 'status "Status: Draft" [ref=e1695]': Draft
+            - generic [ref=e1696]:
+              - button "View Section Test 1770667282408 as guest" [ref=e1697] [cursor=pointer]: View
+              - button "Edit Section Test 1770667282408" [ref=e1698] [cursor=pointer]: Edit
+              - button "Show sections for Section Test 1770667282408" [ref=e1699] [cursor=pointer]: ▶ Manage Sections
+              - button "Delete Section Test 1770667282408" [ref=e1700] [cursor=pointer]: Delete
+          - generic [ref=e1702]:
+            - generic [ref=e1703]:
+              - generic [ref=e1704]:
+                - generic [ref=e1705]: Keyboard Test 1770666953210
+                - code [ref=e1706]: /keyboard-test-1770666953210
+              - 'status "Status: Draft" [ref=e1708]': Draft
+            - generic [ref=e1709]:
+              - button "View Keyboard Test 1770666953210 as guest" [ref=e1710] [cursor=pointer]: View
+              - button "Edit Keyboard Test 1770666953210" [ref=e1711] [cursor=pointer]: Edit
+              - button "Show sections for Keyboard Test 1770666953210" [ref=e1712] [cursor=pointer]: ▶ Manage Sections
+              - button "Delete Keyboard Test 1770666953210" [ref=e1713] [cursor=pointer]: Delete
+          - generic [ref=e1715]:
+            - generic [ref=e1716]:
+              - generic [ref=e1717]:
+                - generic [ref=e1718]: Reference Test 1770666947610
+                - code [ref=e1719]: /reference-test-1770666947610
+              - 'status "Status: Draft" [ref=e1721]': Draft
+            - generic [ref=e1722]:
+              - button "View Reference Test 1770666947610 as guest" [ref=e1723] [cursor=pointer]: View
+              - button "Edit Reference Test 1770666947610" [ref=e1724] [cursor=pointer]: Edit
+              - button "Show sections for Reference Test 1770666947610" [ref=e1725] [cursor=pointer]: ▶ Manage Sections
+              - button "Delete Reference Test 1770666947610" [ref=e1726] [cursor=pointer]: Delete
+          - generic [ref=e1728]:
+            - generic [ref=e1729]:
+              - generic [ref=e1730]:
+                - generic [ref=e1731]: Section Test 1770666923228
+                - code [ref=e1732]: /section-test-1770666923228
+              - 'status "Status: Draft" [ref=e1734]': Draft
+            - generic [ref=e1735]:
+              - button "View Section Test 1770666923228 as guest" [ref=e1736] [cursor=pointer]: View
+              - button "Edit Section Test 1770666923228" [ref=e1737] [cursor=pointer]: Edit
+              - button "Show sections for Section Test 1770666923228" [ref=e1738] [cursor=pointer]: ▶ Manage Sections
+              - button "Delete Section Test 1770666923228" [ref=e1739] [cursor=pointer]: Delete
+          - generic [ref=e1741]:
+            - generic [ref=e1742]:
+              - generic [ref=e1743]:
+                - generic [ref=e1744]: Keyboard Test 1770666517607
+                - code [ref=e1745]: /keyboard-test-1770666517607
+              - 'status "Status: Draft" [ref=e1747]': Draft
+            - generic [ref=e1748]:
+              - button "View Keyboard Test 1770666517607 as guest" [ref=e1749] [cursor=pointer]: View
+              - button "Edit Keyboard Test 1770666517607" [ref=e1750] [cursor=pointer]: Edit
+              - button "Show sections for Keyboard Test 1770666517607" [ref=e1751] [cursor=pointer]: ▶ Manage Sections
+              - button "Delete Keyboard Test 1770666517607" [ref=e1752] [cursor=pointer]: Delete
+          - generic [ref=e1754]:
+            - generic [ref=e1755]:
+              - generic [ref=e1756]:
+                - generic [ref=e1757]: Reference Test 1770666514877
+                - code [ref=e1758]: /reference-test-1770666514877
+              - 'status "Status: Draft" [ref=e1760]': Draft
+            - generic [ref=e1761]:
+              - button "View Reference Test 1770666514877 as guest" [ref=e1762] [cursor=pointer]: View
+              - button "Edit Reference Test 1770666514877" [ref=e1763] [cursor=pointer]: Edit
+              - button "Show sections for Reference Test 1770666514877" [ref=e1764] [cursor=pointer]: ▶ Manage Sections
+              - button "Delete Reference Test 1770666514877" [ref=e1765] [cursor=pointer]: Delete
+          - generic [ref=e1767]:
+            - generic [ref=e1768]:
+              - generic [ref=e1769]:
+                - generic [ref=e1770]: Section Test 1770666487257
+                - code [ref=e1771]: /section-test-1770666487257
+              - 'status "Status: Draft" [ref=e1773]': Draft
+            - generic [ref=e1774]:
+              - button "View Section Test 1770666487257 as guest" [ref=e1775] [cursor=pointer]: View
+              - button "Edit Section Test 1770666487257" [ref=e1776] [cursor=pointer]: Edit
+              - button "Show sections for Section Test 1770666487257" [ref=e1777] [cursor=pointer]: ▶ Manage Sections
+              - button "Delete Section Test 1770666487257" [ref=e1778] [cursor=pointer]: Delete
+          - generic [ref=e1780]:
+            - generic [ref=e1781]:
+              - generic [ref=e1782]:
+                - generic [ref=e1783]: Reference Test 1770666275241
+                - code [ref=e1784]: /reference-test-1770666275241
+              - 'status "Status: Draft" [ref=e1786]': Draft
+            - generic [ref=e1787]:
+              - button "View Reference Test 1770666275241 as guest" [ref=e1788] [cursor=pointer]: View
+              - button "Edit Reference Test 1770666275241" [ref=e1789] [cursor=pointer]: Edit
+              - button "Show sections for Reference Test 1770666275241" [ref=e1790] [cursor=pointer]: ▶ Manage Sections
+              - button "Delete Reference Test 1770666275241" [ref=e1791] [cursor=pointer]: Delete
+          - generic [ref=e1793]:
+            - generic [ref=e1794]:
+              - generic [ref=e1795]:
+                - generic [ref=e1796]: Keyboard Test 1770666274795
+                - code [ref=e1797]: /keyboard-test-1770666274795
+              - 'status "Status: Draft" [ref=e1799]': Draft
+            - generic [ref=e1800]:
+              - button "View Keyboard Test 1770666274795 as guest" [ref=e1801] [cursor=pointer]: View
+              - button "Edit Keyboard Test 1770666274795" [ref=e1802] [cursor=pointer]: Edit
+              - button "Show sections for Keyboard Test 1770666274795" [ref=e1803] [cursor=pointer]: ▶ Manage Sections
+              - button "Delete Keyboard Test 1770666274795" [ref=e1804] [cursor=pointer]: Delete
+          - generic [ref=e1806]:
+            - generic [ref=e1807]:
+              - generic [ref=e1808]:
+                - generic [ref=e1809]: Section Test 1770666239666
+                - code [ref=e1810]: /section-test-1770666239666
+              - 'status "Status: Draft" [ref=e1812]': Draft
+            - generic [ref=e1813]:
+              - button "View Section Test 1770666239666 as guest" [ref=e1814] [cursor=pointer]: View
+              - button "Edit Section Test 1770666239666" [ref=e1815] [cursor=pointer]: Edit
+              - button "Show sections for Section Test 1770666239666" [ref=e1816] [cursor=pointer]: ▶ Manage Sections
+              - button "Delete Section Test 1770666239666" [ref=e1817] [cursor=pointer]: Delete
+          - generic [ref=e1819]:
+            - generic [ref=e1820]:
+              - generic [ref=e1821]:
+                - generic [ref=e1822]: Keyboard Test 1770665948542
+                - code [ref=e1823]: /keyboard-test-1770665948542
+              - 'status "Status: Draft" [ref=e1825]': Draft
+            - generic [ref=e1826]:
+              - button "View Keyboard Test 1770665948542 as guest" [ref=e1827] [cursor=pointer]: View
+              - button "Edit Keyboard Test 1770665948542" [ref=e1828] [cursor=pointer]: Edit
+              - button "Show sections for Keyboard Test 1770665948542" [ref=e1829] [cursor=pointer]: ▶ Manage Sections
+              - button "Delete Keyboard Test 1770665948542" [ref=e1830] [cursor=pointer]: Delete
+          - generic [ref=e1832]:
+            - generic [ref=e1833]:
+              - generic [ref=e1834]:
+                - generic [ref=e1835]: Reference Test 1770665946650
+                - code [ref=e1836]: /reference-test-1770665946650
+              - 'status "Status: Draft" [ref=e1838]': Draft
+            - generic [ref=e1839]:
+              - button "View Reference Test 1770665946650 as guest" [ref=e1840] [cursor=pointer]: View
+              - button "Edit Reference Test 1770665946650" [ref=e1841] [cursor=pointer]: Edit
+              - button "Show sections for Reference Test 1770665946650" [ref=e1842] [cursor=pointer]: ▶ Manage Sections
+              - button "Delete Reference Test 1770665946650" [ref=e1843] [cursor=pointer]: Delete
+          - generic [ref=e1845]:
+            - generic [ref=e1846]:
+              - generic [ref=e1847]:
+                - generic [ref=e1848]: Section Test 1770665912648
+                - code [ref=e1849]: /section-test-1770665912648
+              - 'status "Status: Draft" [ref=e1851]': Draft
+            - generic [ref=e1852]:
+              - button "View Section Test 1770665912648 as guest" [ref=e1853] [cursor=pointer]: View
+              - button "Edit Section Test 1770665912648" [ref=e1854] [cursor=pointer]: Edit
+              - button "Show sections for Section Test 1770665912648" [ref=e1855] [cursor=pointer]: ▶ Manage Sections
+              - button "Delete Section Test 1770665912648" [ref=e1856] [cursor=pointer]: Delete
+          - generic [ref=e1858]:
+            - generic [ref=e1859]:
+              - generic [ref=e1860]:
+                - generic [ref=e1861]: Keyboard Test 1770665700850
+                - code [ref=e1862]: /keyboard-test-1770665700850
+              - 'status "Status: Draft" [ref=e1864]': Draft
+            - generic [ref=e1865]:
+              - button "View Keyboard Test 1770665700850 as guest" [ref=e1866] [cursor=pointer]: View
+              - button "Edit Keyboard Test 1770665700850" [ref=e1867] [cursor=pointer]: Edit
+              - button "Show sections for Keyboard Test 1770665700850" [ref=e1868] [cursor=pointer]: ▶ Manage Sections
+              - button "Delete Keyboard Test 1770665700850" [ref=e1869] [cursor=pointer]: Delete
+          - generic [ref=e1871]:
+            - generic [ref=e1872]:
+              - generic [ref=e1873]:
+                - generic [ref=e1874]: Reference Test 1770665698004
+                - code [ref=e1875]: /reference-test-1770665698004
+              - 'status "Status: Draft" [ref=e1877]': Draft
+            - generic [ref=e1878]:
+              - button "View Reference Test 1770665698004 as guest" [ref=e1879] [cursor=pointer]: View
+              - button "Edit Reference Test 1770665698004" [ref=e1880] [cursor=pointer]: Edit
+              - button "Show sections for Reference Test 1770665698004" [ref=e1881] [cursor=pointer]: ▶ Manage Sections
+              - button "Delete Reference Test 1770665698004" [ref=e1882] [cursor=pointer]: Delete
+          - generic [ref=e1884]:
+            - generic [ref=e1885]:
+              - generic [ref=e1886]:
+                - generic [ref=e1887]: Section Test 1770665660459
+                - code [ref=e1888]: /section-test-1770665660459
+              - 'status "Status: Draft" [ref=e1890]': Draft
+            - generic [ref=e1891]:
+              - button "View Section Test 1770665660459 as guest" [ref=e1892] [cursor=pointer]: View
+              - button "Edit Section Test 1770665660459" [ref=e1893] [cursor=pointer]: Edit
+              - button "Show sections for Section Test 1770665660459" [ref=e1894] [cursor=pointer]: ▶ Manage Sections
+              - button "Delete Section Test 1770665660459" [ref=e1895] [cursor=pointer]: Delete
+          - generic [ref=e1897]:
+            - generic [ref=e1898]:
+              - generic [ref=e1899]:
+                - generic [ref=e1900]: Keyboard Test 1770663224624
+                - code [ref=e1901]: /keyboard-test-1770663224624
+              - 'status "Status: Draft" [ref=e1903]': Draft
+            - generic [ref=e1904]:
+              - button "View Keyboard Test 1770663224624 as guest" [ref=e1905] [cursor=pointer]: View
+              - button "Edit Keyboard Test 1770663224624" [ref=e1906] [cursor=pointer]: Edit
+              - button "Show sections for Keyboard Test 1770663224624" [ref=e1907] [cursor=pointer]: ▶ Manage Sections
+              - button "Delete Keyboard Test 1770663224624" [ref=e1908] [cursor=pointer]: Delete
+          - generic [ref=e1910]:
+            - generic [ref=e1911]:
+              - generic [ref=e1912]:
+                - generic [ref=e1913]: Reference Test 1770663224373
+                - code [ref=e1914]: /reference-test-1770663224373
+              - 'status "Status: Draft" [ref=e1916]': Draft
+            - generic [ref=e1917]:
+              - button "View Reference Test 1770663224373 as guest" [ref=e1918] [cursor=pointer]: View
+              - button "Edit Reference Test 1770663224373" [ref=e1919] [cursor=pointer]: Edit
+              - button "Show sections for Reference Test 1770663224373" [ref=e1920] [cursor=pointer]: ▶ Manage Sections
+              - button "Delete Reference Test 1770663224373" [ref=e1921] [cursor=pointer]: Delete
+          - generic [ref=e1923]:
+            - generic [ref=e1924]:
+              - generic [ref=e1925]:
+                - generic [ref=e1926]: Section Test 1770663157882
+                - code [ref=e1927]: /section-test-1770663157882
+              - 'status "Status: Draft" [ref=e1929]': Draft
+            - generic [ref=e1930]:
+              - button "View Section Test 1770663157882 as guest" [ref=e1931] [cursor=pointer]: View
+              - button "Edit Section Test 1770663157882" [ref=e1932] [cursor=pointer]: Edit
+              - button "Show sections for Section Test 1770663157882" [ref=e1933] [cursor=pointer]: ▶ Manage Sections
+              - button "Delete Section Test 1770663157882" [ref=e1934] [cursor=pointer]: Delete
+          - generic [ref=e1936]:
+            - generic [ref=e1937]:
+              - generic [ref=e1938]:
+                - generic [ref=e1939]: Keyboard Test 1770663081476
+                - code [ref=e1940]: /keyboard-test-1770663081476
+              - 'status "Status: Draft" [ref=e1942]': Draft
+            - generic [ref=e1943]:
+              - button "View Keyboard Test 1770663081476 as guest" [ref=e1944] [cursor=pointer]: View
+              - button "Edit Keyboard Test 1770663081476" [ref=e1945] [cursor=pointer]: Edit
+              - button "Show sections for Keyboard Test 1770663081476" [ref=e1946] [cursor=pointer]: ▶ Manage Sections
+              - button "Delete Keyboard Test 1770663081476" [ref=e1947] [cursor=pointer]: Delete
+          - generic [ref=e1949]:
+            - generic [ref=e1950]:
+              - generic [ref=e1951]:
+                - generic [ref=e1952]: Reference Test 1770663073087
+                - code [ref=e1953]: /reference-test-1770663073087
+              - 'status "Status: Draft" [ref=e1955]': Draft
+            - generic [ref=e1956]:
+              - button "View Reference Test 1770663073087 as guest" [ref=e1957] [cursor=pointer]: View
+              - button "Edit Reference Test 1770663073087" [ref=e1958] [cursor=pointer]: Edit
+              - button "Show sections for Reference Test 1770663073087" [ref=e1959] [cursor=pointer]: ▶ Manage Sections
+              - button "Delete Reference Test 1770663073087" [ref=e1960] [cursor=pointer]: Delete
+          - generic [ref=e1962]:
+            - generic [ref=e1963]:
+              - generic [ref=e1964]:
+                - generic [ref=e1965]: Section Test 1770663036399
+                - code [ref=e1966]: /section-test-1770663036399
+              - 'status "Status: Draft" [ref=e1968]': Draft
+            - generic [ref=e1969]:
+              - button "View Section Test 1770663036399 as guest" [ref=e1970] [cursor=pointer]: View
+              - button "Edit Section Test 1770663036399" [ref=e1971] [cursor=pointer]: Edit
+              - button "Show sections for Section Test 1770663036399" [ref=e1972] [cursor=pointer]: ▶ Manage Sections
+              - button "Delete Section Test 1770663036399" [ref=e1973] [cursor=pointer]: Delete
+          - generic [ref=e1975]:
+            - generic [ref=e1976]:
+              - generic [ref=e1977]:
+                - generic [ref=e1978]: Keyboard Test 1770660414148
+                - code [ref=e1979]: /keyboard-test-1770660414148
+              - 'status "Status: Draft" [ref=e1981]': Draft
+            - generic [ref=e1982]:
+              - button "View Keyboard Test 1770660414148 as guest" [ref=e1983] [cursor=pointer]: View
+              - button "Edit Keyboard Test 1770660414148" [ref=e1984] [cursor=pointer]: Edit
+              - button "Show sections for Keyboard Test 1770660414148" [ref=e1985] [cursor=pointer]: ▶ Manage Sections
+              - button "Delete Keyboard Test 1770660414148" [ref=e1986] [cursor=pointer]: Delete
+          - generic [ref=e1988]:
+            - generic [ref=e1989]:
+              - generic [ref=e1990]:
+                - generic [ref=e1991]: Reference Test 1770660405161
+                - code [ref=e1992]: /reference-test-1770660405161
+              - 'status "Status: Draft" [ref=e1994]': Draft
+            - generic [ref=e1995]:
+              - button "View Reference Test 1770660405161 as guest" [ref=e1996] [cursor=pointer]: View
+              - button "Edit Reference Test 1770660405161" [ref=e1997] [cursor=pointer]: Edit
+              - button "Show sections for Reference Test 1770660405161" [ref=e1998] [cursor=pointer]: ▶ Manage Sections
+              - button "Delete Reference Test 1770660405161" [ref=e1999] [cursor=pointer]: Delete
+          - generic [ref=e2001]:
+            - generic [ref=e2002]:
+              - generic [ref=e2003]:
+                - generic [ref=e2004]: Section Test 1770660331267
+                - code [ref=e2005]: /section-test-1770660331267
+              - 'status "Status: Draft" [ref=e2007]': Draft
+            - generic [ref=e2008]:
+              - button "View Section Test 1770660331267 as guest" [ref=e2009] [cursor=pointer]: View
+              - button "Edit Section Test 1770660331267" [ref=e2010] [cursor=pointer]: Edit
+              - button "Show sections for Section Test 1770660331267" [ref=e2011] [cursor=pointer]: ▶ Manage Sections
+              - button "Delete Section Test 1770660331267" [ref=e2012] [cursor=pointer]: Delete
+          - generic [ref=e2014]:
+            - generic [ref=e2015]:
+              - generic [ref=e2016]:
+                - generic [ref=e2017]: Keyboard Test 1770605397390
+                - code [ref=e2018]: /keyboard-test-1770605397390
+              - 'status "Status: Draft" [ref=e2020]': Draft
+            - generic [ref=e2021]:
+              - button "View Keyboard Test 1770605397390 as guest" [ref=e2022] [cursor=pointer]: View
+              - button "Edit Keyboard Test 1770605397390" [ref=e2023] [cursor=pointer]: Edit
+              - button "Show sections for Keyboard Test 1770605397390" [ref=e2024] [cursor=pointer]: ▶ Manage Sections
+              - button "Delete Keyboard Test 1770605397390" [ref=e2025] [cursor=pointer]: Delete
+          - generic [ref=e2027]:
+            - generic [ref=e2028]:
+              - generic [ref=e2029]:
+                - generic [ref=e2030]: Section Test 1770605301554
+                - code [ref=e2031]: /section-test-1770605301554
+              - 'status "Status: Draft" [ref=e2033]': Draft
+            - generic [ref=e2034]:
+              - button "View Section Test 1770605301554 as guest" [ref=e2035] [cursor=pointer]: View
+              - button "Edit Section Test 1770605301554" [ref=e2036] [cursor=pointer]: Edit
+              - button "Show sections for Section Test 1770605301554" [ref=e2037] [cursor=pointer]: ▶ Manage Sections
+              - button "Delete Section Test 1770605301554" [ref=e2038] [cursor=pointer]: Delete
+          - generic [ref=e2040]:
+            - generic [ref=e2041]:
+              - generic [ref=e2042]:
+                - generic [ref=e2043]: Section Test 1770603754834
+                - code [ref=e2044]: /section-test-1770603754834
+              - 'status "Status: Draft" [ref=e2046]': Draft
+            - generic [ref=e2047]:
+              - button "View Section Test 1770603754834 as guest" [ref=e2048] [cursor=pointer]: View
+              - button "Edit Section Test 1770603754834" [ref=e2049] [cursor=pointer]: Edit
+              - button "Show sections for Section Test 1770603754834" [ref=e2050] [cursor=pointer]: ▶ Manage Sections
+              - button "Delete Section Test 1770603754834" [ref=e2051] [cursor=pointer]: Delete
+          - generic [ref=e2053]:
+            - generic [ref=e2054]:
+              - generic [ref=e2055]:
+                - generic [ref=e2056]: Section Test 1770603591486
+                - code [ref=e2057]: /section-test-1770603591486
+              - 'status "Status: Draft" [ref=e2059]': Draft
+            - generic [ref=e2060]:
+              - button "View Section Test 1770603591486 as guest" [ref=e2061] [cursor=pointer]: View
+              - button "Edit Section Test 1770603591486" [ref=e2062] [cursor=pointer]: Edit
+              - button "Show sections for Section Test 1770603591486" [ref=e2063] [cursor=pointer]: ▶ Manage Sections
+              - button "Delete Section Test 1770603591486" [ref=e2064] [cursor=pointer]: Delete
+  - button "Open Next.js Dev Tools" [ref=e2070] [cursor=pointer]:
+    - generic [ref=e2073]:
+      - text: Rendering
+      - generic [ref=e2074]:
+        - generic [ref=e2075]: .
+        - generic [ref=e2076]: .
+        - generic [ref=e2077]: .
+  - alert [ref=e2078]
+```

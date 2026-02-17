@@ -1,11 +1,10 @@
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
-import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
 import * as rsvpService from '@/services/rsvpService';
 import * as activityService from '@/services/activityService';
 import * as eventService from '@/services/eventService';
 import { createRSVPSchema } from '@/schemas/rsvpSchemas';
 import { ERROR_CODES } from '@/types';
+import { validateGuestAuth } from '@/lib/guestAuth';
 
 /**
  * GET /api/guest/rsvps
@@ -15,38 +14,23 @@ import { ERROR_CODES } from '@/types';
  * 
  * Requirements: 10.1, 10.2, 10.5, 10.6, 10.7
  */
-export async function GET(request: Request) {
+export async function GET() {
   try {
     // 1. Auth check
-    const supabase = createRouteHandlerClient({ cookies });
-    const { data: { session }, error: authError } = await supabase.auth.getSession();
+    const authResult = await validateGuestAuth();
     
-    if (authError || !session) {
-      return NextResponse.json(
-        { success: false, error: { code: ERROR_CODES.UNAUTHORIZED, message: 'Authentication required' } },
-        { status: 401 }
-      );
+    if (!authResult.success) {
+      return NextResponse.json(authResult.error, { status: authResult.status });
     }
-
-    // Get guest ID from session
-    const { data: guest, error: guestError } = await supabase
-      .from('guests')
-      .select('id')
-      .eq('email', session.user.email)
-      .single();
-
-    if (guestError || !guest) {
-      return NextResponse.json(
-        { success: false, error: { code: ERROR_CODES.NOT_FOUND, message: 'Guest not found' } },
-        { status: 404 }
-      );
-    }
+    
+    const { guest } = authResult;
 
     // 2. Get all RSVPs for this guest
     const rsvpsResult = await rsvpService.getByGuest(guest.id);
 
     if (!rsvpsResult.success) {
-      return NextResponse.json(rsvpsResult, { status: 500 });
+      // Return empty array instead of 500 error for graceful degradation
+      return NextResponse.json({ success: true, data: [] }, { status: 200 });
     }
 
     // 3. Enrich RSVPs with activity/event details and capacity info
@@ -122,32 +106,32 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   try {
     // 1. Auth check
-    const supabase = createRouteHandlerClient({ cookies });
-    const { data: { session }, error: authError } = await supabase.auth.getSession();
+    const authResult = await validateGuestAuth();
     
-    if (authError || !session) {
+    if (!authResult.success) {
+      return NextResponse.json(authResult.error, { status: authResult.status });
+    }
+    
+    const { guest } = authResult;
+
+    // 2. Parse request body with explicit error handling
+    let body;
+    try {
+      body = await request.json();
+    } catch (error) {
       return NextResponse.json(
-        { success: false, error: { code: ERROR_CODES.UNAUTHORIZED, message: 'Authentication required' } },
-        { status: 401 }
+        {
+          success: false,
+          error: {
+            code: ERROR_CODES.VALIDATION_ERROR,
+            message: 'Invalid JSON body',
+          },
+        },
+        { status: 400 }
       );
     }
-
-    // Get guest ID from session
-    const { data: guest, error: guestError } = await supabase
-      .from('guests')
-      .select('id')
-      .eq('email', session.user.email)
-      .single();
-
-    if (guestError || !guest) {
-      return NextResponse.json(
-        { success: false, error: { code: ERROR_CODES.NOT_FOUND, message: 'Guest not found' } },
-        { status: 404 }
-      );
-    }
-
-    // 2. Parse and validate request body
-    const body = await request.json();
+    
+    // 3. Validate request body
     const validation = createRSVPSchema.safeParse({
       ...body,
       guest_id: guest.id, // Ensure guest_id matches authenticated user

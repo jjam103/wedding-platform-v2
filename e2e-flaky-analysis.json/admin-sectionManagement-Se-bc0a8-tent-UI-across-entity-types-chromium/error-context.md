@@ -1,0 +1,175 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - link "Skip to main content" [ref=e2] [cursor=pointer]:
+    - /url: "#main-content"
+  - link "Skip to main content" [ref=e3] [cursor=pointer]:
+    - /url: "#main-content"
+  - generic [ref=e4]:
+    - navigation "Main navigation" [ref=e5]:
+      - generic [ref=e7]:
+        - link "Admin" [ref=e8] [cursor=pointer]:
+          - /url: /admin
+          - text: 🌴Admin
+        - button "Content" [ref=e9]: 📝Content
+        - button "Guests" [ref=e10]: 👥Guests
+        - button "RSVPs" [ref=e11]: ✓RSVPs
+        - button "Logistics" [ref=e12]: 🚗Logistics
+        - button "Admin" [ref=e13]: ⚙️Admin
+    - banner [ref=e14]:
+      - generic [ref=e15]:
+        - heading "Wedding Admin" [level=1] [ref=e17]
+        - toolbar "User actions" [ref=e18]:
+          - link "Preview guest portal in new tab" [ref=e19] [cursor=pointer]:
+            - /url: /
+            - text: 👁️Preview Guest Portal
+          - button "Notifications (coming soon)" [ref=e20]: 🔔
+          - button "User menu" [ref=e22]:
+            - generic [ref=e23]: A
+            - text: Admin▼
+    - main [ref=e24]:
+      - generic [ref=e26]:
+        - generic [ref=e27]:
+          - generic [ref=e28]:
+            - heading "Event Management" [level=1] [ref=e29]
+            - paragraph [ref=e30]: Manage your wedding events
+          - button "Create new event" [ref=e31]: + Add Event
+        - generic [ref=e32]:
+          - button "Add New Event" [ref=e33]: Add New Event▼
+          - generic [ref=e34]:
+            - generic [ref=e35]:
+              - generic [ref=e36]:
+                - generic [ref=e37]: Event Name*
+                - textbox [ref=e38]:
+                  - /placeholder: Enter event name
+              - generic [ref=e39]:
+                - generic [ref=e40]: Event Type*
+                - combobox [ref=e41]
+              - generic [ref=e42]:
+                - text: Description
+                - textbox [ref=e43]:
+                  - /placeholder: Enter event description
+              - generic [ref=e44]:
+                - generic [ref=e45]: Start Date & Time*
+                - textbox [ref=e46]
+              - generic [ref=e47]:
+                - text: End Date & Time
+                - textbox [ref=e48]
+              - generic [ref=e49]:
+                - generic [ref=e50]: Status*
+                - combobox [ref=e51]
+              - generic [ref=e52]:
+                - text: RSVP Required
+                - checkbox [ref=e53]
+              - generic [ref=e54]:
+                - text: RSVP Deadline
+                - textbox [ref=e55]
+            - generic [ref=e56]:
+              - text: Location
+              - button [ref=e58]: Select event location
+              - paragraph [ref=e59]: Select the location where this event will take place
+            - generic [ref=e60]:
+              - button [ref=e61]: Create Event
+              - button [ref=e62]: Cancel
+        - status "Loading table":
+          - generic:
+            - generic:
+              - status "Loading content"
+              - status "Loading content"
+              - status "Loading content"
+              - status "Loading content"
+              - status "Loading content"
+              - status "Loading content"
+              - status "Loading content"
+          - generic:
+            - generic:
+              - status "Loading content"
+              - status "Loading content"
+              - status "Loading content"
+              - status "Loading content"
+              - status "Loading content"
+              - status "Loading content"
+              - status "Loading content"
+          - generic:
+            - generic:
+              - status "Loading content"
+              - status "Loading content"
+              - status "Loading content"
+              - status "Loading content"
+              - status "Loading content"
+              - status "Loading content"
+              - status "Loading content"
+          - generic:
+            - generic:
+              - status "Loading content"
+              - status "Loading content"
+              - status "Loading content"
+              - status "Loading content"
+              - status "Loading content"
+              - status "Loading content"
+              - status "Loading content"
+          - generic:
+            - generic:
+              - status "Loading content"
+              - status "Loading content"
+              - status "Loading content"
+              - status "Loading content"
+              - status "Loading content"
+              - status "Loading content"
+              - status "Loading content"
+          - generic:
+            - generic:
+              - status "Loading content"
+              - status "Loading content"
+              - status "Loading content"
+              - status "Loading content"
+              - status "Loading content"
+              - status "Loading content"
+              - status "Loading content"
+          - generic:
+            - generic:
+              - status "Loading content"
+              - status "Loading content"
+              - status "Loading content"
+              - status "Loading content"
+              - status "Loading content"
+              - status "Loading content"
+              - status "Loading content"
+          - generic:
+            - generic:
+              - status "Loading content"
+              - status "Loading content"
+              - status "Loading content"
+              - status "Loading content"
+              - status "Loading content"
+              - status "Loading content"
+              - status "Loading content"
+          - generic:
+            - generic:
+              - status "Loading content"
+              - status "Loading content"
+              - status "Loading content"
+              - status "Loading content"
+              - status "Loading content"
+              - status "Loading content"
+              - status "Loading content"
+          - generic:
+            - generic:
+              - status "Loading content"
+              - status "Loading content"
+              - status "Loading content"
+              - status "Loading content"
+              - status "Loading content"
+              - status "Loading content"
+              - status "Loading content"
+          - generic:
+            - generic:
+              - status "Loading content"
+              - status "Loading content"
+              - status "Loading content"
+              - status "Loading content"
+              - status "Loading content"
+              - status "Loading content"
+              - status "Loading content"
+```

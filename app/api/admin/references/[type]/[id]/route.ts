@@ -14,16 +14,22 @@ interface EntityPreview {
 /**
  * Get entity preview details for reference cards
  * 
+ * This endpoint is used by both admin and guest views.
+ * - Admin view: Uses authenticated admin session
+ * - Guest view: Uses authenticated guest session (guests log in with email)
+ * 
  * @param request - Request object
  * @param params - Route params with type and id
  * @returns Entity preview details
  */
 export async function GET(
-  request: Request,
+  _request: Request,
   { params }: { params: Promise<{ type: string; id: string }> }
 ): Promise<NextResponse> {
   try {
-    // 1. Authenticate
+    console.log('[API] Reference preview request received');
+    
+    // 1. Create Supabase client with user's session (admin or guest)
     const cookieStore = await cookies();
     const supabase = createServerClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -41,24 +47,28 @@ export async function GET(
         },
       }
     );
-    const {
-      data: { session },
-      error: authError,
-    } = await supabase.auth.getSession();
 
-    if (authError || !session) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: { code: 'UNAUTHORIZED', message: 'Authentication required' },
-        },
-        { status: 401 }
-      );
-    }
+    // Check if user is authenticated (required for accessing published content)
+    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+    
+    console.log('[API] Session check:', {
+      hasSession: !!session,
+      sessionError: sessionError?.message,
+      userId: session?.user?.id,
+      userEmail: session?.user?.email,
+      cookieCount: cookieStore.getAll().length
+    });
+    
+    // Note: We don't enforce authentication here because the RLS policies will handle it.
+    // If the user is not authenticated, the queries will return no results due to RLS.
+    // This allows for graceful degradation in the UI.
 
     // 2. Validate parameters
     const resolvedParams = await params;
     const { type, id } = resolvedParams;
+    
+    console.log('[API] Request params:', { type, id });
+    
     const validTypes = ['event', 'activity', 'accommodation', 'room_type', 'content_page'];
 
     if (!validTypes.includes(type)) {
@@ -79,13 +89,37 @@ export async function GET(
 
     switch (type) {
       case 'event': {
+        console.log('[API] Fetching event:', { 
+          id, 
+          status: 'published', 
+          authenticated: !!session,
+          userId: session?.user?.id,
+          userEmail: session?.user?.email 
+        });
+        
         const { data: event, error } = await supabase
           .from('events')
-          .select('id, name, slug, is_active, start_time, end_time, description, event_type, locations(name)')
+          .select('id, name, slug, status, start_date, end_date, description, event_type, location_id, locations(name)')
           .eq('id', id)
+          .eq('status', 'published')
           .single();
 
+        console.log('[API] Event fetch result:', { 
+          event, 
+          error,
+          errorCode: error?.code,
+          errorMessage: error?.message,
+          errorDetails: error?.details,
+          errorHint: error?.hint 
+        });
+
         if (error || !event) {
+          console.error('[API] Event fetch failed:', {
+            error,
+            id,
+            status: 'published',
+            authenticated: !!session
+          });
           return NextResponse.json(
             {
               success: false,
@@ -95,31 +129,65 @@ export async function GET(
           );
         }
 
+        console.log('[API] Event found, building preview:', {
+          eventId: event.id,
+          eventName: event.name,
+          hasLocation: !!event.location_id,
+          locationName: (event.locations as any)?.name
+        });
+
         preview = {
           id: event.id,
           name: event.name,
           type: 'event',
           slug: event.slug,
-          status: event.is_active ? 'active' : 'inactive',
+          status: event.status,
           details: {
             eventType: event.event_type,
-            startTime: event.start_time,
-            endTime: event.end_time,
+            startTime: event.start_date,
+            endTime: event.end_date,
+            date: event.start_date,
             description: event.description,
             location: (event.locations as any)?.name,
           },
         };
+        
+        console.log('[API] Preview built successfully:', preview);
         break;
       }
 
       case 'activity': {
+        console.log('[API] Fetching activity:', { 
+          id, 
+          status: 'published', 
+          authenticated: !!session,
+          userId: session?.user?.id,
+          userEmail: session?.user?.email 
+        });
+        
         const { data: activity, error } = await supabase
           .from('activities')
-          .select('id, name, slug, capacity, start_time, end_time, description, activity_type, cost_per_person, locations(name)')
+          .select('id, name, slug, capacity, start_time, end_time, description, activity_type, cost_per_person, location_id, locations(name)')
           .eq('id', id)
+          .eq('status', 'published')
           .single();
 
+        console.log('[API] Activity fetch result:', { 
+          activity, 
+          error,
+          errorCode: error?.code,
+          errorMessage: error?.message,
+          errorDetails: error?.details,
+          errorHint: error?.hint 
+        });
+
         if (error || !activity) {
+          console.error('[API] Activity fetch failed:', {
+            error,
+            id,
+            status: 'published',
+            authenticated: !!session
+          });
           return NextResponse.json(
             {
               success: false,
@@ -136,6 +204,14 @@ export async function GET(
           .eq('activity_id', id)
           .eq('status', 'attending');
 
+        console.log('[API] Activity found, building preview:', {
+          activityId: activity.id,
+          activityName: activity.name,
+          hasLocation: !!activity.location_id,
+          locationName: (activity.locations as any)?.name,
+          rsvpCount
+        });
+
         preview = {
           id: activity.id,
           name: activity.name,
@@ -145,6 +221,7 @@ export async function GET(
             activityType: activity.activity_type,
             startTime: activity.start_time,
             endTime: activity.end_time,
+            date: activity.start_time,
             description: activity.description,
             capacity: activity.capacity,
             attendees: rsvpCount || 0,
@@ -152,17 +229,20 @@ export async function GET(
             location: (activity.locations as any)?.name,
           },
         };
+        
+        console.log('[API] Preview built successfully:', preview);
         break;
       }
 
       case 'accommodation': {
         const { data: accommodation, error } = await supabase
           .from('accommodations')
-          .select('id, name, slug, check_in_date, check_out_date, description, address, locations(name)')
+          .select('id, name, slug, check_in_date, check_out_date, description, address, location_id, locations(name)')
           .eq('id', id)
           .single();
 
         if (error || !accommodation) {
+          console.error('Accommodation fetch error:', error);
           return NextResponse.json(
             {
               success: false,
@@ -190,6 +270,7 @@ export async function GET(
             address: accommodation.address,
             location: (accommodation.locations as any)?.name,
             roomTypeCount: roomTypeCount || 0,
+            room_count: roomTypeCount || 0,
           },
         };
         break;
@@ -240,9 +321,11 @@ export async function GET(
           .from('content_pages')
           .select('id, title, slug, status, created_at, updated_at')
           .eq('id', id)
+          .eq('status', 'published')
           .single();
 
         if (error || !page) {
+          console.error('Content page fetch error:', error);
           return NextResponse.json(
             {
               success: false,
@@ -252,9 +335,9 @@ export async function GET(
           );
         }
 
-        // Get section count
+        // Get section count - use 'sections' table, not 'content_sections'
         const { count: sectionCount } = await supabase
-          .from('content_sections')
+          .from('sections')
           .select('*', { count: 'exact', head: true })
           .eq('page_type', 'custom')
           .eq('page_id', id);

@@ -103,7 +103,9 @@ export function InlineSectionEditor({ pageType, pageId, onSave, compact = false,
       const result = await response.json();
 
       if (result.success) {
+        // Update sections state with new section
         setSections(prev => [...prev, result.data]);
+        // Automatically expand the newly created section for editing
         setEditingSection(result.data.id);
       } else {
         setError(result.error?.message || 'Failed to create section');
@@ -495,6 +497,8 @@ export function InlineSectionEditor({ pageType, pageId, onSave, compact = false,
               onDragStart={() => handleDragStart(section.id)}
               onDragOver={handleDragOver}
               onDrop={() => handleDrop(section.id)}
+              data-testid="section-item"
+              data-section-id={section.id}
               className={`border border-gray-200 rounded-lg bg-white shadow-sm transition-opacity ${
                 draggedSection === section.id ? 'opacity-50' : ''
               }`}
@@ -587,15 +591,42 @@ export function InlineSectionEditor({ pageType, pageId, onSave, compact = false,
                   {/* Layout selector */}
                   <div className="flex items-center gap-3">
                     <label className="text-xs font-medium text-gray-700">Layout:</label>
-                    <select
-                      value={section.columns.length === 1 ? 'one-column' : 'two-column'}
-                      onChange={(e) => handleToggleLayout(section.id)}
-                      className="text-xs border border-gray-300 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      disabled={savingSection === section.id}
-                    >
-                      <option value="one-column">One Column</option>
-                      <option value="two-column">Two Columns</option>
-                    </select>
+                    <div className="flex gap-2">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (section.columns.length !== 1) {
+                            handleToggleLayout(section.id);
+                          }
+                        }}
+                        className={`px-3 py-1 text-xs rounded border transition-colors ${
+                          section.columns.length === 1
+                            ? 'bg-blue-600 text-white border-blue-600'
+                            : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
+                        }`}
+                        disabled={savingSection === section.id}
+                        title="One column layout"
+                      >
+                        1 Col
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (section.columns.length !== 2) {
+                            handleToggleLayout(section.id);
+                          }
+                        }}
+                        className={`px-3 py-1 text-xs rounded border transition-colors ${
+                          section.columns.length === 2
+                            ? 'bg-blue-600 text-white border-blue-600'
+                            : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
+                        }`}
+                        disabled={savingSection === section.id}
+                        title="Two column layout"
+                      >
+                        2 Col
+                      </button>
+                    </div>
                   </div>
 
                   {/* Column editors */}

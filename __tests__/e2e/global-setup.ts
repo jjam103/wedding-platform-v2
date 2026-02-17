@@ -172,8 +172,9 @@ async function verifyNextJsServer(baseURL: string): Promise<void> {
  */
 async function createAdminAuthState(baseURL: string): Promise<void> {
   // Get admin credentials from environment
-  const adminEmail = process.env.E2E_ADMIN_EMAIL || 'admin@test.com';
-  const adminPassword = process.env.E2E_ADMIN_PASSWORD || 'test-password';
+  // Note: E2E database uses admin@example.com, not admin@test.com
+  const adminEmail = process.env.E2E_ADMIN_EMAIL || 'admin@example.com';
+  const adminPassword = process.env.E2E_ADMIN_PASSWORD || 'test-password-123';
   
   // Try to ensure admin user exists (but don't fail if it already exists)
   try {
@@ -183,71 +184,141 @@ async function createAdminAuthState(baseURL: string): Promise<void> {
     console.log(`   Will attempt login with existing credentials...`);
   }
   
+  // Step 1: Authenticate using Supabase API to get session
+  console.log(`   Authenticating via Supabase API...`);
+  
+  const { createClient } = await import('@supabase/supabase-js');
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  );
+  
+  const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+    email: adminEmail,
+    password: adminPassword,
+  });
+  
+  if (authError || !authData.session) {
+    throw new Error(
+      `Failed to authenticate: ${authError?.message || 'No session created'}\n` +
+      'Please ensure:\n' +
+      '  1. Admin user exists in test database\n' +
+      '  2. Admin credentials are correct (E2E_ADMIN_EMAIL, E2E_ADMIN_PASSWORD)\n' +
+      '  3. Supabase credentials are correct'
+    );
+  }
+  
+  console.log(`   ✅ API authentication successful (User ID: ${authData.user.id})`);
+  
+  // Step 2: Create storage state from API session
+  // This is more reliable than browser login form
+  console.log(`   Creating storage state from API session...`);
+  
+  // Ensure .auth directory exists
+  const fs = await import('fs');
+  const path = await import('path');
+  const authDir = path.join(process.cwd(), '.auth');
+  if (!fs.existsSync(authDir)) {
+    fs.mkdirSync(authDir, { recursive: true});
+  }
+  
+  // Create Playwright storage state format
+  // This matches what Playwright's context.storageState() would create
+  const storageState = {
+    cookies: [
+      {
+        name: 'sb-olcqaawrpnanioaorfer-auth-token',
+        value: JSON.stringify({
+          access_token: authData.session.access_token,
+          refresh_token: authData.session.refresh_token,
+          expires_in: authData.session.expires_in,
+          expires_at: authData.session.expires_at,
+          token_type: authData.session.token_type,
+          user: authData.session.user,
+        }),
+        domain: new URL(baseURL).hostname,
+        path: '/',
+        expires: authData.session.expires_at || -1,
+        httpOnly: false,
+        secure: baseURL.startsWith('https'),
+        sameSite: 'Lax',
+      },
+    ],
+    origins: [
+      {
+        origin: baseURL,
+        localStorage: [
+          {
+            name: 'sb-olcqaawrpnanioaorfer-auth-token',
+            value: JSON.stringify({
+              access_token: authData.session.access_token,
+              refresh_token: authData.session.refresh_token,
+              expires_in: authData.session.expires_in,
+              expires_at: authData.session.expires_at,
+              token_type: authData.session.token_type,
+              user: authData.session.user,
+            }),
+          },
+        ],
+      },
+    ],
+  };
+  
+  // Save storage state to file
+  const authStatePath = path.join(authDir, 'admin.json');
+  fs.writeFileSync(authStatePath, JSON.stringify(storageState, null, 2));
+  
+  console.log(`   ✅ Storage state created from API session`);
+  console.log(`   Auth state saved to: .auth/admin.json`);
+  
+  // Step 3: Verify authentication works by loading admin page
+  console.log(`   Verifying authentication...`);
   const browser = await chromium.launch();
   
   try {
-    const context = await browser.newContext();
+    const context = await browser.newContext({
+      storageState: authStatePath,
+    });
     const page = await context.newPage();
     
-    // Navigate to admin login page
-    await page.goto(`${baseURL}/auth/login`, {
-      waitUntil: 'networkidle',
+    // Navigate to admin page
+    await page.goto(`${baseURL}/admin`, {
+      waitUntil: 'commit',
       timeout: 30000,
     });
+    await page.waitForTimeout(1000); // Wait for React hydration
     
-    console.log(`   Navigated to login page`);
-    
-    // Fill in login form using id selectors
-    await page.fill('#email', adminEmail);
-    await page.fill('#password', adminPassword);
-    
-    console.log(`   Filled login form`);
-    
-    // Submit form
-    await page.click('button[type="submit"]');
-    
-    console.log(`   Submitted login form, waiting for navigation...`);
-    
-    // Wait a moment for any error messages or navigation
-    await page.waitForTimeout(2000);
-    
-    // Check if there's an error message
-    const errorElement = page.locator('.bg-volcano-50, [class*="error"]');
-    const hasError = await errorElement.isVisible().catch(() => false);
-    
-    if (hasError) {
-      const errorText = await errorElement.textContent();
-      console.log(`   ⚠️  Login error message: ${errorText}`);
-    }
-    
-    // Check current URL
+    // Check current URL - should not redirect to login
     const currentURL = page.url();
-    console.log(`   Current URL after login: ${currentURL}`);
+    console.log(`   Current URL: ${currentURL}`);
     
-    // Wait for navigation to admin dashboard (match /admin with or without trailing slash)
-    await page.waitForURL(/\/admin\/?$/, {
-      timeout: 10000,
-    });
-    
-    // Verify we're logged in by checking for admin UI elements
-    const isLoggedIn = await page.locator('[data-testid="admin-dashboard"], .admin-layout, nav').first().isVisible();
-    
-    if (!isLoggedIn) {
-      throw new Error('Admin login succeeded but admin UI not visible');
+    if (currentURL.includes('/auth/login')) {
+      throw new Error(
+        `Authentication failed - redirected to login page.\n` +
+        `Please verify:\n` +
+        `  1. Admin user exists: ${adminEmail}\n` +
+        `  2. Session is valid\n` +
+        `  3. Storage state format is correct`
+      );
     }
     
-    // Save authentication state
-    await context.storageState({ path: '.auth/user.json' });
+    // Verify admin UI is visible
+    const hasAdminUI = await page.locator('nav, [role="navigation"], main').first().isVisible({ timeout: 5000 }).catch(() => false);
     
+    if (!hasAdminUI) {
+      throw new Error('Admin UI not visible after authentication');
+    }
+    
+    console.log(`   ✅ Admin UI is visible`);
+    console.log(`   ✅ Authentication verified`);
     console.log(`   Logged in as: ${adminEmail}`);
   } catch (error) {
     throw new Error(
-      `Failed to create admin authentication state: ${error instanceof Error ? error.message : String(error)}\n` +
+      `Failed to verify admin authentication: ${error instanceof Error ? error.message : String(error)}\n` +
       'Please ensure:\n' +
       '  1. Admin user exists in test database\n' +
-      '  2. Admin credentials are correct\n' +
-      '  3. Login page is accessible\n' +
-      '  4. Admin dashboard route exists'
+      '  2. Supabase credentials are correct\n' +
+      '  3. Storage state format is correct'
     );
   } finally {
     await browser.close();
@@ -262,15 +333,16 @@ async function ensureAdminUserExists(email: string, password: string): Promise<v
   try {
     const supabase = createTestClient();
     
-    // Check if admin user already exists
+    // Check if admin user already exists in users table
+    // Note: RLS policies check users table via get_user_role() function
     const { data: existingUser } = await supabase
-      .from('admin_users')
+      .from('users')
       .select('id, email, role')
       .eq('email', email)
       .single();
     
     if (existingUser) {
-      console.log(`   Admin user already exists: ${email}`);
+      console.log(`   Admin user already exists: ${email} (role: ${existingUser.role})`);
       return;
     }
     
@@ -302,14 +374,14 @@ async function ensureAdminUserExists(email: string, password: string): Promise<v
       throw new Error('User creation succeeded but no user returned');
     }
     
-    // Create admin_users record with owner role
+    // Create users record with super_admin role
+    // Note: RLS policies check users table via get_user_role() function
     const { error: userError } = await adminClient
-      .from('admin_users')
+      .from('users')
       .insert({
         id: authData.user.id,
         email,
-        role: 'owner',
-        is_active: true,
+        role: 'super_admin',
       });
     
     if (userError) {

@@ -1,0 +1,68 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - link "Skip to main content" [ref=e2] [cursor=pointer]:
+    - /url: "#main-content"
+  - link "Skip to main content" [ref=e3] [cursor=pointer]:
+    - /url: "#main-content"
+  - generic [ref=e4]:
+    - navigation "Main navigation" [ref=e5]:
+      - generic [ref=e6]:
+        - generic [ref=e7]:
+          - link "Admin" [ref=e8] [cursor=pointer]:
+            - /url: /admin
+            - generic [ref=e9]: 🌴
+            - generic [ref=e10]: Admin
+          - button "Content" [ref=e11]:
+            - generic [ref=e12]: 📝
+            - generic [ref=e13]: Content
+          - button "Guests" [ref=e14]:
+            - generic [ref=e15]: 👥
+            - generic [ref=e16]: Guests
+          - button "RSVPs" [ref=e17]:
+            - generic [ref=e18]: ✓
+            - generic [ref=e19]: RSVPs
+          - button "Logistics" [ref=e20]:
+            - generic [ref=e21]: 🚗
+            - generic [ref=e22]: Logistics
+          - button "Admin" [expanded] [ref=e23]:
+            - generic [ref=e24]: ⚙️
+            - generic [ref=e25]: Admin
+        - tabpanel [ref=e26]:
+          - link "Admin Users" [ref=e27] [cursor=pointer]:
+            - /url: /admin/admin-users
+          - link "Settings" [ref=e28] [cursor=pointer]:
+            - /url: /admin/settings
+          - link "Email Templates" [ref=e29] [cursor=pointer]:
+            - /url: /admin/emails/templates
+          - link "Audit Logs" [ref=e30] [cursor=pointer]:
+            - /url: /admin/audit-logs
+    - banner [ref=e31]:
+      - generic [ref=e32]:
+        - heading "Wedding Admin" [level=1] [ref=e34]
+        - toolbar "User actions" [ref=e35]:
+          - link "Preview guest portal in new tab" [ref=e36] [cursor=pointer]:
+            - /url: /
+            - generic [ref=e37]: 👁️
+            - generic [ref=e38]: Preview Guest Portal
+          - button "Notifications (coming soon)" [ref=e39]: 🔔
+          - button "User menu" [ref=e41]:
+            - generic [ref=e42]: A
+            - generic [ref=e43]: Admin
+            - generic [ref=e44]: ▼
+    - main [ref=e45]:
+      - generic [ref=e47]:
+        - generic [ref=e48]:
+          - heading "System Settings" [level=1] [ref=e49]
+          - paragraph [ref=e50]: Configure system settings, notifications, and preferences
+        - generic [ref=e51]:
+          - navigation [ref=e53]:
+            - button "Authentication" [ref=e54]
+            - button "Admin Users" [ref=e55]
+            - button "System Settings" [ref=e56]
+          - heading "Authentication" [level=2] [ref=e59]
+  - button "Open Next.js Dev Tools" [ref=e68] [cursor=pointer]:
+    - img [ref=e69]
+  - alert [ref=e72]
+```

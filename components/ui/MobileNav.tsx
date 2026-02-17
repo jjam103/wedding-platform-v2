@@ -45,7 +45,7 @@ export function MobileNav({ items }: MobileNavProps) {
             <button
               key={item.id}
               onClick={() => handleNavigation(item.href)}
-              className={`flex flex-col items-center justify-center tap-target px-3 py-2 rounded-lg transition-colors ${
+              className={`flex flex-col items-center justify-center tap-target px-3 py-2 rounded-lg transition-colors min-h-[44px] min-w-[44px] ${
                 active
                   ? 'text-jungle-600 bg-jungle-50'
                   : 'text-sage-600 hover:text-sage-900 hover:bg-sage-50'
@@ -53,7 +53,7 @@ export function MobileNav({ items }: MobileNavProps) {
               aria-label={item.label}
               aria-current={active ? 'page' : undefined}
             >
-              <span className="text-2xl mb-1">{item.icon}</span>
+              <span className="text-2xl mb-1" aria-hidden="true">{item.icon}</span>
               <span className="text-xs font-medium">{item.label}</span>
             </button>
           );

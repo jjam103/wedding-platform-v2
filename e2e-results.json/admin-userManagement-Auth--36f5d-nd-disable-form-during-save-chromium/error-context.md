@@ -1,0 +1,299 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e1]:
+  - link "Skip to main content" [ref=e2] [cursor=pointer]:
+    - /url: "#main-content"
+  - link "Skip to main content" [ref=e3] [cursor=pointer]:
+    - /url: "#main-content"
+  - generic [ref=e4]:
+    - navigation "Main navigation" [ref=e5]:
+      - generic [ref=e6]:
+        - generic [ref=e7]:
+          - link "Admin" [ref=e8] [cursor=pointer]:
+            - /url: /admin
+            - generic [ref=e9]: 🌴
+            - generic [ref=e10]: Admin
+          - button "Content" [ref=e11]:
+            - generic [ref=e12]: 📝
+            - generic [ref=e13]: Content
+          - button "Guests" [ref=e14]:
+            - generic [ref=e15]: 👥
+            - generic [ref=e16]: Guests
+          - button "RSVPs" [ref=e17]:
+            - generic [ref=e18]: ✓
+            - generic [ref=e19]: RSVPs
+          - button "Logistics" [ref=e20]:
+            - generic [ref=e21]: 🚗
+            - generic [ref=e22]: Logistics
+          - button "Admin" [expanded] [ref=e23]:
+            - generic [ref=e24]: ⚙️
+            - generic [ref=e25]: Admin
+        - tabpanel [ref=e26]:
+          - link "Admin Users" [ref=e27] [cursor=pointer]:
+            - /url: /admin/admin-users
+          - link "Settings" [ref=e28] [cursor=pointer]:
+            - /url: /admin/settings
+          - link "Email Templates" [ref=e29] [cursor=pointer]:
+            - /url: /admin/emails/templates
+          - link "Audit Logs" [ref=e30] [cursor=pointer]:
+            - /url: /admin/audit-logs
+    - banner [ref=e31]:
+      - generic [ref=e32]:
+        - heading "Wedding Admin" [level=1] [ref=e34]
+        - toolbar "User actions" [ref=e35]:
+          - button "Notifications (coming soon)" [ref=e36]: 🔔
+          - button "User menu" [ref=e38]:
+            - generic [ref=e39]: A
+            - generic [ref=e40]: Admin
+            - generic [ref=e41]: ▼
+    - main [ref=e42]:
+      - generic [ref=e44]:
+        - generic [ref=e45]:
+          - heading "System Settings" [level=1] [ref=e46]
+          - paragraph [ref=e47]: Configure system settings, notifications, and preferences
+        - generic [ref=e48]:
+          - generic [ref=e49]:
+            - heading "Authentication" [level=2] [ref=e51]
+            - generic [ref=e53]:
+              - generic [ref=e54]:
+                - heading "Guest Authentication Method" [level=3] [ref=e55]
+                - paragraph [ref=e56]: Choose how guests will authenticate to access the guest portal.
+              - generic [ref=e57]:
+                - generic [ref=e58] [cursor=pointer]:
+                  - radio "Email Matching Guests enter their email address and first/last name. The system matches these against the guest list to authenticate them. Simple and straightforward." [ref=e59]
+                  - generic [ref=e60]:
+                    - generic [ref=e61]: Email Matching
+                    - generic [ref=e62]: Guests enter their email address and first/last name. The system matches these against the guest list to authenticate them. Simple and straightforward.
+                - generic [ref=e63] [cursor=pointer]:
+                  - radio "Magic Link Guests enter their email address and receive a secure login link via email. More secure but requires guests to have email access during login." [checked] [ref=e64]
+                  - generic [ref=e65]:
+                    - generic [ref=e66]: Magic Link
+                    - generic [ref=e67]: Guests enter their email address and receive a secure login link via email. More secure but requires guests to have email access during login.
+              - generic [ref=e69] [cursor=pointer]:
+                - checkbox "Update all existing guests Change the authentication method for all existing guests to match the new default. This will affect how all current guests log in to the portal." [ref=e70]
+                - generic [ref=e71]:
+                  - generic [ref=e72]: Update all existing guests
+                  - generic [ref=e73]: Change the authentication method for all existing guests to match the new default. This will affect how all current guests log in to the portal.
+              - generic [ref=e74]:
+                - button "Cancel" [ref=e75]
+                - button "Save Changes" [active] [ref=e76]
+              - dialog "Confirm Authentication Method Change" [ref=e77]:
+                - generic [ref=e78]:
+                  - heading "Confirm Authentication Method Change" [level=2] [ref=e80]
+                  - paragraph [ref=e82]: Are you sure you want to change the default authentication method to Magic Link? This will only affect new guests added after this change.
+                  - generic [ref=e83]:
+                    - button "Cancel" [ref=e84] [cursor=pointer]
+                    - button "Yes, Update" [ref=e85] [cursor=pointer]
+          - generic [ref=e86]:
+            - generic [ref=e87]:
+              - heading "auth" [level=2] [ref=e89]
+              - generic [ref=e91]:
+                - generic [ref=e92]:
+                  - generic [ref=e93]:
+                    - heading "default_auth_method" [level=3] [ref=e95]
+                    - paragraph [ref=e96]: Default guest authentication method
+                    - code [ref=e98]: email_matching
+                  - button "Edit" [ref=e99]:
+                    - img [ref=e100]
+                    - text: Edit
+                - generic [ref=e103]: "Last updated: 2/4/2026, 3:01:34 PM"
+            - generic [ref=e104]:
+              - heading "email" [level=2] [ref=e106]
+              - generic [ref=e107]:
+                - generic [ref=e108]:
+                  - generic [ref=e109]:
+                    - generic [ref=e110]:
+                      - heading "reminder_days_before" [level=3] [ref=e112]
+                      - paragraph [ref=e113]: Days before deadline to send reminders
+                      - code [ref=e115]: "7"
+                    - button "Edit" [ref=e116]:
+                      - img [ref=e117]
+                      - text: Edit
+                  - generic [ref=e120]: "Last updated: 2/4/2026, 3:01:34 PM"
+                - generic [ref=e121]:
+                  - generic [ref=e122]:
+                    - generic [ref=e123]:
+                      - heading "send_activity_reminders" [level=3] [ref=e125]
+                      - paragraph [ref=e126]: Send activity reminder emails
+                      - code [ref=e128]: "true"
+                    - button "Edit" [ref=e129]:
+                      - img [ref=e130]
+                      - text: Edit
+                  - generic [ref=e133]: "Last updated: 2/4/2026, 3:01:34 PM"
+                - generic [ref=e134]:
+                  - generic [ref=e135]:
+                    - generic [ref=e136]:
+                      - heading "send_deadline_reminders" [level=3] [ref=e138]
+                      - paragraph [ref=e139]: Send deadline reminder emails
+                      - code [ref=e141]: "true"
+                    - button "Edit" [ref=e142]:
+                      - img [ref=e143]
+                      - text: Edit
+                  - generic [ref=e146]: "Last updated: 2/4/2026, 3:01:34 PM"
+                - generic [ref=e147]:
+                  - generic [ref=e148]:
+                    - generic [ref=e149]:
+                      - heading "send_rsvp_confirmations" [level=3] [ref=e151]
+                      - paragraph [ref=e152]: Send RSVP confirmation emails
+                      - code [ref=e154]: "true"
+                    - button "Edit" [ref=e155]:
+                      - img [ref=e156]
+                      - text: Edit
+                  - generic [ref=e159]: "Last updated: 2/4/2026, 3:01:34 PM"
+            - generic [ref=e160]:
+              - heading "general" [level=2] [ref=e162]
+              - generic [ref=e163]:
+                - generic [ref=e164]:
+                  - generic [ref=e165]:
+                    - generic [ref=e166]:
+                      - generic [ref=e167]:
+                        - heading "couple_name_1" [level=3] [ref=e168]
+                        - generic [ref=e169]: Public
+                      - paragraph [ref=e170]: First partner name
+                      - code [ref=e172]: Partner 1
+                    - button "Edit" [ref=e173]:
+                      - img [ref=e174]
+                      - text: Edit
+                  - generic [ref=e177]: "Last updated: 2/4/2026, 3:01:34 PM"
+                - generic [ref=e178]:
+                  - generic [ref=e179]:
+                    - generic [ref=e180]:
+                      - generic [ref=e181]:
+                        - heading "couple_name_2" [level=3] [ref=e182]
+                        - generic [ref=e183]: Public
+                      - paragraph [ref=e184]: Second partner name
+                      - code [ref=e186]: Partner 2
+                    - button "Edit" [ref=e187]:
+                      - img [ref=e188]
+                      - text: Edit
+                  - generic [ref=e191]: "Last updated: 2/4/2026, 3:01:34 PM"
+                - generic [ref=e192]:
+                  - generic [ref=e193]:
+                    - generic [ref=e194]:
+                      - generic [ref=e195]:
+                        - heading "timezone" [level=3] [ref=e196]
+                        - generic [ref=e197]: Public
+                      - paragraph [ref=e198]: Event timezone
+                      - code [ref=e200]: America/Costa_Rica
+                    - button "Edit" [ref=e201]:
+                      - img [ref=e202]
+                      - text: Edit
+                  - generic [ref=e205]: "Last updated: 2/4/2026, 3:01:34 PM"
+                - generic [ref=e206]:
+                  - generic [ref=e207]:
+                    - generic [ref=e208]:
+                      - generic [ref=e209]:
+                        - heading "venue_name" [level=3] [ref=e210]
+                        - generic [ref=e211]: Public
+                      - paragraph [ref=e212]: Wedding venue name
+                      - code [ref=e214]: Costa Rica Resort
+                    - button "Edit" [ref=e215]:
+                      - img [ref=e216]
+                      - text: Edit
+                  - generic [ref=e219]: "Last updated: 2/4/2026, 3:01:34 PM"
+                - generic [ref=e220]:
+                  - generic [ref=e221]:
+                    - generic [ref=e222]:
+                      - generic [ref=e223]:
+                        - heading "wedding_date" [level=3] [ref=e224]
+                        - generic [ref=e225]: Public
+                      - paragraph [ref=e226]: Wedding date
+                      - code [ref=e228]: 2026-06-15
+                    - button "Edit" [ref=e229]:
+                      - img [ref=e230]
+                      - text: Edit
+                  - generic [ref=e233]: "Last updated: 2/4/2026, 3:01:34 PM"
+            - generic [ref=e234]:
+              - heading "home_page" [level=2] [ref=e236]
+              - generic [ref=e237]:
+                - generic [ref=e238]:
+                  - generic [ref=e239]:
+                    - generic [ref=e240]:
+                      - generic [ref=e241]:
+                        - heading "home_page_hero_image_url" [level=3] [ref=e242]
+                        - generic [ref=e243]: Public
+                      - paragraph [ref=e244]: Home page hero image URL
+                      - code [ref=e246]: https://picsum.photos/800/400
+                    - button "Edit" [ref=e247]:
+                      - img [ref=e248]
+                      - text: Edit
+                  - generic [ref=e251]: "Last updated: 2/11/2026, 8:47:54 AM"
+                - generic [ref=e252]:
+                  - generic [ref=e253]:
+                    - generic [ref=e254]:
+                      - generic [ref=e255]:
+                        - heading "home_page_subtitle" [level=3] [ref=e256]
+                        - generic [ref=e257]: Public
+                      - paragraph [ref=e258]: Home page subtitle
+                      - code [ref=e260]: June 14-16, 2025 • Test Location 1770828474203
+                    - button "Edit" [ref=e261]:
+                      - img [ref=e262]
+                      - text: Edit
+                  - generic [ref=e265]: "Last updated: 2/11/2026, 8:47:54 AM"
+                - generic [ref=e266]:
+                  - generic [ref=e267]:
+                    - generic [ref=e268]:
+                      - generic [ref=e269]:
+                        - heading "home_page_title" [level=3] [ref=e270]
+                        - generic [ref=e271]: Public
+                      - paragraph [ref=e272]: Home page title
+                      - code [ref=e274]: Test Wedding 1770828474203
+                    - button "Edit" [ref=e275]:
+                      - img [ref=e276]
+                      - text: Edit
+                  - generic [ref=e279]: "Last updated: 2/11/2026, 8:47:54 AM"
+                - generic [ref=e280]:
+                  - generic [ref=e281]:
+                    - generic [ref=e282]:
+                      - generic [ref=e283]:
+                        - heading "home_page_welcome_message" [level=3] [ref=e284]
+                        - generic [ref=e285]: Public
+                      - paragraph [ref=e286]: Home page welcome message
+                      - code [ref=e288]: Welcome to our wedding celebration in Costa Rica!
+                    - button "Edit" [ref=e289]:
+                      - img [ref=e290]
+                      - text: Edit
+                  - generic [ref=e293]: "Last updated: 2/11/2026, 8:47:54 AM"
+            - generic [ref=e294]:
+              - heading "photos" [level=2] [ref=e296]
+              - generic [ref=e297]:
+                - generic [ref=e298]:
+                  - generic [ref=e299]:
+                    - generic [ref=e300]:
+                      - heading "allowed_photo_formats" [level=3] [ref=e302]
+                      - paragraph [ref=e303]: Allowed photo formats
+                      - code [ref=e305]: "[\"jpg\",\"jpeg\",\"png\",\"heic\"]"
+                    - button "Edit" [ref=e306]:
+                      - img [ref=e307]
+                      - text: Edit
+                  - generic [ref=e310]: "Last updated: 2/4/2026, 3:01:34 PM"
+                - generic [ref=e311]:
+                  - generic [ref=e312]:
+                    - generic [ref=e313]:
+                      - heading "max_photos_per_guest" [level=3] [ref=e315]
+                      - paragraph [ref=e316]: Maximum photos per guest
+                      - code [ref=e318]: "20"
+                    - button "Edit" [ref=e319]:
+                      - img [ref=e320]
+                      - text: Edit
+                  - generic [ref=e323]: "Last updated: 2/4/2026, 3:01:34 PM"
+                - generic [ref=e324]:
+                  - generic [ref=e325]:
+                    - generic [ref=e326]:
+                      - heading "require_photo_moderation" [level=3] [ref=e328]
+                      - paragraph [ref=e329]: Require admin approval for guest photos
+                      - code [ref=e331]: "true"
+                    - button "Edit" [ref=e332]:
+                      - img [ref=e333]
+                      - text: Edit
+                  - generic [ref=e336]: "Last updated: 2/4/2026, 3:01:34 PM"
+  - button "Open Next.js Dev Tools" [ref=e342] [cursor=pointer]:
+    - generic [ref=e345]:
+      - text: Compiling
+      - generic [ref=e346]:
+        - generic [ref=e347]: .
+        - generic [ref=e348]: .
+        - generic [ref=e349]: .
+  - alert [ref=e350]
+```

@@ -1,10 +1,9 @@
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
-import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
 import * as eventService from '@/services/eventService';
 import * as activityService from '@/services/activityService';
 import * as rsvpService from '@/services/rsvpService';
 import { z } from 'zod';
+import { validateGuestAuth } from '@/lib/guestAuth';
 
 /**
  * GET /api/guest/events/[slug]
@@ -22,29 +21,11 @@ export async function GET(
     const { slug } = await params;
     
     // 1. AUTHENTICATION
-    const supabase = createRouteHandlerClient({ cookies });
-    const { data: { session }, error: authError } = await supabase.auth.getSession();
-    
-    if (authError || !session) {
-      return NextResponse.json(
-        { success: false, error: { code: 'UNAUTHORIZED', message: 'Authentication required' } },
-        { status: 401 }
-      );
+    const authResult = await validateGuestAuth();
+    if (!authResult.success) {
+      return NextResponse.json(authResult.error, { status: authResult.status });
     }
-    
-    // Get guest ID from session
-    const { data: guest, error: guestError } = await supabase
-      .from('guests')
-      .select('id, group_id')
-      .eq('email', session.user.email)
-      .single();
-    
-    if (guestError || !guest) {
-      return NextResponse.json(
-        { success: false, error: { code: 'NOT_FOUND', message: 'Guest not found' } },
-        { status: 404 }
-      );
-    }
+    const guest = authResult.guest;
     
     // 2. VALIDATION
     const slugValidation = z.string().min(1).safeParse(slug);

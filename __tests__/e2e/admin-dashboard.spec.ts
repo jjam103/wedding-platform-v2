@@ -17,7 +17,7 @@ test.describe('Admin Dashboard - Visual and Functional Tests', () => {
     await page.goto('http://localhost:3000/admin');
     
     // Wait for page to be fully loaded
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('commit');
   });
 
   test('should load admin dashboard without errors', async ({ page }) => {
@@ -86,7 +86,7 @@ test.describe('Admin Dashboard - Visual and Functional Tests', () => {
     
     // Reload to capture all console messages
     await page.reload();
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('commit');
     
     // Should have no styling-related errors
     expect(errors).toHaveLength(0);
@@ -141,7 +141,7 @@ test.describe('Admin Dashboard - Visual and Functional Tests', () => {
     
     if (await guestsLink.count() > 0) {
       await guestsLink.click();
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('commit');
       
       // Should navigate successfully
       await expect(page).toHaveURL(/\/admin\/guests/);
@@ -178,7 +178,7 @@ test.describe('Admin Dashboard - API Integration', () => {
     });
     
     await page.goto('http://localhost:3000/admin');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('commit');
     
     // Should have made API calls
     expect(responses.length).toBeGreaterThan(0);
@@ -189,7 +189,7 @@ test.describe('Admin Dashboard - API Integration', () => {
 
   test('should handle API errors gracefully', async ({ page }) => {
     await page.goto('http://localhost:3000/admin');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('commit');
     
     // Page should still render even if some APIs fail
     const body = page.locator('body');
@@ -204,7 +204,7 @@ test.describe('Admin Dashboard - API Integration', () => {
 test.describe('Admin Dashboard - Accessibility', () => {
   test('should have proper heading hierarchy', async ({ page }) => {
     await page.goto('http://localhost:3000/admin');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('commit');
     
     // Should have h1
     const h1 = page.locator('h1');
@@ -213,7 +213,7 @@ test.describe('Admin Dashboard - Accessibility', () => {
 
   test('should have keyboard navigation', async ({ page }) => {
     await page.goto('http://localhost:3000/admin');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('commit');
     
     // Press Tab to navigate
     await page.keyboard.press('Tab');
@@ -225,7 +225,7 @@ test.describe('Admin Dashboard - Accessibility', () => {
 
   test('should have proper ARIA labels', async ({ page }) => {
     await page.goto('http://localhost:3000/admin');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('commit');
     
     // Check for navigation with proper role
     const nav = page.locator('[role="navigation"]');

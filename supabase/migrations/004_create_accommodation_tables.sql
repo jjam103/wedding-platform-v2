@@ -12,7 +12,6 @@ CREATE TABLE IF NOT EXISTS accommodations (
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
-
 -- Room types table
 CREATE TABLE IF NOT EXISTS room_types (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -28,7 +27,6 @@ CREATE TABLE IF NOT EXISTS room_types (
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   CONSTRAINT valid_subsidy CHECK (host_subsidy_per_night IS NULL OR host_subsidy_per_night <= price_per_night)
 );
-
 -- Room assignments table
 CREATE TABLE IF NOT EXISTS room_assignments (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -42,7 +40,6 @@ CREATE TABLE IF NOT EXISTS room_assignments (
   CONSTRAINT valid_dates CHECK (check_in < check_out),
   UNIQUE(guest_id, check_in, check_out)
 );
-
 -- Create indexes for performance
 CREATE INDEX IF NOT EXISTS idx_accommodations_location_id ON accommodations(location_id);
 CREATE INDEX IF NOT EXISTS idx_accommodations_status ON accommodations(status);
@@ -51,17 +48,13 @@ CREATE INDEX IF NOT EXISTS idx_room_types_status ON room_types(status);
 CREATE INDEX IF NOT EXISTS idx_room_assignments_room_type_id ON room_assignments(room_type_id);
 CREATE INDEX IF NOT EXISTS idx_room_assignments_guest_id ON room_assignments(guest_id);
 CREATE INDEX IF NOT EXISTS idx_room_assignments_dates ON room_assignments(check_in, check_out);
-
 -- Apply updated_at triggers
 CREATE TRIGGER update_accommodations_updated_at BEFORE UPDATE ON accommodations
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
-
 CREATE TRIGGER update_room_types_updated_at BEFORE UPDATE ON room_types
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
-
 CREATE TRIGGER update_room_assignments_updated_at BEFORE UPDATE ON room_assignments
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
-
 -- Comments for documentation
 COMMENT ON TABLE accommodations IS 'Wedding accommodation properties';
 COMMENT ON TABLE room_types IS 'Room types within accommodations with pricing and capacity';

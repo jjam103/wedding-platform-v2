@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { RichTextEditorSkeleton } from '@/components/admin/RichTextEditorSkeleton';
 import { SectionEditorSkeleton } from '@/components/admin/SectionEditorSkeleton';
+import { useToast } from '@/components/ui/ToastContext';
 
 // Lazy load heavy components
 const RichTextEditor = dynamic(() => import('@/components/admin/RichTextEditor').then(mod => ({ default: mod.RichTextEditor })), {
@@ -44,6 +45,7 @@ interface HomePageConfig {
  */
 export default function HomePageEditorPage() {
   const router = useRouter();
+  const { addToast } = useToast();
   const [config, setConfig] = useState<HomePageConfig>({
     title: null,
     subtitle: null,
@@ -100,18 +102,33 @@ export default function HomePageEditorPage() {
         setLastSaved(new Date());
         
         if (showToast) {
-          // Show success toast (would use toast context in real implementation)
-          console.log('Home page saved successfully');
+          addToast({
+            type: 'success',
+            message: 'Home page saved successfully',
+          });
         }
       } else {
         setError(result.error.message);
+        if (showToast) {
+          addToast({
+            type: 'error',
+            message: result.error.message || 'Failed to save home page',
+          });
+        }
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to save home page config');
+      const errorMessage = err instanceof Error ? err.message : 'Failed to save home page config';
+      setError(errorMessage);
+      if (showToast) {
+        addToast({
+          type: 'error',
+          message: errorMessage,
+        });
+      }
     } finally {
       setSaving(false);
     }
-  }, [config]);
+  }, [config, addToast]);
 
   // Auto-save every 30 seconds if dirty
   useEffect(() => {
@@ -205,7 +222,7 @@ export default function HomePageEditorPage() {
           Customize your wedding homepage with a title, subtitle, welcome message, and hero image.
         </p>
         {lastSaved && (
-          <p className="text-sm text-gray-500 mt-2">
+          <p className="text-sm text-gray-600 mt-2">
             Last saved: {lastSaved.toLocaleTimeString()}
           </p>
         )}

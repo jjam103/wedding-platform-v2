@@ -3,31 +3,31 @@ inclusion: fileMatch
 fileMatchPattern: ['**/api/**/*.ts', '**/api/**/*.tsx']
 ---
 
-# API Standards
+# API Route Standards
 
-Mandatory patterns for Next.js API routes. Follow these rules exactly when creating or modifying API endpoints.
+Mandatory patterns for Next.js 16 App Router API routes. These rules are non-negotiable.
 
-## Mandatory 4-Step Pattern
+## The 4-Step Pattern (MANDATORY)
 
-EVERY API route MUST follow this exact sequence:
+Every API route handler MUST follow this exact sequence:
 
-1. **Authentication** - Verify session with Supabase (skip only for public routes)
-2. **Validation** - Parse and validate with Zod `safeParse()` (NEVER `parse()`)
-3. **Service Call** - Delegate ALL business logic to service layer
-4. **Response** - Map error codes to HTTP status, return consistent JSON
+1. **Authenticate** - Verify session (skip only for explicitly public routes)
+2. **Validate** - Use Zod `safeParse()` on all inputs (NEVER `parse()`)
+3. **Delegate** - Call service layer (NO business logic in routes)
+4. **Respond** - Map error codes to HTTP status, return consistent JSON
 
-### Complete Template
+### Standard Route Template
 
 ```typescript
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
 import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
-import { schema } from '@/schemas';
-import { service } from '@/services/service';
+import { createGuestSchema } from '@/schemas';
+import { guestService } from '@/services/guestService';
 
 export async function POST(request: Request) {
   try {
-    // 1. AUTHENTICATION (skip for public routes only)
+    // 1. AUTHENTICATE
     const supabase = createRouteHandlerClient({ cookies });
     const { data: { session }, error: authError } = await supabase.auth.getSession();
     
@@ -38,21 +38,28 @@ export async function POST(request: Request) {
       );
     }
     
-    // 2. VALIDATION (ALWAYS use safeParse, NEVER parse)
+    // 2. VALIDATE (safeParse ONLY)
     const body = await request.json();
-    const validation = schema.safeParse(body);
+    const validation = createGuestSchema.safeParse(body);
     
     if (!validation.success) {
       return NextResponse.json(
-        { success: false, error: { code: 'VALIDATION_ERROR', message: 'Invalid request data', details: validation.error.issues } },
+        { 
+          success: false, 
+          error: { 
+            code: 'VALIDATION_ERROR', 
+            message: 'Invalid request data', 
+            details: validation.error.issues 
+          } 
+        },
         { status: 400 }
       );
     }
     
-    // 3. SERVICE CALL (NO business logic in route)
-    const result = await service.method(validation.data);
+    // 3. DELEGATE to service
+    const result = await guestService.create(validation.data);
     
-    // 4. RESPONSE (map error codes to status)
+    // 4. RESPOND with proper status
     if (!result.success) {
       return NextResponse.json(result, { status: getStatusCode(result.error.code) });
     }
@@ -69,64 +76,104 @@ export async function POST(request: Request) {
 }
 ```
 
-## HTTP Method Rules
+## HTTP Method Guidelines
 
-**GET** - Retrieve data (idempotent, no side effects)
+| Method | Purpose | Success Status | Common Errors |
+|--------|---------|----------------|---------------|
+| GET | Retrieve data | 200 | 401, 404 |
+| POST | Create resource | 201 | 400, 401, 409 |
+| PUT | Full replacement | 200 | 400, 401, 404 |
+| PATCH | Partial update | 200 | 400, 401, 404 |
+| DELETE | Remove resource | 200 | 401, 404, 409 |
+
+**GET Rules:**
 - Use query params, NOT body
-- Status: 200 (success), 404 (not found), 401 (unauthorized)
+- Idempotent (no side effects)
+- Support pagination for collections
 
-**POST** - Create resources
-- Status: 201 (created), 400 (validation), 401 (unauthorized)
+**POST Rules:**
+- Return 201 on success
+- Include created resource in response
+- Return 409 for conflicts (duplicate email, etc.)
 
-**PUT** - Full resource replacement
-- Status: 200 (success), 404 (not found), 400 (validation)
+## Input Validation Patterns
 
-**PATCH** - Partial updates
-- Status: 200 (success), 404 (not found), 400 (validation)
-
-**DELETE** - Remove resources
-- Status: 200 (success), 404 (not found), 401 (unauthorized)
-
-## Request Data Patterns
-
-### Query Parameters (GET only)
-
+### Request Body (POST/PUT/PATCH)
 ```typescript
+const body = await request.json();
+const validation = createGuestSchema.safeParse(body);
+
+if (!validation.success) {
+  return NextResponse.json(
+    { 
+      success: false, 
+      error: { 
+        code: 'VALIDATION_ERROR', 
+        message: 'Invalid request data', 
+        details: validation.error.issues 
+      } 
+    },
+    { status: 400 }
+  );
+}
+
+const result = await guestService.create(validation.data);
+```
+
+### Query Parameters (GET)
+```typescript
+import { z } from 'zod';
+
+const querySchema = z.object({
+  groupId: z.string().uuid(),
+  page: z.coerce.number().int().positive().default(1),
+  limit: z.coerce.number().int().positive().max(100).default(50),
+  sortBy: z.enum(['firstName', 'lastName', 'createdAt']).optional(),
+  order: z.enum(['asc', 'desc']).default('asc'),
+});
+
 const { searchParams } = new URL(request.url);
 const validation = querySchema.safeParse({
   groupId: searchParams.get('groupId'),
-  page: parseInt(searchParams.get('page') || '1'),
-  limit: parseInt(searchParams.get('limit') || '50'),
+  page: searchParams.get('page'),
+  limit: searchParams.get('limit'),
+  sortBy: searchParams.get('sortBy'),
+  order: searchParams.get('order'),
 });
+
+if (!validation.success) {
+  return NextResponse.json(
+    { success: false, error: { code: 'VALIDATION_ERROR', message: 'Invalid query parameters', details: validation.error.issues } },
+    { status: 400 }
+  );
+}
 ```
 
-### Request Body (POST/PUT/PATCH)
-
+### Path Parameters (Dynamic Routes)
 ```typescript
-const body = await request.json();
-const validation = bodySchema.safeParse(body);
-```
-
-### Path Parameters (Dynamic routes)
-
-```typescript
-// /api/guests/[id]/route.ts
-export async function GET(request: Request, { params }: { params: { id: string } }) {
-  const validation = z.string().uuid().safeParse(params.id);
-  if (!validation.success) {
+// File: /api/guests/[id]/route.ts
+export async function GET(
+  request: Request, 
+  { params }: { params: { id: string } }
+) {
+  // ... auth check ...
+  
+  const idValidation = z.string().uuid().safeParse(params.id);
+  if (!idValidation.success) {
     return NextResponse.json(
       { success: false, error: { code: 'VALIDATION_ERROR', message: 'Invalid ID format' } },
       { status: 400 }
     );
   }
+  
+  const result = await guestService.get(idValidation.data);
   // ...
 }
 ```
 
-## Authentication
+## Authentication Patterns
 
-### Standard Auth Check (REQUIRED for protected routes)
-
+### Standard Protected Route
 ```typescript
 const supabase = createRouteHandlerClient({ cookies });
 const { data: { session }, error: authError } = await supabase.auth.getSession();
@@ -139,8 +186,7 @@ if (authError || !session) {
 }
 ```
 
-### Admin Role Verification
-
+### Admin-Only Route
 ```typescript
 // After standard auth check
 const { data: profile } = await supabase
@@ -157,12 +203,11 @@ if (profile?.role !== 'admin') {
 }
 ```
 
-### Public Routes (skip auth)
-
+### Public Routes (No Auth)
 Only skip authentication for:
 - `/api/auth/*` - Authentication endpoints
 - `/api/public/*` - Explicitly public data
-- Health/status checks
+- Health checks
 
 ## Error Code → HTTP Status Mapping
 
@@ -220,10 +265,12 @@ function getStatusCode(errorCode: string): number {
 }
 ```
 
-## Response Format
 
-### Success Responses
+## Response Format (MANDATORY)
 
+All responses MUST use this exact structure:
+
+### Success Response
 ```typescript
 // Single resource (POST/PUT/PATCH)
 { success: true, data: { id: "uuid", firstName: "John", /* ... */ } }
@@ -231,70 +278,25 @@ function getStatusCode(errorCode: string): number {
 // Collection (GET with pagination)
 {
   success: true,
-  data: [{ id: "uuid-1", /* ... */ }, { id: "uuid-2", /* ... */ }],
+  data: [{ id: "uuid-1", /* ... */ }],
   pagination: { page: 1, limit: 50, total: 150, totalPages: 3 }
 }
 ```
 
-### Error Responses
-
+### Error Response
 ```typescript
 {
   success: false,
   error: {
     code: "VALIDATION_ERROR",
     message: "Invalid request data",
-    details: [{ path: ["email"], message: "Invalid email format" }]
+    details?: any  // Optional, for validation errors
   }
 }
 ```
 
-## Validation Examples
 
-### Body Validation
-
-```typescript
-import { createGuestSchema } from '@/schemas';
-
-const body = await request.json();
-const validation = createGuestSchema.safeParse(body);
-
-if (!validation.success) {
-  return NextResponse.json(
-    { success: false, error: { code: 'VALIDATION_ERROR', message: 'Invalid request data', details: validation.error.issues } },
-    { status: 400 }
-  );
-}
-
-const result = await guestService.create(validation.data);
-```
-
-### Query Validation
-
-```typescript
-import { z } from 'zod';
-
-const querySchema = z.object({
-  groupId: z.string().uuid(),
-  page: z.number().int().positive().default(1),
-  limit: z.number().int().positive().max(100).default(50),
-  sortBy: z.enum(['firstName', 'lastName', 'createdAt']).optional(),
-  order: z.enum(['asc', 'desc']).default('asc'),
-});
-
-const { searchParams } = new URL(request.url);
-const validation = querySchema.safeParse({
-  groupId: searchParams.get('groupId'),
-  page: parseInt(searchParams.get('page') || '1'),
-  limit: parseInt(searchParams.get('limit') || '50'),
-  sortBy: searchParams.get('sortBy'),
-  order: searchParams.get('order'),
-});
-```
-
-## Pagination
-
-Standard pagination constants and pattern:
+## Pagination (Standard Pattern)
 
 ```typescript
 const DEFAULT_PAGE = 1;
@@ -327,9 +329,7 @@ export async function GET(request: Request) {
 }
 ```
 
-## File Uploads
-
-Handle multipart form data with validation:
+## File Upload Pattern
 
 ```typescript
 export async function POST(request: Request) {
@@ -337,7 +337,7 @@ export async function POST(request: Request) {
   
   const formData = await request.formData();
   const file = formData.get('file') as File;
-  const metadata = formData.get('metadata') as string;
+  const metadataJson = formData.get('metadata') as string;
   
   // Validate file presence
   if (!file) {
@@ -351,22 +351,22 @@ export async function POST(request: Request) {
   const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
   if (!allowedTypes.includes(file.type)) {
     return NextResponse.json(
-      { success: false, error: { code: 'VALIDATION_ERROR', message: 'Invalid file type' } },
+      { success: false, error: { code: 'VALIDATION_ERROR', message: 'Invalid file type. Allowed: JPEG, PNG, WebP' } },
       { status: 400 }
     );
   }
   
   // Validate file size (10MB max)
-  const maxSize = 10 * 1024 * 1024;
-  if (file.size > maxSize) {
+  const MAX_SIZE = 10 * 1024 * 1024;
+  if (file.size > MAX_SIZE) {
     return NextResponse.json(
-      { success: false, error: { code: 'VALIDATION_ERROR', message: 'File too large' } },
+      { success: false, error: { code: 'VALIDATION_ERROR', message: 'File too large. Maximum 10MB' } },
       { status: 400 }
     );
   }
   
   // Validate metadata
-  const metadataValidation = photoMetadataSchema.safeParse(JSON.parse(metadata));
+  const metadataValidation = photoMetadataSchema.safeParse(JSON.parse(metadataJson));
   if (!metadataValidation.success) {
     return NextResponse.json(
       { success: false, error: { code: 'VALIDATION_ERROR', message: 'Invalid metadata', details: metadataValidation.error.issues } },
@@ -380,50 +380,7 @@ export async function POST(request: Request) {
 }
 ```
 
-## Rate Limiting
-
-Apply rate limits to prevent abuse:
-
-```typescript
-import { rateLimitService } from '@/lib/rateLimitService';
-
-export async function POST(request: Request) {
-  // ... auth check ...
-  
-  const identifier = session.user.id;
-  const rateLimitResult = await rateLimitService.check(identifier, 'api:guests:create', {
-    maxRequests: 10,
-    windowMs: 60000, // 1 minute
-  });
-  
-  if (!rateLimitResult.allowed) {
-    return NextResponse.json(
-      { 
-        success: false, 
-        error: { 
-          code: 'RATE_LIMIT_EXCEEDED', 
-          message: 'Too many requests',
-          details: { retryAfter: rateLimitResult.retryAfter }
-        } 
-      },
-      { 
-        status: 429,
-        headers: {
-          'X-RateLimit-Limit': String(rateLimitResult.limit),
-          'X-RateLimit-Remaining': String(rateLimitResult.remaining),
-          'Retry-After': String(rateLimitResult.retryAfter),
-        }
-      }
-    );
-  }
-  
-  // ... continue with request ...
-}
-```
-
-## Webhooks
-
-Verify webhook signatures before processing:
+## Webhook Pattern
 
 ```typescript
 import { verifyWebhookSignature } from '@/lib/webhookUtils';
@@ -432,6 +389,7 @@ export async function POST(request: Request) {
   const signature = request.headers.get('x-webhook-signature');
   const body = await request.text();
   
+  // Verify signature
   if (!signature || !verifyWebhookSignature(body, signature)) {
     return NextResponse.json(
       { success: false, error: { code: 'UNAUTHORIZED', message: 'Invalid webhook signature' } },
@@ -439,6 +397,7 @@ export async function POST(request: Request) {
     );
   }
   
+  // Validate payload
   const payload = JSON.parse(body);
   const validation = webhookSchema.safeParse(payload);
   
@@ -449,24 +408,30 @@ export async function POST(request: Request) {
     );
   }
   
-  await webhookService.process(validation.data);
+  // Process webhook (async, don't wait)
+  webhookService.process(validation.data).catch(error => {
+    console.error('Webhook processing error:', error);
+  });
   
-  // ALWAYS return 200 for webhooks (even on processing errors)
+  // ALWAYS return 200 immediately for webhooks
   return NextResponse.json({ received: true }, { status: 200 });
 }
 ```
 
-## Error Handling
+## Error Handling Rules
 
-### Wrap in try-catch
-
+### Always Wrap in Try-Catch
 ```typescript
 export async function POST(request: Request) {
   try {
     // ... auth, validation, service call ...
-    
   } catch (error) {
-    console.error('API Error:', { path: request.url, method: request.method, error });
+    console.error('API Error:', { 
+      path: request.url, 
+      method: request.method, 
+      error: error instanceof Error ? error.message : 'Unknown error'
+    });
+    
     return NextResponse.json(
       { success: false, error: { code: 'INTERNAL_ERROR', message: 'An unexpected error occurred' } },
       { status: 500 }
@@ -475,13 +440,16 @@ export async function POST(request: Request) {
 }
 ```
 
-### NEVER expose sensitive information
-
+### NEVER Expose Sensitive Information
 ```typescript
 // ❌ WRONG - Exposes internals
 return NextResponse.json({ error: error.message }, { status: 500 });
 
-// ✅ CORRECT - Generic message
+// ❌ WRONG - Exposes database details
+return NextResponse.json({ error: dbError.detail }, { status: 500 });
+
+// ✅ CORRECT - Generic message, log details
+console.error('Database error:', dbError);
 return NextResponse.json(
   { success: false, error: { code: 'INTERNAL_ERROR', message: 'An unexpected error occurred' } },
   { status: 500 }
@@ -491,38 +459,47 @@ return NextResponse.json(
 ## Route Organization
 
 ### File Structure
-
 ```
-src/app/api/
+app/api/
 ├── guests/
 │   ├── route.ts              # GET /api/guests, POST /api/guests
 │   ├── [id]/
 │   │   ├── route.ts          # GET/PUT/DELETE /api/guests/[id]
-│   │   └── rsvp/route.ts     # PATCH /api/guests/[id]/rsvp
-│   ├── import/route.ts       # POST /api/guests/import
-│   └── export/route.ts       # GET /api/guests/export
+│   │   └── rsvps/
+│   │       └── route.ts      # GET/POST /api/guests/[id]/rsvps
+│   ├── bulk-delete/
+│   │   └── route.ts          # POST /api/guests/bulk-delete
+│   └── export/
+│       └── route.ts          # GET /api/guests/export
 ```
 
 ### Naming Conventions
+- **Lowercase with hyphens**: `/api/activity-rsvps`
+- **Plural for collections**: `/api/guests`, `/api/activities`
+- **Singular for specific**: `/api/guests/[id]`
+- **Verbs for actions**: `/api/guests/import`, `/api/email/send`
+- **Nested resources**: `/api/guests/[id]/rsvps`
 
-- Lowercase with hyphens: `/api/activity-rsvps`
-- Plural for collections: `/api/guests`
-- Singular for specific: `/api/guests/[id]`
-- Verbs for actions: `/api/guests/import`, `/api/email/send`
+## Testing Requirements
 
-## Testing
-
-Test all paths: success, validation error, auth error, service error.
+Test ALL paths: success, validation error, auth error, service error.
 
 ```typescript
 import { POST } from '@/app/api/guests/route';
-import { createMockRequest } from '@/test-utils/mockRequest';
+import { createMockRequest } from '@/__tests__/helpers/testAuth';
 
 describe('POST /api/guests', () => {
   it('should create guest and return 201 when authenticated with valid data', async () => {
     const request = createMockRequest({
       method: 'POST',
-      body: { firstName: 'John', lastName: 'Doe', email: 'john@example.com', groupId: '123e4567-e89b-12d3-a456-426614174000', ageType: 'adult', guestType: 'wedding_guest' },
+      body: { 
+        firstName: 'John', 
+        lastName: 'Doe', 
+        email: 'john@example.com', 
+        groupId: '123e4567-e89b-12d3-a456-426614174000', 
+        ageType: 'adult', 
+        guestType: 'wedding_guest' 
+      },
       authenticated: true,
     });
     
@@ -531,61 +508,154 @@ describe('POST /api/guests', () => {
     
     expect(response.status).toBe(201);
     expect(data.success).toBe(true);
+    expect(data.data).toHaveProperty('id');
   });
   
   it('should return 400 when validation fails', async () => {
     const request = createMockRequest({
       method: 'POST',
-      body: { firstName: 'John' },
+      body: { firstName: 'John' }, // Missing required fields
       authenticated: true,
     });
     
     const response = await POST(request);
+    const data = await response.json();
+    
     expect(response.status).toBe(400);
-    expect((await response.json()).error.code).toBe('VALIDATION_ERROR');
+    expect(data.success).toBe(false);
+    expect(data.error.code).toBe('VALIDATION_ERROR');
   });
   
   it('should return 401 when not authenticated', async () => {
-    const request = createMockRequest({ method: 'POST', body: {}, authenticated: false });
+    const request = createMockRequest({ 
+      method: 'POST', 
+      body: {}, 
+      authenticated: false 
+    });
+    
     const response = await POST(request);
+    const data = await response.json();
+    
     expect(response.status).toBe(401);
+    expect(data.error.code).toBe('UNAUTHORIZED');
+  });
+  
+  it('should return 500 when service fails', async () => {
+    // Mock service to return error
+    jest.spyOn(guestService, 'create').mockResolvedValue({
+      success: false,
+      error: { code: 'DATABASE_ERROR', message: 'Database connection failed' }
+    });
+    
+    const request = createMockRequest({
+      method: 'POST',
+      body: validGuestData,
+      authenticated: true,
+    });
+    
+    const response = await POST(request);
+    expect(response.status).toBe(500);
   });
 });
 ```
 
-## Critical Rules
+## Critical Rules Summary
 
-### ALWAYS Do
+### ALWAYS Do ✅
+- Verify authentication (except explicitly public routes)
+- Use Zod `safeParse()` - NEVER `parse()`
+- Delegate ALL business logic to service layer
+- Map error codes to correct HTTP status with `getStatusCode()`
+- Return consistent `{ success, data/error }` format
+- Wrap in try-catch with generic error response
+- Validate ALL inputs (body, query, path params)
+- Test all paths (success, validation, auth, service errors)
+- Log errors with context (path, method, error details)
 
-✅ Verify authentication (except public routes)
-✅ Use Zod `safeParse()` - NEVER `parse()`
-✅ Delegate business logic to service layer
-✅ Map error codes to correct HTTP status
-✅ Wrap in try-catch with generic error response
-✅ Return consistent `{ success, data/error }` format
-✅ Validate ALL inputs (body, query, path params)
-✅ Test all paths (success, validation, auth, service errors)
-
-### NEVER Do
-
-❌ Skip authentication checks on protected routes
-❌ Use `schema.parse()` (throws errors)
-❌ Put business logic in API routes
-❌ Return wrong HTTP status codes
-❌ Expose internal errors to clients
-❌ Skip input validation
-❌ Return inconsistent response formats
-❌ Forget error handling with try-catch
+### NEVER Do ❌
+- Skip authentication checks on protected routes
+- Use `schema.parse()` (throws errors, breaks error handling)
+- Put business logic in API routes (belongs in services)
+- Return wrong HTTP status codes
+- Expose internal errors, stack traces, or database details to clients
+- Skip input validation
+- Return inconsistent response formats
+- Forget error handling with try-catch
+- Use service role client in routes (use authenticated client)
 
 ## Quick Checklist
 
-When creating/modifying an API route:
+Before committing an API route, verify:
 
-- [ ] Authentication check at top (or explicitly public)
-- [ ] Request validation with Zod `safeParse()`
-- [ ] Service layer handles ALL business logic
+- [ ] Authentication check at top (or route is explicitly public)
+- [ ] All inputs validated with Zod `safeParse()`
+- [ ] Service layer handles ALL business logic (route only orchestrates)
 - [ ] Error codes mapped to HTTP status with `getStatusCode()`
-- [ ] Consistent response format (`success`, `data`/`error`)
-- [ ] Try-catch with generic error message
+- [ ] Consistent response format (`{ success, data/error }`)
+- [ ] Try-catch wraps entire handler
 - [ ] No sensitive info in error responses
-- [ ] Tests for success, validation error, auth error, service error
+- [ ] Tests cover: success, validation error, auth error, service error
+- [ ] Proper HTTP method used (GET for read, POST for create, etc.)
+- [ ] Pagination implemented for collection endpoints
+
+## Common Patterns Reference
+
+### Rate Limiting
+```typescript
+import { rateLimitService } from '@/lib/rateLimitService';
+
+const rateLimitResult = await rateLimitService.check(session.user.id, 'api:guests:create', {
+  maxRequests: 10,
+  windowMs: 60000, // 1 minute
+});
+
+if (!rateLimitResult.allowed) {
+  return NextResponse.json(
+    { success: false, error: { code: 'RATE_LIMIT_EXCEEDED', message: 'Too many requests' } },
+    { status: 429, headers: { 'Retry-After': String(rateLimitResult.retryAfter) } }
+  );
+}
+```
+
+### Bulk Operations
+```typescript
+export async function POST(request: Request) {
+  // ... auth check ...
+  
+  const body = await request.json();
+  const validation = z.object({
+    ids: z.array(z.string().uuid()).min(1).max(100)
+  }).safeParse(body);
+  
+  if (!validation.success) {
+    return NextResponse.json(
+      { success: false, error: { code: 'VALIDATION_ERROR', message: 'Invalid IDs', details: validation.error.issues } },
+      { status: 400 }
+    );
+  }
+  
+  const result = await service.bulkDelete(validation.data.ids);
+  return NextResponse.json(result, { status: result.success ? 200 : getStatusCode(result.error.code) });
+}
+```
+
+### Export/Download
+```typescript
+export async function GET(request: Request) {
+  // ... auth check ...
+  
+  const result = await service.exportData();
+  
+  if (!result.success) {
+    return NextResponse.json(result, { status: getStatusCode(result.error.code) });
+  }
+  
+  return new NextResponse(result.data, {
+    status: 200,
+    headers: {
+      'Content-Type': 'text/csv',
+      'Content-Disposition': 'attachment; filename="guests.csv"',
+    },
+  });
+}
+```

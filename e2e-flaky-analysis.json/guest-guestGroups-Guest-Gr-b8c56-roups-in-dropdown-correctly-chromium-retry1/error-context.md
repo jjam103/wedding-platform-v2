@@ -1,0 +1,271 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e1]:
+  - link "Skip to main content" [ref=e2] [cursor=pointer]:
+    - /url: "#main-content"
+  - link "Skip to main content" [ref=e3] [cursor=pointer]:
+    - /url: "#main-content"
+  - generic [ref=e4]:
+    - navigation "Main navigation" [ref=e5]:
+      - generic [ref=e6]:
+        - generic [ref=e7]:
+          - link "Admin" [ref=e8] [cursor=pointer]:
+            - /url: /admin
+            - generic [ref=e9]: 🌴
+            - generic [ref=e10]: Admin
+          - button "Content" [ref=e11]:
+            - generic [ref=e12]: 📝
+            - generic [ref=e13]: Content
+          - button "Guests" [expanded] [ref=e14]:
+            - generic [ref=e15]: 👥
+            - generic [ref=e16]: Guests
+          - button "RSVPs" [ref=e17]:
+            - generic [ref=e18]: ✓
+            - generic [ref=e19]: RSVPs
+          - button "Logistics" [ref=e20]:
+            - generic [ref=e21]: 🚗
+            - generic [ref=e22]: Logistics
+          - button "Admin" [ref=e23]:
+            - generic [ref=e24]: ⚙️
+            - generic [ref=e25]: Admin
+        - tabpanel [ref=e26]:
+          - link "Guest List" [ref=e27] [cursor=pointer]:
+            - /url: /admin/guests
+          - link "Guest Groups" [ref=e28] [cursor=pointer]:
+            - /url: /admin/guest-groups
+          - link "Import/Export" [ref=e29] [cursor=pointer]:
+            - /url: /admin/guests/import-export
+    - banner [ref=e30]:
+      - generic [ref=e31]:
+        - heading "Wedding Admin" [level=1] [ref=e33]
+        - toolbar "User actions" [ref=e34]:
+          - link "Preview guest portal in new tab" [ref=e35] [cursor=pointer]:
+            - /url: /
+            - generic [ref=e36]: 👁️
+            - generic [ref=e37]: Preview Guest Portal
+          - button "Notifications (coming soon)" [ref=e38]: 🔔
+          - button "User menu" [ref=e40]:
+            - generic [ref=e41]: A
+            - generic [ref=e42]: Admin
+            - generic [ref=e43]: ▼
+    - main [ref=e44]:
+      - generic [ref=e46]:
+        - generic [ref=e47]:
+          - generic [ref=e48]:
+            - heading "Guest Management" [level=1] [ref=e49]
+            - paragraph [ref=e50]: Manage your wedding guest list and groups
+          - generic [ref=e51]:
+            - button "Import guests from CSV" [ref=e53] [cursor=pointer]: Import CSV
+            - button "Export guests to CSV" [ref=e54] [cursor=pointer]: Export CSV
+        - generic [ref=e55]:
+          - button "Manage Groups 0 groups • Click to collapse" [expanded] [ref=e56]:
+            - generic [ref=e57]:
+              - heading "Manage Groups" [level=2] [ref=e58]
+              - paragraph [ref=e59]: 0 groups • Click to collapse
+            - generic [ref=e60]: ▼
+          - generic [ref=e62]:
+            - heading "Add New Group" [level=3] [ref=e63]
+            - generic [ref=e64]:
+              - generic [ref=e65]:
+                - generic [ref=e66]: Group Name *
+                - textbox "Group Name *" [ref=e67]:
+                  - /placeholder: e.g., Smith Family, Bride's Friends
+              - generic [ref=e68]:
+                - generic [ref=e69]: Description
+                - textbox "Description" [ref=e70]:
+                  - /placeholder: Optional description of the group
+              - button "Create Group" [ref=e72]
+        - generic [ref=e73]:
+          - button "Add Guest" [expanded] [active] [ref=e74]:
+            - generic [ref=e75]: Add Guest
+            - generic [ref=e76]: ▼
+          - generic [ref=e78]:
+            - generic [ref=e79]:
+              - generic [ref=e80]:
+                - generic [ref=e81]: Group*
+                - combobox "Group*" [ref=e82]:
+                  - option "Select Group" [selected]
+              - generic [ref=e83]:
+                - generic [ref=e84]: First Name*
+                - textbox "First Name*" [ref=e85]:
+                  - /placeholder: Enter first name
+              - generic [ref=e86]:
+                - generic [ref=e87]: Last Name*
+                - textbox "Last Name*" [ref=e88]:
+                  - /placeholder: Enter last name
+              - generic [ref=e89]:
+                - generic [ref=e90]: Email
+                - textbox "Email" [ref=e91]:
+                  - /placeholder: Enter email address
+              - generic [ref=e92]:
+                - generic [ref=e93]: Phone
+                - textbox "Phone" [ref=e94]:
+                  - /placeholder: Enter phone number
+              - generic [ref=e95]:
+                - generic [ref=e96]: Age Type*
+                - combobox "Age Type*" [ref=e97]:
+                  - option "Select Age Type" [selected]
+                  - option "Adult"
+                  - option "Child"
+                  - option "Senior"
+              - generic [ref=e98]:
+                - generic [ref=e99]: Guest Type*
+                - combobox "Guest Type*" [ref=e100]:
+                  - option "Select Guest Type" [selected]
+                  - option "Wedding Party"
+                  - option "Wedding Guest"
+                  - option "Pre-wedding Only"
+                  - option "Post-wedding Only"
+              - generic [ref=e102]:
+                - generic [ref=e103]: Dietary Restrictions
+                - textbox "Dietary Restrictions" [ref=e104]:
+                  - /placeholder: Enter any dietary restrictions
+              - generic [ref=e105]:
+                - generic [ref=e106]: Arrival Date
+                - textbox "Arrival Date" [ref=e107]
+              - generic [ref=e108]:
+                - generic [ref=e109]: Departure Date
+                - textbox "Departure Date" [ref=e110]
+              - generic [ref=e111]:
+                - generic [ref=e112]: Airport
+                - combobox "Airport" [ref=e113]:
+                  - option "Select Airport" [selected]
+                  - option "SJO (San José)"
+                  - option "LIR (Liberia)"
+                  - option "Other"
+              - generic [ref=e114]:
+                - generic [ref=e115]: Flight Number
+                - textbox "Flight Number" [ref=e116]:
+                  - /placeholder: Enter flight number
+              - generic [ref=e117]:
+                - generic [ref=e118]: Plus-One Name
+                - textbox "Plus-One Name" [ref=e119]:
+                  - /placeholder: Enter plus-one name
+              - generic [ref=e121]:
+                - generic [ref=e122]: Notes
+                - textbox "Notes" [ref=e123]:
+                  - /placeholder: Enter any additional notes
+            - generic [ref=e124]:
+              - button "Create" [ref=e125]
+              - button "Cancel" [ref=e126]
+        - generic [ref=e127]:
+          - heading "Search & Filters" [level=2] [ref=e128]
+          - generic [ref=e129]:
+            - generic [ref=e130]: Search Guests
+            - textbox "Search Guests" [ref=e131]:
+              - /placeholder: Search by name, email, or phone...
+          - generic [ref=e132]:
+            - generic [ref=e133]:
+              - generic [ref=e134]: RSVP Status
+              - combobox "RSVP Status" [ref=e135]:
+                - option "All" [selected]
+                - option "Pending"
+                - option "Attending"
+                - option "Declined"
+                - option "Maybe"
+            - generic [ref=e136]:
+              - generic [ref=e137]: Activity
+              - combobox "Activity" [ref=e138]:
+                - option "All" [selected]
+            - generic [ref=e139]:
+              - generic [ref=e140]: Transportation
+              - combobox "Transportation" [ref=e141]:
+                - option "All" [selected]
+                - option "Has Transportation"
+                - option "No Transportation"
+            - generic [ref=e142]:
+              - generic [ref=e143]: Age Group
+              - combobox "Age Group" [ref=e144]:
+                - option "All" [selected]
+                - option "Adult"
+                - option "Child"
+                - option "Senior"
+            - generic [ref=e145]:
+              - generic [ref=e146]: Airport
+              - combobox "Airport" [ref=e147]:
+                - option "All" [selected]
+                - option "SJO (San José)"
+                - option "LIR (Liberia)"
+                - option "Other"
+          - generic [ref=e148]:
+            - generic [ref=e149]: Group By
+            - combobox "Group By" [ref=e150]:
+              - option "None" [selected]
+              - option "Group"
+              - option "Guest Type"
+              - option "Age Type"
+              - option "Airport"
+          - button "Clear All Filters" [ref=e152] [cursor=pointer]
+        - generic [ref=e153]:
+          - generic [ref=e155]:
+            - group "Filter controls" [ref=e156]:
+              - generic [ref=e157]:
+                - generic [ref=e158]: Filter by Group
+                - combobox "Filter by Group" [ref=e159]:
+                  - option "All Group" [selected]
+              - generic [ref=e160]:
+                - generic [ref=e161]: Filter by Guest Type
+                - combobox "Filter by Guest Type" [ref=e162]:
+                  - option "All Guest Type" [selected]
+                  - option "Wedding Party"
+                  - option "Wedding Guest"
+                  - option "Pre-wedding Only"
+                  - option "Post-wedding Only"
+              - generic [ref=e163]:
+                - generic [ref=e164]: Filter by Age Type
+                - combobox "Filter by Age Type" [ref=e165]:
+                  - option "All Age Type" [selected]
+                  - option "Adult"
+                  - option "Child"
+                  - option "Senior"
+            - button "Export guests to CSV" [ref=e167] [cursor=pointer]: Export
+          - table "guests data table" [ref=e170]:
+            - rowgroup [ref=e171]:
+              - row "Select all rows First Name Last Name Email Group Guest Type Age Type Airport Actions" [ref=e172]:
+                - columnheader "Select all rows" [ref=e173]:
+                  - checkbox "Select all rows" [ref=e174]
+                - columnheader [ref=e175]
+                - columnheader "First Name" [ref=e176] [cursor=pointer]:
+                  - generic [ref=e178]: First Name
+                - columnheader "Last Name" [ref=e179] [cursor=pointer]:
+                  - generic [ref=e181]: Last Name
+                - columnheader "Email" [ref=e182] [cursor=pointer]:
+                  - generic [ref=e184]: Email
+                - columnheader "Group" [ref=e185] [cursor=pointer]:
+                  - generic [ref=e187]: Group
+                - columnheader "Guest Type" [ref=e188] [cursor=pointer]:
+                  - generic [ref=e190]: Guest Type
+                - columnheader "Age Type" [ref=e191] [cursor=pointer]:
+                  - generic [ref=e193]: Age Type
+                - columnheader "Airport" [ref=e194] [cursor=pointer]:
+                  - generic [ref=e196]: Airport
+                - columnheader "Actions" [ref=e197]
+            - rowgroup [ref=e198]:
+              - row "Select row 1 Expand RSVPs Debug User debug.1770917882447@example.com - Wedding Guest Adult - Delete guest 1" [ref=e199] [cursor=pointer]:
+                - cell "Select row 1" [ref=e200]:
+                  - checkbox "Select row 1" [ref=e201]
+                - cell "Expand RSVPs" [ref=e202]:
+                  - button "Expand RSVPs" [ref=e203]: ▶
+                - cell "Debug" [ref=e204]
+                - cell "User" [ref=e205]
+                - cell "debug.1770917882447@example.com" [ref=e206]
+                - cell "-" [ref=e207]
+                - cell "Wedding Guest" [ref=e208]
+                - cell "Adult" [ref=e209]
+                - cell "-" [ref=e210]
+                - cell "Delete guest 1" [ref=e211]:
+                  - button "Delete guest 1" [ref=e212]: Delete
+  - generic [ref=e217] [cursor=pointer]:
+    - button "Open Next.js Dev Tools" [ref=e218]:
+      - img [ref=e219]
+    - generic [ref=e222]:
+      - button "Open issues overlay" [ref=e223]:
+        - generic [ref=e224]:
+          - generic [ref=e225]: "0"
+          - generic [ref=e226]: "1"
+        - generic [ref=e227]: Issue
+      - button "Collapse issues badge" [ref=e228]:
+        - img [ref=e229]
+  - alert [ref=e231]
+```

@@ -1,11 +1,9 @@
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
-import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
 import * as rsvpService from '@/services/rsvpService';
-import * as activityService from '@/services/activityService';
 import * as eventService from '@/services/eventService';
 import { updateRSVPSchema } from '@/schemas/rsvpSchemas';
 import { ERROR_CODES } from '@/types';
+import { validateGuestAuth } from '@/lib/guestAuth';
 
 /**
  * PUT /api/guest/rsvps/[id]
@@ -25,29 +23,13 @@ export async function PUT(
     const { id } = await params;
     
     // 1. Auth check
-    const supabase = createRouteHandlerClient({ cookies });
-    const { data: { session }, error: authError } = await supabase.auth.getSession();
+    const authResult = await validateGuestAuth();
     
-    if (authError || !session) {
-      return NextResponse.json(
-        { success: false, error: { code: ERROR_CODES.UNAUTHORIZED, message: 'Authentication required' } },
-        { status: 401 }
-      );
+    if (!authResult.success) {
+      return NextResponse.json(authResult.error, { status: authResult.status });
     }
-
-    // Get guest ID from session
-    const { data: guest, error: guestError } = await supabase
-      .from('guests')
-      .select('id')
-      .eq('email', session.user.email)
-      .single();
-
-    if (guestError || !guest) {
-      return NextResponse.json(
-        { success: false, error: { code: ERROR_CODES.NOT_FOUND, message: 'Guest not found' } },
-        { status: 404 }
-      );
-    }
+    
+    const { guest } = authResult;
 
     // Get existing RSVP to verify ownership
     const existingRsvpResult = await rsvpService.get(id);
@@ -63,8 +45,24 @@ export async function PUT(
       );
     }
 
-    // 2. Parse and validate request body
-    const body = await request.json();
+    // 2. Parse request body with explicit error handling
+    let body;
+    try {
+      body = await request.json();
+    } catch (error) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: {
+            code: ERROR_CODES.VALIDATION_ERROR,
+            message: 'Invalid JSON body',
+          },
+        },
+        { status: 400 }
+      );
+    }
+    
+    // 3. Validate request body
     const validation = updateRSVPSchema.safeParse(body);
 
     if (!validation.success) {

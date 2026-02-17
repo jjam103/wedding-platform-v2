@@ -1,5 +1,4 @@
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
-import { cookies } from 'next/headers';
+import { createAuthenticatedClient } from '@/lib/supabaseServer';
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 
@@ -16,10 +15,7 @@ const bulkDeleteSchema = z.object({
 export async function POST(request: Request): Promise<NextResponse> {
   try {
     // 1. Authentication
-    const cookieStore = cookies();
-    const supabase = createRouteHandlerClient({ 
-      cookies: () => cookieStore 
-    });
+    const supabase = await createAuthenticatedClient();
     
     const {
       data: { session },

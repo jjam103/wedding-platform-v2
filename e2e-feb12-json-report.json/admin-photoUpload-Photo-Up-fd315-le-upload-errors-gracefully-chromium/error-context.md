@@ -1,0 +1,177 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - link "Skip to main content" [ref=e2] [cursor=pointer]:
+    - /url: "#main-content"
+  - link "Skip to main content" [ref=e3] [cursor=pointer]:
+    - /url: "#main-content"
+  - generic [ref=e4]:
+    - navigation "Main navigation" [ref=e5]:
+      - generic [ref=e6]:
+        - generic [ref=e7]:
+          - link "Admin" [ref=e8] [cursor=pointer]:
+            - /url: /admin
+            - generic [ref=e9]: 🌴
+            - generic [ref=e10]: Admin
+          - button "Content" [expanded] [ref=e11]:
+            - generic [ref=e12]: 📝
+            - generic [ref=e13]: Content
+          - button "Guests" [ref=e14]:
+            - generic [ref=e15]: 👥
+            - generic [ref=e16]: Guests
+          - button "RSVPs" [ref=e17]:
+            - generic [ref=e18]: ✓
+            - generic [ref=e19]: RSVPs
+          - button "Logistics" [ref=e20]:
+            - generic [ref=e21]: 🚗
+            - generic [ref=e22]: Logistics
+          - button "Admin" [ref=e23]:
+            - generic [ref=e24]: ⚙️
+            - generic [ref=e25]: Admin
+        - tabpanel [ref=e26]:
+          - link "Home Page" [ref=e27] [cursor=pointer]:
+            - /url: /admin/home-page
+          - link "Activities" [ref=e28] [cursor=pointer]:
+            - /url: /admin/activities
+          - link "Events" [ref=e29] [cursor=pointer]:
+            - /url: /admin/events
+          - link "Content Pages" [ref=e30] [cursor=pointer]:
+            - /url: /admin/content-pages
+          - link "Locations" [ref=e31] [cursor=pointer]:
+            - /url: /admin/locations
+          - link "Photos" [ref=e32] [cursor=pointer]:
+            - /url: /admin/photos
+    - banner [ref=e33]:
+      - generic [ref=e34]:
+        - heading "Wedding Admin" [level=1] [ref=e36]
+        - toolbar "User actions" [ref=e37]:
+          - link "Preview guest portal in new tab" [ref=e38] [cursor=pointer]:
+            - /url: /
+            - generic [ref=e39]: 👁️
+            - generic [ref=e40]: Preview Guest Portal
+          - button "Notifications (coming soon)" [ref=e41]: 🔔
+          - button "User menu" [ref=e43]:
+            - generic [ref=e44]: A
+            - generic [ref=e45]: Admin
+            - generic [ref=e46]: ▼
+    - main [ref=e47]:
+      - generic [ref=e49]:
+        - navigation "Main navigation" [ref=e50]:
+          - generic [ref=e51]:
+            - generic [ref=e52]:
+              - link "Admin" [ref=e53] [cursor=pointer]:
+                - /url: /admin
+                - generic [ref=e54]: 🌴
+                - generic [ref=e55]: Admin
+              - button "Content" [expanded] [ref=e56]:
+                - generic [ref=e57]: 📝
+                - generic [ref=e58]: Content
+              - button "Guests" [ref=e59]:
+                - generic [ref=e60]: 👥
+                - generic [ref=e61]: Guests
+              - button "RSVPs" [ref=e62]:
+                - generic [ref=e63]: ✓
+                - generic [ref=e64]: RSVPs
+              - button "Logistics" [ref=e65]:
+                - generic [ref=e66]: 🚗
+                - generic [ref=e67]: Logistics
+              - button "Admin" [ref=e68]:
+                - generic [ref=e69]: ⚙️
+                - generic [ref=e70]: Admin
+            - tabpanel [ref=e71]:
+              - link "Home Page" [ref=e72] [cursor=pointer]:
+                - /url: /admin/home-page
+              - link "Activities" [ref=e73] [cursor=pointer]:
+                - /url: /admin/activities
+              - link "Events" [ref=e74] [cursor=pointer]:
+                - /url: /admin/events
+              - link "Content Pages" [ref=e75] [cursor=pointer]:
+                - /url: /admin/content-pages
+              - link "Locations" [ref=e76] [cursor=pointer]:
+                - /url: /admin/locations
+              - link "Photos" [ref=e77] [cursor=pointer]:
+                - /url: /admin/photos
+        - main [ref=e78]:
+          - generic [ref=e79]:
+            - generic [ref=e80]:
+              - generic [ref=e81]:
+                - generic [ref=e82]:
+                  - heading "Photo Gallery" [level=1] [ref=e83]
+                  - paragraph [ref=e84]: Manage and moderate wedding photos
+                - generic [ref=e85]:
+                  - button "Upload Photos" [ref=e86]:
+                    - img [ref=e87]
+                    - text: Upload Photos
+                  - button "Check Storage" [ref=e89]:
+                    - img [ref=e90]
+                    - text: Check Storage
+              - generic [ref=e92]:
+                - button "Approved" [ref=e93]
+                - button "Pending" [ref=e94]
+                - button "Rejected" [ref=e95]
+              - status "Loading grid" [ref=e96]:
+                - generic [ref=e97]:
+                  - status "Loading content" [ref=e98]
+                  - generic [ref=e99]:
+                    - status "Loading content" [ref=e100]
+                    - status "Loading content" [ref=e101]
+                - generic [ref=e102]:
+                  - status "Loading content" [ref=e103]
+                  - generic [ref=e104]:
+                    - status "Loading content" [ref=e105]
+                    - status "Loading content" [ref=e106]
+                - generic [ref=e107]:
+                  - status "Loading content" [ref=e108]
+                  - generic [ref=e109]:
+                    - status "Loading content" [ref=e110]
+                    - status "Loading content" [ref=e111]
+                - generic [ref=e112]:
+                  - status "Loading content" [ref=e113]
+                  - generic [ref=e114]:
+                    - status "Loading content" [ref=e115]
+                    - status "Loading content" [ref=e116]
+                - generic [ref=e117]:
+                  - status "Loading content" [ref=e118]
+                  - generic [ref=e119]:
+                    - status "Loading content" [ref=e120]
+                    - status "Loading content" [ref=e121]
+                - generic [ref=e122]:
+                  - status "Loading content" [ref=e123]
+                  - generic [ref=e124]:
+                    - status "Loading content" [ref=e125]
+                    - status "Loading content" [ref=e126]
+                - generic [ref=e127]:
+                  - status "Loading content" [ref=e128]
+                  - generic [ref=e129]:
+                    - status "Loading content" [ref=e130]
+                    - status "Loading content" [ref=e131]
+                - generic [ref=e132]:
+                  - status "Loading content" [ref=e133]
+                  - generic [ref=e134]:
+                    - status "Loading content" [ref=e135]
+                    - status "Loading content" [ref=e136]
+            - generic [ref=e137]:
+              - alert [ref=e138]:
+                - img [ref=e140]
+                - paragraph [ref=e143]: "Failed to upload test-photo.jpg: Failed to upload photo"
+                - button "Close notification" [ref=e144]:
+                  - img [ref=e145]
+              - alert [ref=e147]:
+                - img [ref=e149]
+                - paragraph [ref=e152]: 1 photo failed to upload
+                - button "Close notification" [ref=e153]:
+                  - img [ref=e154]
+  - generic [ref=e160] [cursor=pointer]:
+    - button "Open Next.js Dev Tools" [ref=e161]:
+      - img [ref=e162]
+    - generic [ref=e165]:
+      - button "Open issues overlay" [ref=e166]:
+        - generic [ref=e167]:
+          - generic [ref=e168]: "0"
+          - generic [ref=e169]: "1"
+        - generic [ref=e170]: Issue
+      - button "Collapse issues badge" [ref=e171]:
+        - img [ref=e172]
+  - alert [ref=e174]
+```

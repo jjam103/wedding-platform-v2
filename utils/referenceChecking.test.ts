@@ -83,6 +83,7 @@ describe('Reference Checking', () => {
         page_id: pageId,
         title: 'Section 1',
         display_order: 0,
+        columns: [],
       });
 
       await createSection({
@@ -90,6 +91,7 @@ describe('Reference Checking', () => {
         page_id: pageId,
         title: 'Section 2',
         display_order: 1,
+        columns: [],
       });
 
       // Check references

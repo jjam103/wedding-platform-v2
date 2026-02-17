@@ -48,7 +48,15 @@ export async function PUT(
     // 4. Return response
     if (!result.success) {
       console.error('[Section Update] Service error:', result.error);
-      const statusCode = result.error.code === 'NOT_FOUND' ? 404 : 500;
+      
+      // Map error codes to HTTP status codes
+      let statusCode = 500;
+      if (result.error.code === 'NOT_FOUND') {
+        statusCode = 404;
+      } else if (result.error.code === 'CIRCULAR_REFERENCE' || result.error.code === 'VALIDATION_ERROR') {
+        statusCode = 400;
+      }
+      
       return errorResponse(
         result.error.code,
         result.error.message,

@@ -221,6 +221,8 @@ export async function uploadToB2(
  * Checks if the bucket is accessible and updates the health status.
  * Includes retry logic for transient failures.
  * 
+ * In test environment (USE_MOCK_B2=true), always returns healthy.
+ * 
  * @returns Result containing the health check status
  * 
  * @example
@@ -231,6 +233,15 @@ export async function uploadToB2(
  */
 export async function checkB2Health(): Promise<Result<HealthCheckResult>> {
   try {
+    // In test environment with mock B2, always return healthy
+    if (process.env.USE_MOCK_B2 === 'true') {
+      healthStatus = {
+        healthy: true,
+        lastChecked: new Date(),
+      };
+      return { success: true, data: healthStatus };
+    }
+
     if (!s3Client) {
       healthStatus = {
         healthy: false,

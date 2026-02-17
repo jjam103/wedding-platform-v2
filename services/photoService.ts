@@ -12,7 +12,33 @@ import {
   type BatchUploadDTO,
   type PhotoFilterDTO,
 } from '../schemas/photoSchemas';
-import { uploadToB2, isB2Healthy, initializeB2Client } from './b2Service';
+// Import B2 service dynamically based on environment
+// In E2E tests, this will use the mock service
+let b2ServiceModule: any = null;
+
+// Lazy load B2 service to allow for mock injection in tests
+async function getB2Service() {
+  if (!b2ServiceModule) {
+    // Check if we should use mock B2 service
+    // Priority: USE_MOCK_B2 > NEXT_PUBLIC_E2E_TEST > PLAYWRIGHT_TEST > NODE_ENV
+    const useMockB2 = process.env.USE_MOCK_B2 === 'true' ||
+                      process.env.NEXT_PUBLIC_E2E_TEST === 'true' || 
+                      process.env.PLAYWRIGHT_TEST === 'true' ||
+                      process.env.NODE_ENV === 'test';
+    
+    if (useMockB2) {
+      console.log('🧪 [PhotoService] Using MOCK B2 service');
+      // Use service detector in E2E mode
+      const { getB2Service: getB2 } = await import('../__tests__/mocks/serviceDetector');
+      b2ServiceModule = await getB2();
+    } else {
+      console.log('🔌 [PhotoService] Using REAL B2 service');
+      // Use real service in production
+      b2ServiceModule = await import('./b2Service');
+    }
+  }
+  return b2ServiceModule;
+}
 
 type Result<T> = 
   | { success: true; data: T } 
@@ -24,37 +50,8 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
 
-// Initialize B2 client if credentials are available
-if (
-  process.env.B2_ACCESS_KEY_ID &&
-  process.env.B2_SECRET_ACCESS_KEY &&
-  process.env.B2_BUCKET_NAME
-) {
-  // B2 uses S3-compatible API with region-specific endpoints
-  // Default to us-west-004 which is the most common B2 region
-  const region = process.env.B2_REGION || 'us-west-004';
-  const endpoint = process.env.B2_ENDPOINT || `https://s3.${region}.backblazeb2.com`;
-  
-  const b2Config = {
-    endpoint,
-    region,
-    accessKeyId: process.env.B2_ACCESS_KEY_ID,
-    secretAccessKey: process.env.B2_SECRET_ACCESS_KEY,
-    bucket: process.env.B2_BUCKET_NAME,
-    cdnDomain: process.env.B2_CDN_DOMAIN || process.env.CLOUDFLARE_CDN_URL?.replace(/^https?:\/\//, '') || '',
-  };
-  
-  const initResult = initializeB2Client(b2Config);
-  if (!initResult.success) {
-    console.warn('Failed to initialize B2 client:', initResult.error.message);
-    console.warn('Photo uploads will use Supabase Storage only');
-  } else {
-    console.log('✓ B2 client initialized successfully');
-  }
-} else {
-  console.warn('B2 credentials not configured - using Supabase Storage only');
-  console.warn('Required: B2_ACCESS_KEY_ID, B2_SECRET_ACCESS_KEY, B2_BUCKET_NAME');
-}
+// B2 initialization will happen lazily when needed
+// This allows for proper mock injection in E2E tests
 
 interface Photo {
   id: string;
@@ -127,7 +124,8 @@ export async function uploadPhoto(
     };
 
     // 3. Check B2 health and attempt upload
-    const b2HealthResult = await isB2Healthy();
+    const b2Service = await getB2Service();
+    const b2HealthResult = await b2Service.isB2Healthy();
     console.log('[PhotoService] B2 health check:', b2HealthResult);
     let photoUrl: string;
     let storageType: 'b2' | 'supabase';
@@ -135,7 +133,7 @@ export async function uploadPhoto(
     if (b2HealthResult.success && b2HealthResult.data) {
       // Try B2 upload
       console.log('[PhotoService] Attempting B2 upload...');
-      const b2Result = await uploadToB2(file, fileName, contentType);
+      const b2Result = await b2Service.uploadToB2(file, fileName, contentType);
       console.log('[PhotoService] B2 upload result:', b2Result);
       if (b2Result.success) {
         photoUrl = b2Result.data.url;

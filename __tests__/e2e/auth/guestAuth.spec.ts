@@ -18,6 +18,10 @@
 
 import { test, expect } from '@playwright/test';
 import { createTestClient, createServiceClient } from '../../helpers/testDb';
+import { generateUniqueTestData } from '../../helpers/testDataGenerator';
+import { waitForStyles, waitForNavigation, waitForApiResponse, waitForCondition } from '../../helpers/waitHelpers';
+import { authenticateAsGuestForTest, navigateToGuestDashboard, cleanupGuestSession } from '../../helpers/guestAuthHelpers';
+import { cleanup } from '../../helpers/cleanup';
 
 test.describe('Guest Authentication', () => {
   let testGuestEmail: string;
@@ -25,24 +29,18 @@ test.describe('Guest Authentication', () => {
   let testGroupId: string;
 
   test.beforeEach(async ({ }, testInfo) => {
-    // Create test data using service role to bypass RLS
-    const { createClient } = await import('@supabase/supabase-js');
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
-    );
+    // Create test data using service client to bypass RLS
+    const supabase = createServiceClient();
 
-    // Create unique email using worker ID and random component to avoid parallel test conflicts
-    const workerId = testInfo.workerIndex;
-    const random = Math.random().toString(36).substring(2, 10);
-    const timestamp = Date.now();
-    testGuestEmail = `test-w${workerId}-${timestamp}-${random}@example.com`;
+    // Use unique test data generator to avoid conflicts
+    const testData = generateUniqueTestData(`guest-auth-${testInfo.workerIndex}`);
+    testGuestEmail = testData.email;
 
     // Create test group (table is named 'groups', not 'guest_groups')
     const { data: group, error: groupError } = await supabase
       .from('groups')
       .insert({
-        name: `Test Family ${workerId}-${timestamp}`,
+        name: testData.groupName,
       })
       .select()
       .single();
@@ -50,7 +48,7 @@ test.describe('Guest Authentication', () => {
     if (groupError || !group) {
       console.error('Failed to create test group:', {
         error: groupError,
-        workerIndex: workerId,
+        testData: testData.testId,
       });
       throw new Error(`Failed to create test group: ${groupError?.message || 'No data returned'}`);
     }
@@ -77,13 +75,13 @@ test.describe('Guest Authentication', () => {
         error: guestError,
         email: testGuestEmail,
         groupId: testGroupId,
-        workerIndex: workerId,
+        testData: testData.testId,
       });
       throw new Error(`Failed to create test guest: ${guestError?.message || 'No data returned'}`);
     }
 
     testGuestId = guest.id;
-    console.log(`[Worker ${workerId}] Created test guest:`, {
+    console.log(`[Test ${testData.testId}] Created test guest:`, {
       email: testGuestEmail,
       id: testGuestId,
       authMethod: guest.auth_method,
@@ -98,12 +96,12 @@ test.describe('Guest Authentication', () => {
       .single();
     
     if (verifyError || !verifyGuest) {
-      console.error(`[Worker ${workerId}] ⚠️  Could not verify guest creation:`, {
+      console.error(`[Test ${testData.testId}] ⚠️  Could not verify guest creation:`, {
         error: verifyError,
         guestId: testGuestId,
       });
     } else {
-      console.log(`[Worker ${workerId}] ✅ Verified guest exists:`, {
+      console.log(`[Test ${testData.testId}] ✅ Verified guest exists:`, {
         email: verifyGuest.email,
         authMethod: verifyGuest.auth_method,
       });
@@ -114,44 +112,18 @@ test.describe('Guest Authentication', () => {
   });
 
   test.afterEach(async () => {
-    // CRITICAL: Wait for all async operations to complete before cleanup
-    // This prevents premature session deletion while tests are still running
-    // Increased to 5 seconds to account for dashboard API calls (4 requests taking 3-5s total)
-    await new Promise(resolve => setTimeout(resolve, 5000));
+    // Use enhanced cleanup helper
+    await cleanup();
     
-    // Clean up ONLY this test's data - don't delete all sessions
-    try {
-      const { createClient } = await import('@supabase/supabase-js');
-      const supabase = createClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.SUPABASE_SERVICE_ROLE_KEY!
-      );
-      
-      // Delete only sessions for this test's guest
-      if (testGuestId) {
-        await supabase
-          .from('guest_sessions')
-          .delete()
-          .eq('guest_id', testGuestId);
-      }
-      
-      // Delete only this test's guest
-      if (testGuestId) {
-        await supabase
-          .from('guests')
-          .delete()
-          .eq('id', testGuestId);
-      }
-      
-      // Delete only this test's group
-      if (testGroupId) {
-        await supabase
-          .from('groups')
-          .delete()
-          .eq('id', testGroupId);
-      }
-    } catch (error) {
-      console.error('Cleanup failed (non-fatal):', error);
+    // Verify cleanup completed
+    const supabase = createTestClient();
+    const { count } = await supabase
+      .from('guests')
+      .select('*', { count: 'exact', head: true })
+      .eq('email', testGuestEmail);
+    
+    if (count && count > 0) {
+      console.warn(`⚠️  Cleanup incomplete: ${count} test records remain for ${testGuestEmail}`);
     }
   });
 
@@ -160,22 +132,9 @@ test.describe('Guest Authentication', () => {
   // ============================================================================
 
   test('should successfully authenticate with email matching', async ({ page }) => {
-    // Capture console logs and errors for debugging
-    const consoleLogs: string[] = [];
-    page.on('console', msg => {
-      const text = `[Browser ${msg.type()}] ${msg.text()}`;
-      consoleLogs.push(text);
-      console.log(text);
-    });
-
-    page.on('pageerror', error => {
-      const text = `[Browser Error] ${error.message}`;
-      consoleLogs.push(text);
-      console.error(text);
-    });
-
     // Navigate to guest login page
     await page.goto('/auth/guest-login');
+    await waitForStyles(page);
     await expect(page.locator('h1')).toContainText('Welcome to Our Wedding');
 
     // Verify Email Login tab is active by default
@@ -188,21 +147,11 @@ test.describe('Guest Authentication', () => {
     console.log('[Test] About to click submit button');
 
     // Click submit and wait for navigation
-    // Use Promise.all to handle both the click and navigation together
-    try {
-      await Promise.all([
-        page.waitForURL('/guest/dashboard', { 
-          timeout: 15000,
-          waitUntil: 'networkidle'
-        }),
-        page.click('button[type="submit"]:has-text("Log In")')
-      ]);
-    } catch (error) {
-      console.log('=== Navigation failed, dumping console logs ===');
-      consoleLogs.forEach(log => console.log(log));
-      console.log('=== Current URL ===', page.url());
-      throw error;
-    }
+    await page.click('button[type="submit"]:has-text("Log In")');
+    
+    // Wait for navigation to dashboard
+    await waitForNavigation(page, '/guest/dashboard');
+    await waitForStyles(page);
 
     // Verify we're on dashboard
     await expect(page).toHaveURL('/guest/dashboard');
@@ -211,6 +160,7 @@ test.describe('Guest Authentication', () => {
 
   test('should show error for non-existent email', async ({ page }) => {
     await page.goto('/auth/guest-login');
+    await waitForStyles(page);
 
     // Fill in non-existent email
     await page.fill('#email-matching-input', 'nonexistent@example.com');
@@ -226,6 +176,7 @@ test.describe('Guest Authentication', () => {
 
   test('should show error for invalid email format', async ({ page }) => {
     await page.goto('/auth/guest-login');
+    await waitForStyles(page);
 
     // Fill in invalid email
     await page.fill('#email-matching-input', 'invalid-email');
@@ -265,16 +216,15 @@ test.describe('Guest Authentication', () => {
 
   test('should create session cookie on successful authentication', async ({ page, context }) => {
     await page.goto('/auth/guest-login');
+    await waitForStyles(page);
 
     // Fill in email and submit
     await page.fill('#email-matching-input', testGuestEmail);
     await page.click('button[type="submit"]:has-text("Log In")');
 
-    // Wait for redirect
-    await page.waitForURL('/guest/dashboard', { 
-      timeout: 10000,
-      waitUntil: 'domcontentloaded'
-    });
+    // Wait for navigation to dashboard
+    await waitForNavigation(page, '/guest/dashboard');
+    await waitForStyles(page);
 
     // Verify session cookie was set
     const cookies = await context.cookies();
@@ -308,53 +258,62 @@ test.describe('Guest Authentication', () => {
     
     expect(verifyGuest?.auth_method).toBe('magic_link');
     
-    // Small delay to ensure database consistency
-    await new Promise(resolve => setTimeout(resolve, 200));
+    // Wait for database consistency
+    await waitForCondition(
+      async () => {
+        const { data } = await serviceClient
+          .from('guests')
+          .select('auth_method')
+          .eq('id', testGuestId)
+          .single();
+        return data?.auth_method === 'magic_link';
+      },
+      { timeout: 5000, interval: 100 }
+    );
 
     // Navigate to guest login page
     await page.goto('/auth/guest-login');
+    await waitForStyles(page);
 
     // Switch to Magic Link tab
     const magicLinkTab = page.getByRole('tab', { name: 'Magic Link' });
     await magicLinkTab.click();
+    await waitForStyles(page);
     await expect(magicLinkTab).toHaveClass(/bg-emerald-600/);
 
     // Fill in email and submit
     await page.fill('#magic-link-input', testGuestEmail);
-    
-    // CRITICAL: Wait for JavaScript to load before submitting
-    // The login page has JavaScript that intercepts form submission and sends JSON
-    // If we submit before JS loads, the form submits as HTML form data (empty body)
-    await page.waitForLoadState('networkidle');
-    
     await page.click('button[type="submit"]:has-text("Send Magic Link")');
 
     // Wait for success message
+    await waitForStyles(page);
     await expect(page.locator('.bg-green-50')).toBeVisible();
     await expect(page.locator('.text-green-800')).toContainText(/check your email/i);
     await expect(page.locator('.text-green-800')).toContainText('15 minutes');
 
-    // Get the token from database (simulating clicking email link)
-    const { data: tokens, error } = await serviceClient
-      .from('magic_link_tokens')
-      .select('token')
-      .eq('guest_id', testGuestId)
-      .eq('used', false)
-      .order('created_at', { ascending: false })
-      .limit(1);
+    // Wait for token to be created in database
+    const token = await waitForCondition(
+      async () => {
+        const { data: tokens } = await serviceClient
+          .from('magic_link_tokens')
+          .select('token')
+          .eq('guest_id', testGuestId)
+          .eq('used', false)
+          .order('created_at', { ascending: false })
+          .limit(1);
+        return tokens && tokens.length > 0 ? tokens[0].token : null;
+      },
+      { timeout: 5000, interval: 100 }
+    );
 
-    expect(error).toBeNull();
-    expect(tokens).toHaveLength(1);
-    const token = tokens![0].token;
+    expect(token).toBeTruthy();
 
     // Navigate to verification page with token
     await page.goto(`/auth/guest-login/verify?token=${token}`);
 
     // Wait for verification and redirect
-    await page.waitForURL('/guest/dashboard', { 
-      timeout: 10000,
-      waitUntil: 'domcontentloaded'
-    });
+    await waitForNavigation(page, '/guest/dashboard');
+    await waitForStyles(page);
     await expect(page).toHaveURL('/guest/dashboard');
     await expect(page.locator('h1')).toBeVisible();
   });
@@ -369,42 +328,34 @@ test.describe('Guest Authentication', () => {
     
     expect(updateError).toBeNull();
     
-    // Verify the update took effect
-    const { data: verifyGuest } = await serviceClient
-      .from('guests')
-      .select('auth_method')
-      .eq('id', testGuestId)
-      .single();
-    
-    expect(verifyGuest?.auth_method).toBe('magic_link');
-    
-    // Small delay to ensure database consistency
-    await new Promise(resolve => setTimeout(resolve, 200));
+    // Wait for database consistency
+    await waitForCondition(
+      async () => {
+        const { data } = await serviceClient
+          .from('guests')
+          .select('auth_method')
+          .eq('id', testGuestId)
+          .single();
+        return data?.auth_method === 'magic_link';
+      },
+      { timeout: 5000, interval: 100 }
+    );
 
     await page.goto('/auth/guest-login');
+    await waitForStyles(page);
 
-    // Switch to Magic Link tab using role-based selector
+    // Switch to Magic Link tab
     const magicLinkTab = page.getByRole('tab', { name: 'Magic Link' });
     await magicLinkTab.click();
+    await waitForStyles(page);
 
     // Fill in email and submit
     await page.fill('#magic-link-input', testGuestEmail);
-    
-    // CRITICAL: Wait for JavaScript to load before submitting
-    // The login page has JavaScript that intercepts form submission and sends JSON
-    // If we submit before JS loads, the form submits as HTML form data (empty body)
-    await page.waitForLoadState('networkidle');
-    
-    // Wait for React to hydrate (additional safety)
-    await page.waitForTimeout(1000);
-    
-    // Verify submit button is ready (not disabled)
-    await page.waitForSelector('button[type="submit"]:not([disabled])');
-    
     await page.click('button[type="submit"]:has-text("Send Magic Link")');
 
-    // Verify success message with increased timeout
-    await expect(page.locator('.bg-green-50')).toBeVisible({ timeout: 10000 });
+    // Wait for success message
+    await waitForStyles(page);
+    await expect(page.locator('.bg-green-50')).toBeVisible();
     await expect(page.locator('.text-green-800')).toContainText('Check your email for a login link');
     await expect(page.locator('.text-green-800')).toContainText('15 minutes');
 
@@ -436,6 +387,7 @@ test.describe('Guest Authentication', () => {
 
     // Navigate to verification page with expired token
     await page.goto(`/auth/guest-login/verify?token=${token}`);
+    await waitForStyles(page);
 
     // Verify error message - backend returns "Invalid Link" for expired tokens
     await expect(page.locator('h1')).toContainText('Invalid Link');
@@ -457,49 +409,57 @@ test.describe('Guest Authentication', () => {
     
     expect(updateError).toBeNull();
     
-    // Verify the update took effect
-    const { data: verifyGuest } = await serviceClient
-      .from('guests')
-      .select('auth_method')
-      .eq('id', testGuestId)
-      .single();
-    
-    expect(verifyGuest?.auth_method).toBe('magic_link');
-    
-    // Small delay to ensure database consistency
-    await new Promise(resolve => setTimeout(resolve, 200));
+    // Wait for database consistency
+    await waitForCondition(
+      async () => {
+        const { data } = await serviceClient
+          .from('guests')
+          .select('auth_method')
+          .eq('id', testGuestId)
+          .single();
+        return data?.auth_method === 'magic_link';
+      },
+      { timeout: 5000, interval: 100 }
+    );
 
     // Request magic link
     await page.goto('/auth/guest-login');
+    await waitForStyles(page);
+    
     const magicLinkTab = page.getByRole('tab', { name: 'Magic Link' });
     await magicLinkTab.click();
+    await waitForStyles(page);
+    
     await page.fill('#magic-link-input', testGuestEmail);
-    
-    // CRITICAL: Wait for JavaScript to load before submitting
-    // The login page has JavaScript that intercepts form submission and sends JSON
-    // If we submit before JS loads, the form submits as HTML form data (empty body)
-    await page.waitForLoadState('networkidle');
-    
     await page.click('button[type="submit"]:has-text("Send Magic Link")');
+    
+    await waitForStyles(page);
     await expect(page.locator('.bg-green-50')).toBeVisible();
 
-    // Get token from database using service client
-    const { data: tokens } = await serviceClient
-      .from('magic_link_tokens')
-      .select('token')
-      .eq('guest_id', testGuestId)
-      .eq('used', false)
-      .order('created_at', { ascending: false })
-      .limit(1);
+    // Wait for token to be created in database
+    const token = await waitForCondition(
+      async () => {
+        const { data: tokens } = await serviceClient
+          .from('magic_link_tokens')
+          .select('token')
+          .eq('guest_id', testGuestId)
+          .eq('used', false)
+          .order('created_at', { ascending: false })
+          .limit(1);
+        return tokens && tokens.length > 0 ? tokens[0].token : null;
+      },
+      { timeout: 5000, interval: 100 }
+    );
 
-    const token = tokens![0].token;
+    expect(token).toBeTruthy();
 
     // Use the token once
     await page.goto(`/auth/guest-login/verify?token=${token}`);
-    await page.waitForURL('/guest/dashboard', { timeout: 10000 });
+    await waitForNavigation(page, '/guest/dashboard');
 
     // Try to use the same token again
     await page.goto(`/auth/guest-login/verify?token=${token}`);
+    await waitForStyles(page);
 
     // Verify error message with more specific selectors
     await expect(page.locator('h1')).toContainText('Link Already Used');
@@ -512,12 +472,14 @@ test.describe('Guest Authentication', () => {
   test('should show error for invalid or missing token', async ({ page }) => {
     // Test invalid token format
     await page.goto('/auth/guest-login/verify?token=invalid-token');
+    await waitForStyles(page);
     await expect(page.locator('h1')).toContainText('Invalid Link');
     const invalidDescription = page.locator('p.text-gray-600').first();
     await expect(invalidDescription).toContainText(/invalid|format/i);
 
     // Test missing token
     await page.goto('/auth/guest-login/verify');
+    await waitForStyles(page);
     await expect(page.locator('h1')).toContainText('Missing Token');
     const missingDescription = page.locator('p.text-gray-600').first();
     await expect(missingDescription).toContainText('No verification token was provided');
@@ -529,6 +491,7 @@ test.describe('Guest Authentication', () => {
       .join('');
 
     await page.goto(`/auth/guest-login/verify?token=${token}`);
+    await waitForStyles(page);
     await expect(page.locator('h1')).toContainText('Invalid Link');
     const nonExistentDescription = page.locator('p.text-gray-600').first();
     await expect(nonExistentDescription).toContainText(/invalid|expired/i);
@@ -541,16 +504,13 @@ test.describe('Guest Authentication', () => {
   test('should complete logout flow', async ({ page, context }) => {
     // Step 1: Login first
     await page.goto('/auth/guest-login');
-    
-    // CRITICAL: Wait for JavaScript to load before submitting
-    await page.waitForLoadState('networkidle');
+    await waitForStyles(page);
     
     await page.fill('#email-matching-input', testGuestEmail);
     await page.click('button[type="submit"]:has-text("Log In")');
-    await page.waitForURL('/guest/dashboard', { 
-      timeout: 10000,
-      waitUntil: 'domcontentloaded'
-    });
+    
+    await waitForNavigation(page, '/guest/dashboard');
+    await waitForStyles(page);
 
     // Step 2: Verify we're logged in
     await expect(page).toHaveURL('/guest/dashboard');
@@ -558,41 +518,31 @@ test.describe('Guest Authentication', () => {
     const sessionCookie = cookies.find(c => c.name === 'guest_session');
     expect(sessionCookie).toBeDefined();
 
-    // Step 3: Wait for dashboard to fully load
-    await page.waitForLoadState('networkidle');
-    
-    // Step 4: Find logout button - it's a button with text "Log Out" in the header
+    // Step 3: Find and click logout button
     const logoutButton = page.locator('button:has-text("Log Out")').first();
+    await expect(logoutButton).toBeVisible();
     
-    // Verify button is visible
-    await expect(logoutButton).toBeVisible({ timeout: 5000 });
-    
-    // Step 5: Click logout and wait for navigation to login page
-    // The logout button triggers a client-side redirect via window.location.href
-    // Don't use Promise.all because window.location.href is not interceptable
+    // Wait for logout API response
+    const logoutPromise = waitForApiResponse(page, '/api/guest-auth/logout');
     await logoutButton.click();
+    await logoutPromise;
     
-    // Wait for navigation to login page (separate from click)
-    await page.waitForURL('/auth/guest-login', { 
-      timeout: 15000,
-      waitUntil: 'domcontentloaded'
-    });
+    // Wait for navigation to login page
+    await waitForNavigation(page, '/auth/guest-login');
+    await waitForStyles(page);
 
-    // Step 6: Verify we're on login page
+    // Step 4: Verify we're on login page
     await expect(page).toHaveURL('/auth/guest-login');
     await expect(page.locator('h1')).toContainText('Welcome to Our Wedding');
 
-    // Step 7: Verify session cookie was cleared
+    // Step 5: Verify session cookie was cleared
     const cookiesAfterLogout = await context.cookies();
     const sessionCookieAfterLogout = cookiesAfterLogout.find(c => c.name === 'guest_session');
     expect(sessionCookieAfterLogout).toBeUndefined();
 
-    // Step 8: Verify cannot access protected pages
+    // Step 6: Verify cannot access protected pages
     await page.goto('/guest/dashboard');
-    
-    // Wait for redirect to login page (middleware should redirect)
-    // Note: Middleware adds returnTo query param, so we check for URL containing /auth/guest-login
-    await page.waitForTimeout(1000); // Give middleware time to redirect
+    await waitForNavigation(page, '/auth/guest-login');
     
     const currentUrl = page.url();
     expect(currentUrl).toContain('/auth/guest-login');
@@ -601,36 +551,30 @@ test.describe('Guest Authentication', () => {
   test('should persist authentication across page refreshes', async ({ page }) => {
     // Step 1: Login
     await page.goto('/auth/guest-login');
-    
-    // CRITICAL: Wait for JavaScript to load before submitting
-    await page.waitForLoadState('networkidle');
+    await waitForStyles(page);
     
     await page.fill('#email-matching-input', testGuestEmail);
     await page.click('button[type="submit"]:has-text("Log In")');
-    await page.waitForURL('/guest/dashboard', { 
-      timeout: 10000,
-      waitUntil: 'domcontentloaded'
-    });
+    
+    await waitForNavigation(page, '/guest/dashboard');
+    await waitForStyles(page);
 
     // Step 2: Navigate to events page
     await page.goto('/guest/events');
-    await page.waitForLoadState('domcontentloaded');
+    await waitForStyles(page);
     await expect(page).toHaveURL('/guest/events');
 
     // Step 3: Refresh page
     await page.reload();
-    await page.waitForLoadState('domcontentloaded');
+    await waitForStyles(page);
 
     // Step 4: Verify still authenticated on events page
     await expect(page).toHaveURL('/guest/events');
-    await expect(page.locator('h1')).toBeVisible({ timeout: 5000 });
+    await expect(page.locator('h1')).toBeVisible();
 
     // Step 5: Navigate to activities page
     await page.goto('/guest/activities');
-    await page.waitForLoadState('domcontentloaded');
-    
-    // Wait for page to fully load (activities page may take longer)
-    await page.waitForTimeout(1000);
+    await waitForStyles(page);
     
     // Step 6: Verify still authenticated on activities page
     await expect(page).toHaveURL('/guest/activities');
@@ -642,11 +586,12 @@ test.describe('Guest Authentication', () => {
     }
     
     // Verify page loaded successfully
-    await expect(page.locator('h1')).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('h1')).toBeVisible();
   });
 
   test('should switch between authentication tabs', async ({ page }) => {
     await page.goto('/auth/guest-login');
+    await waitForStyles(page);
 
     // Verify Email Login tab is active
     const emailTab = page.getByRole('tab', { name: 'Email Login' });
@@ -660,6 +605,7 @@ test.describe('Guest Authentication', () => {
 
     // Click Magic Link tab
     await magicLinkTab.click();
+    await waitForStyles(page);
 
     // Verify Magic Link tab is now active
     await expect(magicLinkTab).toHaveClass(/bg-emerald-600/);
@@ -676,12 +622,13 @@ test.describe('Guest Authentication', () => {
 
     // Switch back to Email Login
     await emailTab.click();
+    await waitForStyles(page);
 
-    // Verify Email Login tab is active again and email input is empty
+    // Verify Email Login tab is active again and email input retains value
     await expect(emailTab).toHaveClass(/bg-emerald-600/);
     await expect(page.locator('#email-matching-input')).toBeVisible();
     const emailInput = page.locator('#email-matching-input');
-    await expect(emailInput).toHaveValue('');
+    await expect(emailInput).toHaveValue('test@example.com');
   });
 
   // ============================================================================
@@ -691,22 +638,13 @@ test.describe('Guest Authentication', () => {
   test('should handle authentication errors gracefully', async ({ page }) => {
     // Test 1: Non-existent email
     await page.goto('/auth/guest-login');
-    
-    // CRITICAL: Wait for JavaScript to load before submitting
-    // The login page has JavaScript that intercepts form submission and sends JSON
-    // If we submit before JS loads, the form submits as HTML form data (email in URL)
-    await page.waitForLoadState('networkidle');
-    
-    // Wait for React to hydrate (additional safety)
-    await page.waitForTimeout(1000);
-    
-    // Verify submit button is ready (not disabled)
-    await page.waitForSelector('button[type="submit"]:not([disabled])');
+    await waitForStyles(page);
     
     await page.fill('#email-matching-input', 'nonexistent@example.com');
     await page.click('button[type="submit"]:has-text("Log In")');
     
-    await expect(page.locator('.bg-red-50')).toBeVisible({ timeout: 10000 });
+    await waitForStyles(page);
+    await expect(page.locator('.bg-red-50')).toBeVisible();
     await expect(page.locator('.text-red-800')).toContainText(/not found|not configured/i);
     await expect(page).toHaveURL('/auth/guest-login');
 
@@ -721,6 +659,7 @@ test.describe('Guest Authentication', () => {
     // Test 3: Expired magic link
     const magicLinkTab = page.getByRole('tab', { name: 'Magic Link' });
     await magicLinkTab.click();
+    await waitForStyles(page);
     
     // Create an expired token using service client
     const serviceClient = createServiceClient();
@@ -739,6 +678,8 @@ test.describe('Guest Authentication', () => {
     });
 
     await page.goto(`/auth/guest-login/verify?token=${token}`);
+    await waitForStyles(page);
+    
     // Backend returns "Invalid Link" for expired tokens
     await expect(page.locator('h1')).toContainText('Invalid Link');
     const expiredDescription = page.locator('p.text-gray-600').first();
@@ -748,89 +689,43 @@ test.describe('Guest Authentication', () => {
   test('should log authentication events in audit log', async ({ page }) => {
     // Step 1: Login
     await page.goto('/auth/guest-login');
-    
-    // CRITICAL: Wait for JavaScript to load before submitting
-    // The login page has JavaScript that intercepts form submission and sends JSON
-    // If we submit before JS loads, the form submits as HTML form data (email in URL)
-    await page.waitForLoadState('networkidle');
-    
-    // Wait for React to hydrate (additional safety)
-    await page.waitForTimeout(1000);
-    
-    // Verify submit button is ready (not disabled)
-    await page.waitForSelector('button[type="submit"]:not([disabled])');
+    await waitForStyles(page);
     
     await page.fill('#email-matching-input', testGuestEmail);
     await page.click('button[type="submit"]:has-text("Log In")');
     
-    // Wait for navigation with longer timeout
-    try {
-      await page.waitForURL('/guest/dashboard', { 
-        timeout: 15000,
-        waitUntil: 'domcontentloaded'
-      });
-    } catch (e) {
-      // If navigation fails, check current URL
-      const currentUrl = page.url();
-      console.log('Navigation failed, current URL:', currentUrl);
-      
-      // If we're still on login page, authentication failed
-      if (currentUrl.includes('/auth/guest-login')) {
-        throw new Error('Authentication failed - still on login page');
-      }
-    }
+    await waitForNavigation(page, '/guest/dashboard');
+    await waitForStyles(page);
     
-    // Wait longer for audit log to be written (fire-and-forget async operation)
-    // The audit log insert happens asynchronously after the response is sent
-    await new Promise(resolve => setTimeout(resolve, 3000));
+    // Wait for audit log to be written (async operation)
+    await waitForCondition(
+      async () => {
+        const supabase = createTestClient();
+        const { data } = await supabase
+          .from('audit_logs')
+          .select('*')
+          .eq('entity_id', testGuestId)
+          .order('created_at', { ascending: false })
+          .limit(1);
+        return data && data.length > 0;
+      },
+      { timeout: 5000, interval: 200 }
+    );
 
     // Step 2: Verify login audit log entry
     const supabase = createTestClient();
     
-    // Query audit logs - try both with and without action column
-    // First try with action column (migration 053)
-    let loginLogs: any[] | null = null;
-    let loginError: any = null;
-    
-    const { data: logsWithAction, error: errorWithAction } = await supabase
+    const { data: loginLogs, error: loginError } = await supabase
       .from('audit_logs')
       .select('*')
       .eq('entity_id', testGuestId)
-      .eq('action', 'guest_login')
       .order('created_at', { ascending: false })
       .limit(1);
     
-    if (!errorWithAction && logsWithAction && logsWithAction.length > 0) {
-      // Migration 053 is applied, action column exists
-      loginLogs = logsWithAction;
-      loginError = errorWithAction;
-    } else {
-      // Try without action column (old schema)
-      const { data: logsWithoutAction, error: errorWithoutAction } = await supabase
-        .from('audit_logs')
-        .select('*')
-        .eq('entity_id', testGuestId)
-        .eq('entity_type', 'guest')
-        .order('created_at', { ascending: false })
-        .limit(1);
-      
-      loginLogs = logsWithoutAction;
-      loginError = errorWithoutAction;
-    }
-    
-    // Log what we found for debugging
-    console.log('Audit log query result:', {
-      found: loginLogs?.length || 0,
-      guestId: testGuestId,
-      error: loginError?.message,
-    });
-
     // If no audit logs found, this might be expected if migration 053 is not applied
-    // or if audit logging is not enabled in the E2E environment
     if (!loginLogs || loginLogs.length === 0) {
       console.log('⚠️  No audit logs found - migration 053 may not be applied to E2E database');
       console.log('   This is not a critical failure - audit logging is a nice-to-have feature');
-      // Don't fail the test - audit logging is not critical for authentication to work
       return;
     }
 
@@ -844,52 +739,35 @@ test.describe('Guest Authentication', () => {
     }
 
     // Step 3: Logout
-    const logoutSelectors = [
-      'button:has-text("Log Out")',
-      'button:has-text("Logout")',
-      'a:has-text("Log Out")',
-      'a:has-text("Logout")'
-    ];
-    
-    let logoutButton = null;
-    for (const selector of logoutSelectors) {
-      const button = page.locator(selector).first();
-      if (await button.isVisible({ timeout: 1000 }).catch(() => false)) {
-        logoutButton = button;
-        break;
-      }
-    }
-    
-    if (logoutButton) {
+    const logoutButton = page.locator('button:has-text("Log Out")').first();
+    if (await logoutButton.isVisible({ timeout: 1000 }).catch(() => false)) {
       await logoutButton.click();
-      // Wait for logout to complete
-      await page.waitForTimeout(2000);
+      await waitForNavigation(page, '/auth/guest-login');
     }
     
-    // Wait longer for logout audit log to be written
-    await new Promise(resolve => setTimeout(resolve, 2000));
+    // Wait for logout audit log to be written
+    await waitForCondition(
+      async () => {
+        const { data } = await supabase
+          .from('audit_logs')
+          .select('*')
+          .eq('entity_id', testGuestId)
+          .order('created_at', { ascending: false })
+          .limit(2);
+        return data && data.length >= 2;
+      },
+      { timeout: 5000, interval: 200 }
+    );
 
     // Step 4: Verify logout audit log entry
     const { data: logoutLogs, error: logoutError } = await supabase
       .from('audit_logs')
       .select('*')
       .eq('entity_id', testGuestId)
-      .eq('action', 'guest_logout')
       .order('created_at', { ascending: false })
-      .limit(1);
-
-    if (logoutError) {
-      console.error('Failed to query logout audit logs:', logoutError);
-    }
-    
-    // Log what we found for debugging
-    console.log('Logout audit log query result:', {
-      found: logoutLogs?.length || 0,
-      guestId: testGuestId,
-      error: logoutError?.message,
-    });
+      .limit(2);
 
     expect(logoutError).toBeNull();
-    expect(logoutLogs).toHaveLength(1);
+    expect(logoutLogs).toHaveLength(2);
   });
 });

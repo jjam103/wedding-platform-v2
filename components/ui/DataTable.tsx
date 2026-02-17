@@ -91,7 +91,7 @@ export function DataTable<T extends Record<string, any>>({
   const [localPage, setLocalPage] = useState(currentPage);
   const [isBulkOperationInProgress, setIsBulkOperationInProgress] = useState(false);
 
-  // Initialize state from URL on mount
+  // Initialize state from URL on mount and when URL changes
   useEffect(() => {
     const urlSort = searchParams.get('sort');
     const urlDirection = searchParams.get('direction') as 'asc' | 'desc' | null;
@@ -99,11 +99,44 @@ export function DataTable<T extends Record<string, any>>({
     const urlPage = searchParams.get('page');
     const urlPageSize = searchParams.get('pageSize');
 
-    if (urlSort) setSortColumn(urlSort);
-    if (urlDirection) setSortDirection(urlDirection);
-    if (urlSearch) setSearchQuery(urlSearch);
-    if (urlPage) setLocalPage(parseInt(urlPage));
-    if (urlPageSize) setLocalPageSize(parseInt(urlPageSize));
+    // Update sort state
+    if (urlSort) {
+      setSortColumn(urlSort);
+      setSortDirection(urlDirection || 'asc');
+      if (onSort) {
+        onSort(urlSort, urlDirection || 'asc');
+      }
+    } else {
+      setSortColumn(null);
+      setSortDirection('asc');
+    }
+
+    // Update search state
+    if (urlSearch) {
+      setSearchQuery(urlSearch);
+      if (onSearch) {
+        onSearch(urlSearch);
+      }
+    } else {
+      setSearchQuery('');
+    }
+
+    // Update pagination state
+    if (urlPage) {
+      const page = parseInt(urlPage, 10);
+      setLocalPage(page);
+      if (onPageChange) {
+        onPageChange(page);
+      }
+    } else {
+      setLocalPage(1);
+    }
+    
+    if (urlPageSize) {
+      setLocalPageSize(parseInt(urlPageSize, 10));
+    } else {
+      setLocalPageSize(pageSize);
+    }
 
     // Restore filters from URL
     const urlFilters: Record<string, any> = {};
@@ -115,10 +148,11 @@ export function DataTable<T extends Record<string, any>>({
         }
       }
     });
-    if (Object.keys(urlFilters).length > 0) {
-      setFilters(urlFilters);
+    setFilters(urlFilters);
+    if (Object.keys(urlFilters).length > 0 && onFilter) {
+      onFilter(urlFilters);
     }
-  }, []);
+  }, [searchParams, columns, pageSize, onSort, onSearch, onPageChange, onFilter]);
 
   // Update URL when state changes
   const updateURL = useCallback((updates: Record<string, string | null>) => {
@@ -385,14 +419,15 @@ export function DataTable<T extends Record<string, any>>({
 
       {/* Active Filter Chips */}
       {hasActiveFilters && (
-        <div className="flex flex-wrap gap-2 items-center">
+        <div className="flex flex-wrap gap-2 items-center" role="region" aria-label="Active filters">
           <span className="text-sm text-sage-600">Active filters:</span>
           {searchQuery && (
-            <div className="flex items-center gap-1 px-3 py-1 bg-ocean-100 text-ocean-800 rounded-full text-sm">
+            <div className="flex items-center gap-1 px-3 py-1 bg-ocean-100 text-ocean-800 rounded-full text-sm filter-chip">
               <span>Search: {searchQuery}</span>
               <button
+                type="button"
                 onClick={() => handleSearch('')}
-                className="hover:text-ocean-900"
+                className="hover:text-ocean-900 ml-1 font-bold"
                 aria-label="Remove search filter"
               >
                 ×
@@ -403,11 +438,12 @@ export function DataTable<T extends Record<string, any>>({
             const column = columns.find(col => String(col.key) === key);
             const label = column?.filterOptions?.find(opt => opt.value === value)?.label || value;
             return (
-              <div key={key} className="flex items-center gap-1 px-3 py-1 bg-ocean-100 text-ocean-800 rounded-full text-sm">
+              <div key={key} className="flex items-center gap-1 px-3 py-1 bg-ocean-100 text-ocean-800 rounded-full text-sm filter-chip">
                 <span>{column?.label}: {label}</span>
                 <button
+                  type="button"
                   onClick={() => handleFilterChange(key, null)}
-                  className="hover:text-ocean-900"
+                  className="hover:text-ocean-900 ml-1 font-bold"
                   aria-label={`Remove ${column?.label} filter`}
                 >
                   ×

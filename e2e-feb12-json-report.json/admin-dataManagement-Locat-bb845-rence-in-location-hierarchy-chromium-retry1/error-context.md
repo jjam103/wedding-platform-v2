@@ -1,0 +1,103 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - link "Skip to main content" [ref=e2] [cursor=pointer]:
+    - /url: "#main-content"
+  - link "Skip to main content" [ref=e3] [cursor=pointer]:
+    - /url: "#main-content"
+  - generic [ref=e4]:
+    - navigation "Main navigation" [ref=e5]:
+      - generic [ref=e6]:
+        - generic [ref=e7]:
+          - link "Admin" [ref=e8] [cursor=pointer]:
+            - /url: /admin
+            - generic [ref=e9]: 🌴
+            - generic [ref=e10]: Admin
+          - button "Content" [expanded] [ref=e11]:
+            - generic [ref=e12]: 📝
+            - generic [ref=e13]: Content
+          - button "Guests" [ref=e14]:
+            - generic [ref=e15]: 👥
+            - generic [ref=e16]: Guests
+          - button "RSVPs" [ref=e17]:
+            - generic [ref=e18]: ✓
+            - generic [ref=e19]: RSVPs
+          - button "Logistics" [ref=e20]:
+            - generic [ref=e21]: 🚗
+            - generic [ref=e22]: Logistics
+          - button "Admin" [ref=e23]:
+            - generic [ref=e24]: ⚙️
+            - generic [ref=e25]: Admin
+        - tabpanel [ref=e26]:
+          - link "Home Page" [ref=e27] [cursor=pointer]:
+            - /url: /admin/home-page
+          - link "Activities" [ref=e28] [cursor=pointer]:
+            - /url: /admin/activities
+          - link "Events" [ref=e29] [cursor=pointer]:
+            - /url: /admin/events
+          - link "Content Pages" [ref=e30] [cursor=pointer]:
+            - /url: /admin/content-pages
+          - link "Locations" [ref=e31] [cursor=pointer]:
+            - /url: /admin/locations
+          - link "Photos" [ref=e32] [cursor=pointer]:
+            - /url: /admin/photos
+    - banner [ref=e33]:
+      - generic [ref=e34]:
+        - heading "Wedding Admin" [level=1] [ref=e36]
+        - toolbar "User actions" [ref=e37]:
+          - link "Preview guest portal in new tab" [ref=e38] [cursor=pointer]:
+            - /url: /
+            - generic [ref=e39]: 👁️
+            - generic [ref=e40]: Preview Guest Portal
+          - button "Notifications (coming soon)" [ref=e41]: 🔔
+          - button "User menu" [ref=e43]:
+            - generic [ref=e44]: A
+            - generic [ref=e45]: Admin
+            - generic [ref=e46]: ▼
+    - main [ref=e47]:
+      - generic [ref=e49]:
+        - generic [ref=e50]:
+          - heading "Locations" [level=1] [ref=e51]
+          - paragraph [ref=e52]: Manage location hierarchy
+        - generic [ref=e53]:
+          - textbox "Search locations..." [ref=e54]
+          - button "+ Add Location" [ref=e55]
+        - generic [ref=e56]:
+          - button "Add New Location" [ref=e57]:
+            - generic [ref=e58]: Add New Location
+            - generic [ref=e59]: ▼
+          - generic [ref=e60]:
+            - generic [ref=e61]:
+              - generic [ref=e62]:
+                - generic [ref=e63]: Location Name*
+                - textbox [ref=e64]:
+                  - /placeholder: e.g., Tamarindo Beach
+              - generic [ref=e65]:
+                - generic [ref=e66]: Parent Location
+                - combobox [ref=e67]
+              - generic [ref=e68]:
+                - generic [ref=e69]: Address
+                - textbox [ref=e70]:
+                  - /placeholder: e.g., Tamarindo, Guanacaste, Costa Rica
+              - generic [ref=e72]:
+                - generic [ref=e73]: Description
+                - textbox [ref=e74]:
+                  - /placeholder: Optional description
+            - generic [ref=e75]:
+              - button [ref=e76]: Create
+              - button [ref=e77]: Cancel
+        - generic [ref=e79]: Loading locations...
+  - generic [ref=e84] [cursor=pointer]:
+    - button "Open Next.js Dev Tools" [ref=e85]:
+      - img [ref=e86]
+    - generic [ref=e89]:
+      - button "Open issues overlay" [ref=e90]:
+        - generic [ref=e91]:
+          - generic [ref=e92]: "0"
+          - generic [ref=e93]: "1"
+        - generic [ref=e94]: Issue
+      - button "Collapse issues badge" [ref=e95]:
+        - img [ref=e96]
+  - alert [ref=e98]
+```

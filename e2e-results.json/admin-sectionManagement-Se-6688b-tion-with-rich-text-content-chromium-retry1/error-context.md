@@ -1,0 +1,318 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - link "Skip to main content" [ref=e2] [cursor=pointer]:
+    - /url: "#main-content"
+  - link "Skip to main content" [ref=e3] [cursor=pointer]:
+    - /url: "#main-content"
+  - generic [ref=e4]:
+    - navigation "Main navigation" [ref=e5]:
+      - generic [ref=e6]:
+        - generic [ref=e7]:
+          - link "Admin" [ref=e8] [cursor=pointer]:
+            - /url: /admin
+            - generic [ref=e9]: 🌴
+            - generic [ref=e10]: Admin
+          - button "Content" [expanded] [ref=e11]:
+            - generic [ref=e12]: 📝
+            - generic [ref=e13]: Content
+          - button "Guests" [ref=e14]:
+            - generic [ref=e15]: 👥
+            - generic [ref=e16]: Guests
+          - button "RSVPs" [ref=e17]:
+            - generic [ref=e18]: ✓
+            - generic [ref=e19]: RSVPs
+          - button "Logistics" [ref=e20]:
+            - generic [ref=e21]: 🚗
+            - generic [ref=e22]: Logistics
+          - button "Admin" [ref=e23]:
+            - generic [ref=e24]: ⚙️
+            - generic [ref=e25]: Admin
+        - tabpanel [ref=e26]:
+          - link "Home Page" [ref=e27] [cursor=pointer]:
+            - /url: /admin/home-page
+          - link "Activities" [ref=e28] [cursor=pointer]:
+            - /url: /admin/activities
+          - link "Events" [ref=e29] [cursor=pointer]:
+            - /url: /admin/events
+          - link "Content Pages" [ref=e30] [cursor=pointer]:
+            - /url: /admin/content-pages
+          - link "Locations" [ref=e31] [cursor=pointer]:
+            - /url: /admin/locations
+          - link "Photos" [ref=e32] [cursor=pointer]:
+            - /url: /admin/photos
+    - banner [ref=e33]:
+      - generic [ref=e34]:
+        - heading "Wedding Admin" [level=1] [ref=e36]
+        - toolbar "User actions" [ref=e37]:
+          - button "Notifications (coming soon)" [ref=e38]: 🔔
+          - button "User menu" [ref=e40]:
+            - generic [ref=e41]: A
+            - generic [ref=e42]: Admin
+            - generic [ref=e43]: ▼
+    - main [ref=e44]:
+      - generic [ref=e46]:
+        - generic [ref=e47]:
+          - generic [ref=e48]:
+            - heading "Event Management" [level=1] [ref=e49]
+            - paragraph [ref=e50]: Manage your wedding events
+          - button "Create new event" [ref=e51] [cursor=pointer]: + Add Event
+        - generic [ref=e52]:
+          - button "Add New Event" [ref=e53]:
+            - generic [ref=e54]: Add New Event
+            - generic [ref=e55]: ▼
+          - generic:
+            - generic:
+              - generic:
+                - generic: Event Name*
+                - textbox:
+                  - /placeholder: Enter event name
+              - generic:
+                - generic: Event Type*
+                - combobox
+              - generic:
+                - generic: Description
+                - textbox:
+                  - /placeholder: Enter event description
+              - generic:
+                - generic: Start Date & Time*
+                - textbox
+              - generic:
+                - generic: End Date & Time
+                - textbox
+              - generic:
+                - generic: Status*
+                - combobox
+              - generic:
+                - generic: RSVP Required
+                - checkbox
+              - generic:
+                - generic: RSVP Deadline
+                - textbox
+            - generic:
+              - generic: Location
+              - generic:
+                - button: Select event location
+              - paragraph: Select the location where this event will take place
+            - generic:
+              - button: Create Event
+              - button: Cancel
+        - status "Loading table" [ref=e56]:
+          - generic [ref=e58]:
+            - status "Loading content" [ref=e59]
+            - status "Loading content" [ref=e60]
+            - status "Loading content" [ref=e61]
+            - status "Loading content" [ref=e62]
+            - status "Loading content" [ref=e63]
+            - status "Loading content" [ref=e64]
+            - status "Loading content" [ref=e65]
+          - generic [ref=e67]:
+            - status "Loading content" [ref=e68]
+            - status "Loading content" [ref=e69]
+            - status "Loading content" [ref=e70]
+            - status "Loading content" [ref=e71]
+            - status "Loading content" [ref=e72]
+            - status "Loading content" [ref=e73]
+            - status "Loading content" [ref=e74]
+          - generic [ref=e76]:
+            - status "Loading content" [ref=e77]
+            - status "Loading content" [ref=e78]
+            - status "Loading content" [ref=e79]
+            - status "Loading content" [ref=e80]
+            - status "Loading content" [ref=e81]
+            - status "Loading content" [ref=e82]
+            - status "Loading content" [ref=e83]
+          - generic [ref=e85]:
+            - status "Loading content" [ref=e86]
+            - status "Loading content" [ref=e87]
+            - status "Loading content" [ref=e88]
+            - status "Loading content" [ref=e89]
+            - status "Loading content" [ref=e90]
+            - status "Loading content" [ref=e91]
+            - status "Loading content" [ref=e92]
+          - generic [ref=e94]:
+            - status "Loading content" [ref=e95]
+            - status "Loading content" [ref=e96]
+            - status "Loading content" [ref=e97]
+            - status "Loading content" [ref=e98]
+            - status "Loading content" [ref=e99]
+            - status "Loading content" [ref=e100]
+            - status "Loading content" [ref=e101]
+          - generic [ref=e103]:
+            - status "Loading content" [ref=e104]
+            - status "Loading content" [ref=e105]
+            - status "Loading content" [ref=e106]
+            - status "Loading content" [ref=e107]
+            - status "Loading content" [ref=e108]
+            - status "Loading content" [ref=e109]
+            - status "Loading content" [ref=e110]
+          - generic [ref=e112]:
+            - status "Loading content" [ref=e113]
+            - status "Loading content" [ref=e114]
+            - status "Loading content" [ref=e115]
+            - status "Loading content" [ref=e116]
+            - status "Loading content" [ref=e117]
+            - status "Loading content" [ref=e118]
+            - status "Loading content" [ref=e119]
+          - generic [ref=e121]:
+            - status "Loading content" [ref=e122]
+            - status "Loading content" [ref=e123]
+            - status "Loading content" [ref=e124]
+            - status "Loading content" [ref=e125]
+            - status "Loading content" [ref=e126]
+            - status "Loading content" [ref=e127]
+            - status "Loading content" [ref=e128]
+          - generic [ref=e130]:
+            - status "Loading content" [ref=e131]
+            - status "Loading content" [ref=e132]
+            - status "Loading content" [ref=e133]
+            - status "Loading content" [ref=e134]
+            - status "Loading content" [ref=e135]
+            - status "Loading content" [ref=e136]
+            - status "Loading content" [ref=e137]
+          - generic [ref=e139]:
+            - status "Loading content" [ref=e140]
+            - status "Loading content" [ref=e141]
+            - status "Loading content" [ref=e142]
+            - status "Loading content" [ref=e143]
+            - status "Loading content" [ref=e144]
+            - status "Loading content" [ref=e145]
+            - status "Loading content" [ref=e146]
+          - generic [ref=e148]:
+            - status "Loading content" [ref=e149]
+            - status "Loading content" [ref=e150]
+            - status "Loading content" [ref=e151]
+            - status "Loading content" [ref=e152]
+            - status "Loading content" [ref=e153]
+            - status "Loading content" [ref=e154]
+            - status "Loading content" [ref=e155]
+          - generic [ref=e157]:
+            - status "Loading content" [ref=e158]
+            - status "Loading content" [ref=e159]
+            - status "Loading content" [ref=e160]
+            - status "Loading content" [ref=e161]
+            - status "Loading content" [ref=e162]
+            - status "Loading content" [ref=e163]
+            - status "Loading content" [ref=e164]
+          - generic [ref=e166]:
+            - status "Loading content" [ref=e167]
+            - status "Loading content" [ref=e168]
+            - status "Loading content" [ref=e169]
+            - status "Loading content" [ref=e170]
+            - status "Loading content" [ref=e171]
+            - status "Loading content" [ref=e172]
+            - status "Loading content" [ref=e173]
+          - generic [ref=e175]:
+            - status "Loading content" [ref=e176]
+            - status "Loading content" [ref=e177]
+            - status "Loading content" [ref=e178]
+            - status "Loading content" [ref=e179]
+            - status "Loading content" [ref=e180]
+            - status "Loading content" [ref=e181]
+            - status "Loading content" [ref=e182]
+          - generic [ref=e184]:
+            - status "Loading content" [ref=e185]
+            - status "Loading content" [ref=e186]
+            - status "Loading content" [ref=e187]
+            - status "Loading content" [ref=e188]
+            - status "Loading content" [ref=e189]
+            - status "Loading content" [ref=e190]
+            - status "Loading content" [ref=e191]
+          - generic [ref=e193]:
+            - status "Loading content" [ref=e194]
+            - status "Loading content" [ref=e195]
+            - status "Loading content" [ref=e196]
+            - status "Loading content" [ref=e197]
+            - status "Loading content" [ref=e198]
+            - status "Loading content" [ref=e199]
+            - status "Loading content" [ref=e200]
+          - generic [ref=e202]:
+            - status "Loading content" [ref=e203]
+            - status "Loading content" [ref=e204]
+            - status "Loading content" [ref=e205]
+            - status "Loading content" [ref=e206]
+            - status "Loading content" [ref=e207]
+            - status "Loading content" [ref=e208]
+            - status "Loading content" [ref=e209]
+          - generic [ref=e211]:
+            - status "Loading content" [ref=e212]
+            - status "Loading content" [ref=e213]
+            - status "Loading content" [ref=e214]
+            - status "Loading content" [ref=e215]
+            - status "Loading content" [ref=e216]
+            - status "Loading content" [ref=e217]
+            - status "Loading content" [ref=e218]
+          - generic [ref=e220]:
+            - status "Loading content" [ref=e221]
+            - status "Loading content" [ref=e222]
+            - status "Loading content" [ref=e223]
+            - status "Loading content" [ref=e224]
+            - status "Loading content" [ref=e225]
+            - status "Loading content" [ref=e226]
+            - status "Loading content" [ref=e227]
+          - generic [ref=e229]:
+            - status "Loading content" [ref=e230]
+            - status "Loading content" [ref=e231]
+            - status "Loading content" [ref=e232]
+            - status "Loading content" [ref=e233]
+            - status "Loading content" [ref=e234]
+            - status "Loading content" [ref=e235]
+            - status "Loading content" [ref=e236]
+          - generic [ref=e238]:
+            - status "Loading content" [ref=e239]
+            - status "Loading content" [ref=e240]
+            - status "Loading content" [ref=e241]
+            - status "Loading content" [ref=e242]
+            - status "Loading content" [ref=e243]
+            - status "Loading content" [ref=e244]
+            - status "Loading content" [ref=e245]
+          - generic [ref=e247]:
+            - status "Loading content" [ref=e248]
+            - status "Loading content" [ref=e249]
+            - status "Loading content" [ref=e250]
+            - status "Loading content" [ref=e251]
+            - status "Loading content" [ref=e252]
+            - status "Loading content" [ref=e253]
+            - status "Loading content" [ref=e254]
+          - generic [ref=e256]:
+            - status "Loading content" [ref=e257]
+            - status "Loading content" [ref=e258]
+            - status "Loading content" [ref=e259]
+            - status "Loading content" [ref=e260]
+            - status "Loading content" [ref=e261]
+            - status "Loading content" [ref=e262]
+            - status "Loading content" [ref=e263]
+          - generic [ref=e265]:
+            - status "Loading content" [ref=e266]
+            - status "Loading content" [ref=e267]
+            - status "Loading content" [ref=e268]
+            - status "Loading content" [ref=e269]
+            - status "Loading content" [ref=e270]
+            - status "Loading content" [ref=e271]
+            - status "Loading content" [ref=e272]
+          - generic [ref=e274]:
+            - status "Loading content" [ref=e275]
+            - status "Loading content" [ref=e276]
+            - status "Loading content" [ref=e277]
+            - status "Loading content" [ref=e278]
+            - status "Loading content" [ref=e279]
+            - status "Loading content" [ref=e280]
+            - status "Loading content" [ref=e281]
+          - generic [ref=e283]:
+            - status "Loading content" [ref=e284]
+            - status "Loading content" [ref=e285]
+            - status "Loading content" [ref=e286]
+            - status "Loading content" [ref=e287]
+            - status "Loading content" [ref=e288]
+            - status "Loading content" [ref=e289]
+            - status "Loading content" [ref=e290]
+  - button "Open Next.js Dev Tools" [ref=e296] [cursor=pointer]:
+    - generic [ref=e299]:
+      - text: Compiling
+      - generic [ref=e300]:
+        - generic [ref=e301]: .
+        - generic [ref=e302]: .
+        - generic [ref=e303]: .
+  - alert [ref=e304]
+```

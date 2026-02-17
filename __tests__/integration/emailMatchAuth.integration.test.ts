@@ -31,7 +31,7 @@ describe('Email Matching Authentication API - Integration Tests', () => {
       });
 
       // Act - Make real API request
-      const response = await fetch('http://localhost:3000/api/auth/guest/email-match', {
+      const response = await fetch('http://localhost:3000/api/guest-auth/email-match', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: 'john@example.com' }),
@@ -69,7 +69,7 @@ describe('Email Matching Authentication API - Integration Tests', () => {
       });
 
       // Act - Send email with mixed case
-      const response = await fetch('http://localhost:3000/api/auth/guest/email-match', {
+      const response = await fetch('http://localhost:3000/api/guest-auth/email-match', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: 'JANE@EXAMPLE.COM' }),
@@ -94,7 +94,7 @@ describe('Email Matching Authentication API - Integration Tests', () => {
       // Act - Authenticate multiple times
       const tokens = new Set<string>();
       for (let i = 0; i < 3; i++) {
-        const response = await fetch('http://localhost:3000/api/auth/guest/email-match', {
+        const response = await fetch('http://localhost:3000/api/guest-auth/email-match', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ email: 'multi@example.com' }),
@@ -128,7 +128,7 @@ describe('Email Matching Authentication API - Integration Tests', () => {
       });
 
       // Act
-      const response = await fetch('http://localhost:3000/api/auth/guest/email-match', {
+      const response = await fetch('http://localhost:3000/api/guest-auth/email-match', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -158,7 +158,7 @@ describe('Email Matching Authentication API - Integration Tests', () => {
       });
 
       // Act
-      const response = await fetch('http://localhost:3000/api/auth/guest/email-match', {
+      const response = await fetch('http://localhost:3000/api/guest-auth/email-match', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: 'audit@example.com' }),
@@ -182,7 +182,7 @@ describe('Email Matching Authentication API - Integration Tests', () => {
   describe('Validation errors', () => {
     it('should return 400 for invalid email format', async () => {
       // Act
-      const response = await fetch('http://localhost:3000/api/auth/guest/email-match', {
+      const response = await fetch('http://localhost:3000/api/guest-auth/email-match', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: 'not-an-email' }),
@@ -198,7 +198,7 @@ describe('Email Matching Authentication API - Integration Tests', () => {
 
     it('should return 400 for missing email', async () => {
       // Act
-      const response = await fetch('http://localhost:3000/api/auth/guest/email-match', {
+      const response = await fetch('http://localhost:3000/api/guest-auth/email-match', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({}),
@@ -213,7 +213,7 @@ describe('Email Matching Authentication API - Integration Tests', () => {
 
     it('should return 400 for empty email', async () => {
       // Act
-      const response = await fetch('http://localhost:3000/api/auth/guest/email-match', {
+      const response = await fetch('http://localhost:3000/api/guest-auth/email-match', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: '' }),
@@ -230,7 +230,7 @@ describe('Email Matching Authentication API - Integration Tests', () => {
   describe('Authentication errors', () => {
     it('should return 404 when email not found in database', async () => {
       // Act
-      const response = await fetch('http://localhost:3000/api/auth/guest/email-match', {
+      const response = await fetch('http://localhost:3000/api/guest-auth/email-match', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: 'notfound@example.com' }),
@@ -254,7 +254,7 @@ describe('Email Matching Authentication API - Integration Tests', () => {
       });
 
       // Act - Try to authenticate with email matching
-      const response = await fetch('http://localhost:3000/api/auth/guest/email-match', {
+      const response = await fetch('http://localhost:3000/api/guest-auth/email-match', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: 'magiclink@example.com' }),
@@ -269,7 +269,7 @@ describe('Email Matching Authentication API - Integration Tests', () => {
 
     it('should not create session when authentication fails', async () => {
       // Act
-      const response = await fetch('http://localhost:3000/api/auth/guest/email-match', {
+      const response = await fetch('http://localhost:3000/api/guest-auth/email-match', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: 'failed@example.com' }),
@@ -287,7 +287,7 @@ describe('Email Matching Authentication API - Integration Tests', () => {
   describe('Security features', () => {
     it('should sanitize malicious email input', async () => {
       // Act - Send email with script tags
-      const response = await fetch('http://localhost:3000/api/auth/guest/email-match', {
+      const response = await fetch('http://localhost:3000/api/guest-auth/email-match', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: '<script>alert("xss")</script>test@example.com' }),
@@ -312,7 +312,7 @@ describe('Email Matching Authentication API - Integration Tests', () => {
       });
 
       // Act
-      const response = await fetch('http://localhost:3000/api/auth/guest/email-match', {
+      const response = await fetch('http://localhost:3000/api/guest-auth/email-match', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: 'secure@example.com' }),
@@ -338,7 +338,7 @@ describe('Email Matching Authentication API - Integration Tests', () => {
       const beforeAuth = Date.now();
 
       // Act
-      const response = await fetch('http://localhost:3000/api/auth/guest/email-match', {
+      const response = await fetch('http://localhost:3000/api/guest-auth/email-match', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: 'expiry@example.com' }),
@@ -363,7 +363,7 @@ describe('Email Matching Authentication API - Integration Tests', () => {
 
     it('should prevent SQL injection in email parameter', async () => {
       // Act - Try SQL injection
-      const response = await fetch('http://localhost:3000/api/auth/guest/email-match', {
+      const response = await fetch('http://localhost:3000/api/guest-auth/email-match', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: "'; DROP TABLE guests; --" }),
@@ -393,17 +393,17 @@ describe('Email Matching Authentication API - Integration Tests', () => {
 
       // Act - Create multiple sessions
       const responses = await Promise.all([
-        fetch('http://localhost:3000/api/auth/guest/email-match', {
+        fetch('http://localhost:3000/api/guest-auth/email-match', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ email: 'concurrent@example.com' }),
         }),
-        fetch('http://localhost:3000/api/auth/guest/email-match', {
+        fetch('http://localhost:3000/api/guest-auth/email-match', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ email: 'concurrent@example.com' }),
         }),
-        fetch('http://localhost:3000/api/auth/guest/email-match', {
+        fetch('http://localhost:3000/api/guest-auth/email-match', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ email: 'concurrent@example.com' }),

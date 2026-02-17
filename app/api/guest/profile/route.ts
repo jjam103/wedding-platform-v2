@@ -1,9 +1,10 @@
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
-import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { sanitizeInput } from '@/utils/sanitization';
 import { sendEmail } from '@/services/emailService';
+import { validateGuestAuth } from '@/lib/guestAuth';
+import { createSupabaseClient } from '@/lib/supabase';
+import { ERROR_CODES } from '@/types';
 
 /**
  * Guest Profile API Routes
@@ -28,20 +29,16 @@ const updateProfileSchema = z.object({
  */
 export async function GET(request: Request) {
   try {
-    const supabase = createRouteHandlerClient({ cookies });
-    
-    // Check authentication
-    const { data: { session }, error: authError } = await supabase.auth.getSession();
-    
-    if (authError || !session) {
-      return NextResponse.json(
-        { success: false, error: { code: 'UNAUTHORIZED', message: 'Authentication required' } },
-        { status: 401 }
-      );
+    // Auth check
+    const authResult = await validateGuestAuth();
+    if (!authResult.success) {
+      return NextResponse.json(authResult.error, { status: authResult.status });
     }
+    const guest = authResult.guest;
     
-    // Get guest profile
-    const { data: guest, error: guestError } = await supabase
+    // Get guest profile with group info
+    const supabase = createSupabaseClient();
+    const { data: guestWithGroup, error: guestError } = await supabase
       .from('guests')
       .select(`
         *,
@@ -51,10 +48,10 @@ export async function GET(request: Request) {
           group_type
         )
       `)
-      .eq('email', session.user.email)
+      .eq('id', guest.id)
       .single();
     
-    if (guestError || !guest) {
+    if (guestError || !guestWithGroup) {
       return NextResponse.json(
         { success: false, error: { code: 'NOT_FOUND', message: 'Guest profile not found' } },
         { status: 404 }
@@ -63,7 +60,7 @@ export async function GET(request: Request) {
     
     return NextResponse.json({
       success: true,
-      data: guest
+      data: guestWithGroup
     });
   } catch (error) {
     console.error('Error fetching guest profile:', error);
@@ -80,34 +77,31 @@ export async function GET(request: Request) {
  */
 export async function PUT(request: Request) {
   try {
-    const supabase = createRouteHandlerClient({ cookies });
+    // Auth check
+    const authResult = await validateGuestAuth();
+    if (!authResult.success) {
+      return NextResponse.json(authResult.error, { status: authResult.status });
+    }
+    const guest = authResult.guest;
     
-    // Check authentication
-    const { data: { session }, error: authError } = await supabase.auth.getSession();
-    
-    if (authError || !session) {
+    // Parse request body with explicit error handling
+    let body;
+    try {
+      body = await request.json();
+    } catch (error) {
       return NextResponse.json(
-        { success: false, error: { code: 'UNAUTHORIZED', message: 'Authentication required' } },
-        { status: 401 }
+        {
+          success: false,
+          error: {
+            code: ERROR_CODES.VALIDATION_ERROR,
+            message: 'Invalid JSON body',
+          },
+        },
+        { status: 400 }
       );
     }
     
-    // Get current guest
-    const { data: guest, error: guestError } = await supabase
-      .from('guests')
-      .select('*')
-      .eq('email', session.user.email)
-      .single();
-    
-    if (guestError || !guest) {
-      return NextResponse.json(
-        { success: false, error: { code: 'NOT_FOUND', message: 'Guest profile not found' } },
-        { status: 404 }
-      );
-    }
-    
-    // Parse and validate request body
-    const body = await request.json();
+    // Validate request body
     const validation = updateProfileSchema.safeParse(body);
     
     if (!validation.success) {
@@ -145,6 +139,7 @@ export async function PUT(request: Request) {
     }
     
     // Update profile
+    const supabase = createSupabaseClient();
     const { data: updatedGuest, error: updateError } = await supabase
       .from('guests')
       .update(sanitized)

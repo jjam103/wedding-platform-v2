@@ -13,13 +13,13 @@
  * Requirements: 10.1, 10.2, 10.5, 10.6, 10.7, 7.5
  */
 
-import { createTestSupabaseClient, createAuthenticatedClient } from '@/__tests__/helpers/testDb';
+import { createTestClient } from '@/__tests__/helpers/testDb';
 import { cleanupTestData } from '@/__tests__/helpers/cleanup';
 
 describe('Guest RSVP API Integration Tests', () => {
-  let testDb: ReturnType<typeof createTestSupabaseClient>;
-  let guestClient: Awaited<ReturnType<typeof createAuthenticatedClient>>;
-  let otherGuestClient: Awaited<ReturnType<typeof createAuthenticatedClient>>;
+  let testDb: ReturnType<typeof createTestClient>;
+  let guestClient: ReturnType<typeof createTestClient>;
+  let otherGuestClient: ReturnType<typeof createTestClient>;
   let guestId: string;
   let otherGuestId: string;
   let activityId: string;
@@ -27,11 +27,11 @@ describe('Guest RSVP API Integration Tests', () => {
   let groupId: string;
 
   beforeAll(async () => {
-    testDb = createTestSupabaseClient();
+    testDb = createTestClient();
 
     // Create test group
     const { data: group } = await testDb
-      .from('guest_groups')
+      .from('groups')
       .insert({ name: 'Test Family' })
       .select()
       .single();
@@ -100,7 +100,7 @@ describe('Guest RSVP API Integration Tests', () => {
 
   afterAll(async () => {
     await cleanupTestData(testDb, {
-      tables: ['rsvps', 'activities', 'events', 'guests', 'guest_groups'],
+      tables: ['rsvps', 'activities', 'events', 'guests', 'groups'],
     });
   });
 

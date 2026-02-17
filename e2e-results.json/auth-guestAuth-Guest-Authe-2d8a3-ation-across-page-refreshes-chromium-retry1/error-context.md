@@ -1,0 +1,46 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e2]:
+  - navigation [ref=e3]:
+    - generic [ref=e5]:
+      - link "Wedding Portal" [ref=e7] [cursor=pointer]:
+        - /url: /guest/dashboard
+      - generic [ref=e8]:
+        - link "Home" [ref=e9] [cursor=pointer]:
+          - /url: /guest/dashboard
+          - img [ref=e10]
+          - generic [ref=e13]: Home
+        - link "Events" [ref=e14] [cursor=pointer]:
+          - /url: /guest/events
+          - img [ref=e15]
+          - generic [ref=e17]: Events
+        - link "Activities" [ref=e18] [cursor=pointer]:
+          - /url: /guest/activities
+          - img [ref=e19]
+          - generic [ref=e21]: Activities
+        - link "Itinerary" [ref=e22] [cursor=pointer]:
+          - /url: /guest/itinerary
+          - img [ref=e23]
+          - generic [ref=e26]: Itinerary
+        - link "Photos" [ref=e27] [cursor=pointer]:
+          - /url: /guest/photos
+          - img [ref=e28]
+          - generic [ref=e31]: Photos
+        - button "Info" [ref=e33]:
+          - img [ref=e34]
+          - generic [ref=e36]: Info
+          - img [ref=e37]
+      - button "Log Out" [ref=e40]
+  - main [ref=e41]:
+    - generic [ref=e43]:
+      - generic [ref=e46]:
+        - generic [ref=e47]:
+          - heading "¡Pura Vida, Test!" [level=1] [ref=e48]
+          - paragraph [ref=e49]: Welcome to your wedding dashboard
+        - generic [ref=e50]:
+          - link "My Profile" [ref=e51] [cursor=pointer]:
+            - /url: /guest/profile
+          - button "Log Out" [ref=e52]
+      - main [ref=e53]
+```

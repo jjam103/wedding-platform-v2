@@ -28,7 +28,7 @@ process.env.SUPABASE_SERVICE_ROLE_KEY = 'test-service-role-key';
 
 // Mock Supabase client creation BEFORE any imports - Pattern A
 jest.mock('@supabase/supabase-js', () => {
-  const mockFrom = jest.fn();
+  const mockFrom = (jest.fn() as any);
   const mockSupabaseClient = {
     from: mockFrom,
   };
@@ -55,10 +55,10 @@ describe('accommodationService', () => {
     
     // Reset Supabase mocks to default successful state
     mockFrom.mockReturnValue({
-      select: jest.fn().mockResolvedValue({ data: [], error: null }),
-      insert: jest.fn().mockReturnValue({
-        select: jest.fn().mockReturnValue({
-          single: jest.fn().mockResolvedValue({ data: null, error: null }),
+      select: (jest.fn() as any).mockResolvedValue({ data: [], error: null }),
+      insert: (jest.fn() as any).mockReturnValue({
+        select: (jest.fn() as any).mockReturnValue({
+          single: (jest.fn() as any).mockResolvedValue({ data: null, error: null }),
         }),
       }),
     });
@@ -90,9 +90,9 @@ describe('accommodationService', () => {
       };
 
       mockFrom.mockReturnValue({
-        insert: jest.fn().mockReturnValue({
-          select: jest.fn().mockReturnValue({
-            single: jest.fn().mockResolvedValue({ data: mockAccommodation, error: null }),
+        insert: (jest.fn() as any).mockReturnValue({
+          select: (jest.fn() as any).mockReturnValue({
+            single: (jest.fn() as any).mockResolvedValue({ data: mockAccommodation, error: null }),
           }),
         }),
       });
@@ -129,9 +129,9 @@ describe('accommodationService', () => {
 
     it('should return DATABASE_ERROR when insert fails', async () => {
       mockFrom.mockReturnValue({
-        insert: jest.fn().mockReturnValue({
-          select: jest.fn().mockReturnValue({
-            single: jest.fn().mockResolvedValue({ 
+        insert: (jest.fn() as any).mockReturnValue({
+          select: (jest.fn() as any).mockReturnValue({
+            single: (jest.fn() as any).mockResolvedValue({ 
               data: null, 
               error: { message: 'Connection failed', code: 'DB_ERROR' } 
             }),
@@ -167,9 +167,9 @@ describe('accommodationService', () => {
       };
 
       mockFrom.mockReturnValue({
-        insert: jest.fn().mockReturnValue({
-          select: jest.fn().mockReturnValue({
-            single: jest.fn().mockResolvedValue({ data: mockAccommodation, error: null }),
+        insert: (jest.fn() as any).mockReturnValue({
+          select: (jest.fn() as any).mockReturnValue({
+            single: (jest.fn() as any).mockResolvedValue({ data: mockAccommodation, error: null }),
           }),
         }),
       });
@@ -201,9 +201,9 @@ describe('accommodationService', () => {
       };
 
       mockFrom.mockReturnValue({
-        select: jest.fn().mockReturnValue({
-          eq: jest.fn().mockReturnValue({
-            single: jest.fn().mockResolvedValue({ data: mockAccommodation, error: null }),
+        select: (jest.fn() as any).mockReturnValue({
+          eq: (jest.fn() as any).mockReturnValue({
+            single: (jest.fn() as any).mockResolvedValue({ data: mockAccommodation, error: null }),
           }),
         }),
       });
@@ -219,9 +219,9 @@ describe('accommodationService', () => {
 
     it('should return NOT_FOUND when accommodation does not exist', async () => {
       mockFrom.mockReturnValue({
-        select: jest.fn().mockReturnValue({
-          eq: jest.fn().mockReturnValue({
-            single: jest.fn().mockResolvedValue({ 
+        select: (jest.fn() as any).mockReturnValue({
+          eq: (jest.fn() as any).mockReturnValue({
+            single: (jest.fn() as any).mockResolvedValue({ 
               data: null, 
               error: { code: 'PGRST116', message: 'No rows found' } 
             }),
@@ -239,9 +239,9 @@ describe('accommodationService', () => {
 
     it('should return DATABASE_ERROR when database query fails', async () => {
       mockFrom.mockReturnValue({
-        select: jest.fn().mockReturnValue({
-          eq: jest.fn().mockReturnValue({
-            single: jest.fn().mockResolvedValue({ 
+        select: (jest.fn() as any).mockReturnValue({
+          eq: (jest.fn() as any).mockReturnValue({
+            single: (jest.fn() as any).mockResolvedValue({ 
               data: null, 
               error: { message: 'Connection failed', code: 'DB_ERROR' } 
             }),
@@ -290,9 +290,9 @@ describe('accommodationService', () => {
       };
 
       mockFrom.mockReturnValue({
-        insert: jest.fn().mockReturnValue({
-          select: jest.fn().mockReturnValue({
-            single: jest.fn().mockResolvedValue({ data: mockRoomType, error: null }),
+        insert: (jest.fn() as any).mockReturnValue({
+          select: (jest.fn() as any).mockReturnValue({
+            single: (jest.fn() as any).mockResolvedValue({ data: mockRoomType, error: null }),
           }),
         }),
       });
@@ -362,9 +362,9 @@ describe('accommodationService', () => {
       };
 
       mockFrom.mockReturnValue({
-        insert: jest.fn().mockReturnValue({
-          select: jest.fn().mockReturnValue({
-            single: jest.fn().mockResolvedValue({ data: mockRoomType, error: null }),
+        insert: (jest.fn() as any).mockReturnValue({
+          select: (jest.fn() as any).mockReturnValue({
+            single: (jest.fn() as any).mockResolvedValue({ data: mockRoomType, error: null }),
           }),
         }),
       });
@@ -413,9 +413,9 @@ describe('accommodationService', () => {
       ];
 
       mockFrom.mockReturnValue({
-        select: jest.fn().mockReturnValue({
-          eq: jest.fn().mockReturnValue({
-            order: jest.fn().mockResolvedValue({ data: mockRoomTypes, error: null }),
+        select: (jest.fn() as any).mockReturnValue({
+          eq: (jest.fn() as any).mockReturnValue({
+            order: (jest.fn() as any).mockResolvedValue({ data: mockRoomTypes, error: null }),
           }),
         }),
       });
@@ -432,9 +432,9 @@ describe('accommodationService', () => {
 
     it('should return DATABASE_ERROR when query fails', async () => {
       mockFrom.mockReturnValue({
-        select: jest.fn().mockReturnValue({
-          eq: jest.fn().mockReturnValue({
-            order: jest.fn().mockResolvedValue({ 
+        select: (jest.fn() as any).mockReturnValue({
+          eq: (jest.fn() as any).mockReturnValue({
+            order: (jest.fn() as any).mockResolvedValue({ 
               data: null, 
               error: { message: 'Connection failed', code: 'DB_ERROR' } 
             }),
@@ -477,9 +477,9 @@ describe('accommodationService', () => {
       };
 
       mockFrom.mockReturnValue({
-        insert: jest.fn().mockReturnValue({
-          select: jest.fn().mockReturnValue({
-            single: jest.fn().mockResolvedValue({ data: mockAssignment, error: null }),
+        insert: (jest.fn() as any).mockReturnValue({
+          select: (jest.fn() as any).mockReturnValue({
+            single: (jest.fn() as any).mockResolvedValue({ data: mockAssignment, error: null }),
           }),
         }),
       });
@@ -512,9 +512,9 @@ describe('accommodationService', () => {
 
     it('should return CONFLICT when guest already has assignment for dates', async () => {
       mockFrom.mockReturnValue({
-        insert: jest.fn().mockReturnValue({
-          select: jest.fn().mockReturnValue({
-            single: jest.fn().mockResolvedValue({ 
+        insert: (jest.fn() as any).mockReturnValue({
+          select: (jest.fn() as any).mockReturnValue({
+            single: (jest.fn() as any).mockResolvedValue({ 
               data: null, 
               error: { code: '23505', message: 'Duplicate key violation' } 
             }),
@@ -548,9 +548,9 @@ describe('accommodationService', () => {
       };
 
       mockFrom.mockReturnValue({
-        insert: jest.fn().mockReturnValue({
-          select: jest.fn().mockReturnValue({
-            single: jest.fn().mockResolvedValue({ data: mockAssignment, error: null }),
+        insert: (jest.fn() as any).mockReturnValue({
+          select: (jest.fn() as any).mockReturnValue({
+            single: (jest.fn() as any).mockResolvedValue({ data: mockAssignment, error: null }),
           }),
         }),
       });
@@ -582,9 +582,9 @@ describe('accommodationService', () => {
       ];
 
       mockFrom.mockReturnValue({
-        select: jest.fn().mockReturnValue({
-          eq: jest.fn().mockReturnValue({
-            order: jest.fn().mockResolvedValue({ data: mockAssignments, error: null }),
+        select: (jest.fn() as any).mockReturnValue({
+          eq: (jest.fn() as any).mockReturnValue({
+            order: (jest.fn() as any).mockResolvedValue({ data: mockAssignments, error: null }),
           }),
         }),
       });
@@ -617,9 +617,9 @@ describe('accommodationService', () => {
       ];
 
       mockFrom.mockReturnValue({
-        select: jest.fn().mockReturnValue({
-          eq: jest.fn().mockReturnValue({
-            order: jest.fn().mockResolvedValue({ data: mockAssignments, error: null }),
+        select: (jest.fn() as any).mockReturnValue({
+          eq: (jest.fn() as any).mockReturnValue({
+            order: (jest.fn() as any).mockResolvedValue({ data: mockAssignments, error: null }),
           }),
         }),
       });
@@ -662,9 +662,9 @@ describe('accommodationService', () => {
 
       // Mock the query chain for getRoomType
       mockFrom.mockReturnValue({
-        select: jest.fn().mockReturnValue({
-          eq: jest.fn().mockReturnValue({
-            single: jest.fn().mockResolvedValue({ data: mockRoomType, error: null }),
+        select: (jest.fn() as any).mockReturnValue({
+          eq: (jest.fn() as any).mockReturnValue({
+            single: (jest.fn() as any).mockResolvedValue({ data: mockRoomType, error: null }),
           }),
         }),
       });
@@ -698,9 +698,9 @@ describe('accommodationService', () => {
       };
 
       mockFrom.mockReturnValue({
-        select: jest.fn().mockReturnValue({
-          eq: jest.fn().mockReturnValue({
-            single: jest.fn().mockResolvedValue({ data: mockRoomType, error: null }),
+        select: (jest.fn() as any).mockReturnValue({
+          eq: (jest.fn() as any).mockReturnValue({
+            single: (jest.fn() as any).mockResolvedValue({ data: mockRoomType, error: null }),
           }),
         }),
       });
@@ -720,13 +720,13 @@ describe('accommodationService', () => {
 
     it('should return error when room type not found', async () => {
       // Mock getRoomType to return NOT_FOUND error
-      const mockSingle = jest.fn().mockResolvedValue({ 
+      const mockSingle = (jest.fn() as any).mockResolvedValue({ 
         data: null, 
         error: { code: 'PGRST116', message: 'No rows found' } 
       });
       
-      const mockEq = jest.fn().mockReturnValue({ single: mockSingle });
-      const mockSelect = jest.fn().mockReturnValue({ eq: mockEq });
+      const mockEq = (jest.fn() as any).mockReturnValue({ single: mockSingle });
+      const mockSelect = (jest.fn() as any).mockReturnValue({ eq: mockEq });
       
       mockFrom.mockReturnValue({ select: mockSelect });
 

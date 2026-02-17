@@ -370,6 +370,9 @@ export async function listTemplates(): Promise<Result<EmailTemplate[]>> {
 /**
  * Sends a single email using Resend.
  * Requirements: 12.3, 12.4
+ * 
+ * E2E Test Mode: When E2E_TEST=true, skips actual email sending and returns mock success.
+ * This prevents E2E tests from timing out due to slow Resend API calls.
  */
 export async function sendEmail(data: SendEmailDTO): Promise<Result<{ id: string }>> {
   try {
@@ -411,7 +414,35 @@ export async function sendEmail(data: SendEmailDTO): Promise<Result<{ id: string
       subject = substituteVariables(template.subject, variables);
     }
 
-    // 3. Send email via Resend
+    // E2E Test Mode: Skip actual email sending to prevent timeouts
+    // NEXT_PUBLIC_E2E_TEST is embedded at build time and available in server runtime
+    const isE2ETest = process.env.NEXT_PUBLIC_E2E_TEST === 'true' || process.env.NODE_ENV === 'test';
+    
+    if (isE2ETest) {
+      const mode = process.env.NEXT_PUBLIC_E2E_TEST === 'true' ? 'NEXT_PUBLIC_E2E_TEST' : 'NODE_ENV=test';
+      console.log(`[emailService.sendEmail] E2E Test Mode (${mode}) - Skipping Resend API call`);
+      
+      // Generate mock email ID
+      const mockEmailId = `mock-email-${Date.now()}-${Math.random().toString(36).substring(7)}`;
+      
+      // Log email as sent (for E2E test verification)
+      const { error: logError } = await supabase.from('email_logs').insert({
+        template_id: validation.data.template_id,
+        recipient_email: validation.data.to,
+        subject,
+        delivery_status: 'sent',
+        sent_at: new Date().toISOString(),
+      });
+
+      if (logError) {
+        console.error('[emailService.sendEmail] Failed to log email:', logError);
+      }
+
+      console.log('[emailService.sendEmail] Mock email sent successfully:', mockEmailId);
+      return { success: true, data: { id: mockEmailId } };
+    }
+
+    // 3. Send email via Resend (production mode only)
     const resend = getResendClient();
     const { data: emailData, error: resendError } = await resend.emails.send({
       from: process.env.RESEND_FROM_EMAIL || 'onboarding@resend.dev',

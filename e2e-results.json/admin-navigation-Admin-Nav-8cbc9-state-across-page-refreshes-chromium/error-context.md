@@ -1,0 +1,149 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - link "Skip to main content" [ref=e2] [cursor=pointer]:
+    - /url: "#main-content"
+  - link "Skip to main content" [ref=e3] [cursor=pointer]:
+    - /url: "#main-content"
+  - generic [ref=e4]:
+    - navigation "Main navigation" [ref=e5]:
+      - generic [ref=e6]:
+        - generic [ref=e7]:
+          - link "Admin" [ref=e8] [cursor=pointer]:
+            - /url: /admin
+            - generic [ref=e9]: 🌴
+            - generic [ref=e10]: Admin
+          - button "Content" [ref=e11]:
+            - generic [ref=e12]: 📝
+            - generic [ref=e13]: Content
+          - button "Guests" [ref=e14]:
+            - generic [ref=e15]: 👥
+            - generic [ref=e16]: Guests
+          - button "RSVPs" [ref=e17]:
+            - generic [ref=e18]: ✓
+            - generic [ref=e19]: RSVPs
+          - button "Logistics" [expanded] [ref=e20]:
+            - generic [ref=e21]: 🚗
+            - generic [ref=e22]: Logistics
+          - button "Admin" [ref=e23]:
+            - generic [ref=e24]: ⚙️
+            - generic [ref=e25]: Admin
+        - tabpanel [ref=e26]:
+          - link "Accommodations" [ref=e27] [cursor=pointer]:
+            - /url: /admin/accommodations
+          - link "Transportation" [ref=e28] [cursor=pointer]:
+            - /url: /admin/transportation
+          - link "Budget" [ref=e29] [cursor=pointer]:
+            - /url: /admin/budget
+          - link "Vendors" [ref=e30] [cursor=pointer]:
+            - /url: /admin/vendors
+    - banner [ref=e31]:
+      - generic [ref=e32]:
+        - heading "Wedding Admin" [level=1] [ref=e34]
+        - toolbar "User actions" [ref=e35]:
+          - button "Notifications (coming soon)" [ref=e36]: 🔔
+          - button "User menu" [ref=e38]:
+            - generic [ref=e39]: A
+            - generic [ref=e40]: Admin
+            - generic [ref=e41]: ▼
+    - main [ref=e42]:
+      - generic [ref=e44]:
+        - generic [ref=e45]:
+          - button "👥 0 Total Guests" [ref=e46]:
+            - generic [ref=e47]:
+              - generic [ref=e48]: 👥
+              - generic [ref=e49]: "0"
+            - heading "Total Guests" [level=3] [ref=e50]
+          - button "✉️ 0.0% RSVP Response Rate" [ref=e51]:
+            - generic [ref=e52]:
+              - generic [ref=e53]: ✉️
+              - generic [ref=e54]: 0.0%
+            - heading "RSVP Response Rate" [level=3] [ref=e55]
+          - button "💰 $0 Total Budget" [ref=e56]:
+            - generic [ref=e57]:
+              - generic [ref=e58]: 💰
+              - generic [ref=e59]: $0
+            - heading "Total Budget" [level=3] [ref=e60]
+          - button "📅 0 Upcoming Events" [ref=e61]:
+            - generic [ref=e62]:
+              - generic [ref=e63]: 📅
+              - generic [ref=e64]: "0"
+            - heading "Upcoming Events" [level=3] [ref=e65]
+          - button "📸 0 Pending Photos" [ref=e66]:
+            - generic [ref=e67]:
+              - generic [ref=e68]: 📸
+              - generic [ref=e69]: "0"
+            - heading "Pending Photos" [level=3] [ref=e70]
+          - button "⚠️ 0 Capacity Alerts" [ref=e71]:
+            - generic [ref=e72]:
+              - generic [ref=e73]: ⚠️
+              - generic [ref=e74]: "0"
+            - heading "Capacity Alerts" [level=3] [ref=e75]
+        - generic [ref=e76]:
+          - heading "Quick Actions" [level=2] [ref=e77]
+          - generic [ref=e78]:
+            - button "Add Guest" [ref=e79]:
+              - generic [ref=e80]: 👤
+              - generic [ref=e81]: Add Guest
+            - button "Create Event" [ref=e82]:
+              - generic [ref=e83]: 📅
+              - generic [ref=e84]: Create Event
+            - button "Add Activity" [ref=e85]:
+              - generic [ref=e86]: 🎯
+              - generic [ref=e87]: Add Activity
+            - button "Manage Vendors" [ref=e88]:
+              - generic [ref=e89]: 🤝
+              - generic [ref=e90]: Manage Vendors
+            - button "View RSVPs" [ref=e91]:
+              - generic [ref=e92]: ✉️
+              - generic [ref=e93]: View RSVPs
+            - button "Moderate Photos" [ref=e94]:
+              - generic [ref=e95]: 📸
+              - generic [ref=e96]: Moderate Photos
+        - generic [ref=e97]:
+          - generic [ref=e98]:
+            - heading "Recent Activity" [level=3] [ref=e99]
+            - generic [ref=e100]:
+              - generic [ref=e101]:
+                - generic [ref=e102]: 👤
+                - generic [ref=e103]:
+                  - paragraph [ref=e104]: "New guest added: John Doe"
+                  - paragraph [ref=e105]: 5 minutes ago
+              - generic [ref=e106]:
+                - generic [ref=e107]: ✉️
+                - generic [ref=e108]:
+                  - paragraph [ref=e109]: RSVP received from Jane Smith
+                  - paragraph [ref=e110]: 15 minutes ago
+              - generic [ref=e111]:
+                - generic [ref=e112]: 📸
+                - generic [ref=e113]:
+                  - paragraph [ref=e114]: 3 new photos pending moderation
+                  - paragraph [ref=e115]: 1 hour ago
+          - generic [ref=e116]:
+            - heading "Upcoming Deadlines" [level=3] [ref=e117]
+            - generic [ref=e118]:
+              - generic [ref=e119]:
+                - generic [ref=e120]:
+                  - paragraph [ref=e121]: RSVP Deadline
+                  - paragraph [ref=e122]: March 15, 2025
+                - generic [ref=e123]: 48 days
+              - generic [ref=e124]:
+                - generic [ref=e125]:
+                  - paragraph [ref=e126]: Final Payment Due
+                  - paragraph [ref=e127]: April 1, 2025
+                - generic [ref=e128]: 65 days
+              - generic [ref=e129]:
+                - generic [ref=e130]:
+                  - paragraph [ref=e131]: Menu Selection
+                  - paragraph [ref=e132]: March 20, 2025
+                - generic [ref=e133]: 53 days
+  - button "Open Next.js Dev Tools" [ref=e139] [cursor=pointer]:
+    - generic [ref=e142]:
+      - text: Compiling
+      - generic [ref=e143]:
+        - generic [ref=e144]: .
+        - generic [ref=e145]: .
+        - generic [ref=e146]: .
+  - alert [ref=e147]
+```

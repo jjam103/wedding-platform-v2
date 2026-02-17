@@ -31,9 +31,17 @@ export function sanitizeInput(input: string | null | undefined): string {
   // Remove all HTML tags
   let sanitized = input.replace(/<[^>]*>/g, '');
   
-  // Remove any remaining script content
+  // Remove any remaining script content and JavaScript keywords
   sanitized = sanitized.replace(/javascript:/gi, '');
   sanitized = sanitized.replace(/on\w+\s*=/gi, '');
+  
+  // Remove common XSS attack patterns
+  sanitized = sanitized.replace(/alert\s*\(/gi, '');
+  sanitized = sanitized.replace(/eval\s*\(/gi, '');
+  sanitized = sanitized.replace(/document\./gi, '');
+  sanitized = sanitized.replace(/window\./gi, '');
+  sanitized = sanitized.replace(/onerror/gi, '');
+  sanitized = sanitized.replace(/onload/gi, '');
   
   return sanitized.trim();
 }

@@ -1,0 +1,100 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - link "Skip to main content" [ref=e2] [cursor=pointer]:
+    - /url: "#main-content"
+  - link "Skip to main content" [ref=e3] [cursor=pointer]:
+    - /url: "#main-content"
+  - generic [ref=e4]:
+    - navigation "Main navigation" [ref=e5]:
+      - generic [ref=e7]:
+        - link "Admin" [ref=e8] [cursor=pointer]:
+          - /url: /admin
+          - generic [ref=e9]: 🌴
+          - generic [ref=e10]: Admin
+        - button "Content" [ref=e11]:
+          - generic [ref=e12]: 📝
+          - generic [ref=e13]: Content
+        - button "Guests" [ref=e14]:
+          - generic [ref=e15]: 👥
+          - generic [ref=e16]: Guests
+        - button "RSVPs" [ref=e17]:
+          - generic [ref=e18]: ✓
+          - generic [ref=e19]: RSVPs
+        - button "Logistics" [ref=e20]:
+          - generic [ref=e21]: 🚗
+          - generic [ref=e22]: Logistics
+        - button "Admin" [ref=e23]:
+          - generic [ref=e24]: ⚙️
+          - generic [ref=e25]: Admin
+    - banner [ref=e26]:
+      - generic [ref=e27]:
+        - heading "Wedding Admin" [level=1] [ref=e29]
+        - toolbar "User actions" [ref=e30]:
+          - link "Preview guest portal in new tab" [ref=e31] [cursor=pointer]:
+            - /url: /
+            - generic [ref=e32]: 👁️
+            - generic [ref=e33]: Preview Guest Portal
+          - button "Notifications (coming soon)" [ref=e34]: 🔔
+          - button "User menu" [ref=e36]:
+            - generic [ref=e37]: A
+            - generic [ref=e38]: Admin
+            - generic [ref=e39]: ▼
+    - main [ref=e40]:
+      - generic [ref=e42]:
+        - generic [ref=e44]:
+          - heading "Activity Management" [level=1] [ref=e45]
+          - paragraph [ref=e46]: Manage your wedding activities
+        - generic [ref=e47]:
+          - button "Add Activity" [ref=e48]:
+            - generic [ref=e49]: Add Activity
+            - generic [ref=e50]: ▼
+          - generic [ref=e51]:
+            - generic [ref=e52]:
+              - generic [ref=e53]:
+                - generic [ref=e54]: Activity Name*
+                - textbox [ref=e55]:
+                  - /placeholder: Enter activity name
+              - generic [ref=e56]:
+                - generic [ref=e57]: Activity Type*
+                - combobox [ref=e58]
+              - generic [ref=e59]:
+                - generic [ref=e60]: Description
+                - textbox [ref=e61]:
+                  - /placeholder: Enter activity description
+              - generic [ref=e62]:
+                - generic [ref=e63]: Event
+                - combobox [ref=e64]
+              - generic [ref=e65]:
+                - generic [ref=e66]: Start Date & Time*
+                - textbox [ref=e67]
+              - generic [ref=e68]:
+                - generic [ref=e69]: End Date & Time
+                - textbox [ref=e70]
+              - generic [ref=e71]:
+                - generic [ref=e72]: Location
+                - combobox [ref=e73]
+              - generic [ref=e74]:
+                - generic [ref=e75]: Capacity
+                - spinbutton [ref=e76]
+              - generic [ref=e77]:
+                - generic [ref=e78]: Cost Per Person ($)
+                - spinbutton [ref=e79]
+              - generic [ref=e80]:
+                - generic [ref=e81]: Host Subsidy ($)
+                - spinbutton [ref=e82]
+              - generic [ref=e83]:
+                - generic [ref=e84]: Adults Only
+                - checkbox [ref=e85]
+              - generic [ref=e86]:
+                - generic [ref=e87]: Plus-One Allowed
+                - checkbox [ref=e88]
+              - generic [ref=e89]:
+                - generic [ref=e90]: Status*
+                - combobox [ref=e91]
+            - generic [ref=e92]:
+              - button [ref=e93]: Create Activity
+              - button [ref=e94]: Cancel
+        - generic [ref=e96]: Loading activities...
+```

@@ -7,7 +7,7 @@ process.env.SUPABASE_SERVICE_ROLE_KEY = 'test-service-role-key';
 
 // Mock Supabase with shared client instance (Pattern A)
 jest.mock('@supabase/supabase-js', () => {
-  const mockFrom = jest.fn();
+  const mockFrom = (jest.fn() as any);
   const mockSupabaseClient = {
     from: mockFrom,
   };
@@ -61,21 +61,21 @@ describe('locationService', () => {
 
       // Mock parent location exists check (first call)
       // Service calls: supabase.from('locations').select('*').eq('id', parentId).single()
-      const mockSingle1 = jest.fn().mockResolvedValue({
+      const mockSingle1 = (jest.fn() as any).mockResolvedValue({
         data: { id: validData.parentLocationId },
         error: null,
       });
-      const mockEq1 = jest.fn().mockReturnValue({ single: mockSingle1 });
-      const mockSelect1 = jest.fn().mockReturnValue({ eq: mockEq1 });
+      const mockEq1 = (jest.fn() as any).mockReturnValue({ single: mockSingle1 });
+      const mockSelect1 = (jest.fn() as any).mockReturnValue({ eq: mockEq1 });
 
       // Mock location creation (second call)
       // Service calls: supabase.from('locations').insert(data).select().single()
-      const mockSingle2 = jest.fn().mockResolvedValue({
+      const mockSingle2 = (jest.fn() as any).mockResolvedValue({
         data: mockLocation,
         error: null,
       });
-      const mockSelect2 = jest.fn().mockReturnValue({ single: mockSingle2 });
-      const mockInsert = jest.fn().mockReturnValue({ select: mockSelect2 });
+      const mockSelect2 = (jest.fn() as any).mockReturnValue({ single: mockSingle2 });
+      const mockInsert = (jest.fn() as any).mockReturnValue({ select: mockSelect2 });
 
       let callCount = 0;
       mockFrom.mockImplementation((table: string) => {
@@ -124,12 +124,12 @@ describe('locationService', () => {
 
     it('should return INVALID_PARENT when parent location does not exist', async () => {
       // Mock parent location not found
-      const mockSingle = jest.fn().mockResolvedValue({
+      const mockSingle = (jest.fn() as any).mockResolvedValue({
         data: null,
         error: { code: 'PGRST116' },
       });
-      const mockEq = jest.fn().mockReturnValue({ single: mockSingle });
-      const mockSelect = jest.fn().mockReturnValue({ eq: mockEq });
+      const mockEq = (jest.fn() as any).mockReturnValue({ single: mockSingle });
+      const mockSelect = (jest.fn() as any).mockReturnValue({ eq: mockEq });
       mockFrom.mockReturnValue({ select: mockSelect });
 
       const result = await create(validData);
@@ -142,20 +142,20 @@ describe('locationService', () => {
 
     it('should return DATABASE_ERROR when insert fails', async () => {
       // Mock parent location exists
-      const mockSingle1 = jest.fn().mockResolvedValue({
+      const mockSingle1 = (jest.fn() as any).mockResolvedValue({
         data: { id: validData.parentLocationId },
         error: null,
       });
-      const mockEq1 = jest.fn().mockReturnValue({ single: mockSingle1 });
-      const mockSelect1 = jest.fn().mockReturnValue({ eq: mockEq1 });
+      const mockEq1 = (jest.fn() as any).mockReturnValue({ single: mockSingle1 });
+      const mockSelect1 = (jest.fn() as any).mockReturnValue({ eq: mockEq1 });
 
       // Mock database error on insert
-      const mockSingle2 = jest.fn().mockResolvedValue({
+      const mockSingle2 = (jest.fn() as any).mockResolvedValue({
         data: null,
         error: { message: 'Connection failed' },
       });
-      const mockSelect2 = jest.fn().mockReturnValue({ single: mockSingle2 });
-      const mockInsert = jest.fn().mockReturnValue({ select: mockSelect2 });
+      const mockSelect2 = (jest.fn() as any).mockReturnValue({ single: mockSingle2 });
+      const mockInsert = (jest.fn() as any).mockReturnValue({ select: mockSelect2 });
 
       let callCount = 0;
       mockFrom.mockImplementation((table: string) => {
@@ -187,15 +187,15 @@ describe('locationService', () => {
       };
 
       // Mock parent location exists
-      const mockSingle1 = jest.fn().mockResolvedValue({
+      const mockSingle1 = (jest.fn() as any).mockResolvedValue({
         data: { id: validData.parentLocationId },
         error: null,
       });
-      const mockEq1 = jest.fn().mockReturnValue({ single: mockSingle1 });
-      const mockSelect1 = jest.fn().mockReturnValue({ eq: mockEq1 });
+      const mockEq1 = (jest.fn() as any).mockReturnValue({ single: mockSingle1 });
+      const mockSelect1 = (jest.fn() as any).mockReturnValue({ eq: mockEq1 });
 
       // Mock successful creation
-      const mockSingle2 = jest.fn().mockResolvedValue({
+      const mockSingle2 = (jest.fn() as any).mockResolvedValue({
         data: {
           id: 'location-1',
           name: 'Tamarindo',
@@ -204,8 +204,8 @@ describe('locationService', () => {
         },
         error: null,
       });
-      const mockSelect2 = jest.fn().mockReturnValue({ single: mockSingle2 });
-      const mockInsert = jest.fn().mockReturnValue({ select: mockSelect2 });
+      const mockSelect2 = (jest.fn() as any).mockReturnValue({ single: mockSingle2 });
+      const mockInsert = (jest.fn() as any).mockReturnValue({ select: mockSelect2 });
 
       let callCount = 0;
       mockFrom.mockImplementation((table: string) => {
@@ -243,12 +243,12 @@ describe('locationService', () => {
         created_at: '2024-01-01T00:00:00Z',
       };
 
-      const mockSingle = jest.fn().mockResolvedValue({
+      const mockSingle = (jest.fn() as any).mockResolvedValue({
         data: mockLocation,
         error: null,
       });
-      const mockEq = jest.fn().mockReturnValue({ single: mockSingle });
-      const mockSelect = jest.fn().mockReturnValue({ eq: mockEq });
+      const mockEq = (jest.fn() as any).mockReturnValue({ single: mockSingle });
+      const mockSelect = (jest.fn() as any).mockReturnValue({ eq: mockEq });
       mockFrom.mockReturnValue({ select: mockSelect });
 
       const result = await get('location-1');
@@ -261,12 +261,12 @@ describe('locationService', () => {
     });
 
     it('should return NOT_FOUND when location does not exist', async () => {
-      const mockSingle = jest.fn().mockResolvedValue({
+      const mockSingle = (jest.fn() as any).mockResolvedValue({
         data: null,
         error: { code: 'PGRST116' },
       });
-      const mockEq = jest.fn().mockReturnValue({ single: mockSingle });
-      const mockSelect = jest.fn().mockReturnValue({ eq: mockEq });
+      const mockEq = (jest.fn() as any).mockReturnValue({ single: mockSingle });
+      const mockSelect = (jest.fn() as any).mockReturnValue({ eq: mockEq });
       mockFrom.mockReturnValue({ select: mockSelect });
 
       const result = await get('nonexistent-id');
@@ -278,12 +278,12 @@ describe('locationService', () => {
     });
 
     it('should return DATABASE_ERROR when database query fails', async () => {
-      const mockSingle = jest.fn().mockResolvedValue({
+      const mockSingle = (jest.fn() as any).mockResolvedValue({
         data: null,
         error: { message: 'Connection failed' },
       });
-      const mockEq = jest.fn().mockReturnValue({ single: mockSingle });
-      const mockSelect = jest.fn().mockReturnValue({ eq: mockEq });
+      const mockEq = (jest.fn() as any).mockReturnValue({ single: mockSingle });
+      const mockSelect = (jest.fn() as any).mockReturnValue({ eq: mockEq });
       mockFrom.mockReturnValue({ select: mockSelect });
 
       const result = await get('location-1');
@@ -312,13 +312,13 @@ describe('locationService', () => {
         created_at: '2024-01-01T00:00:00Z',
       };
 
-      const mockSingle = jest.fn().mockResolvedValue({
+      const mockSingle = (jest.fn() as any).mockResolvedValue({
         data: mockUpdatedLocation,
         error: null,
       });
-      const mockSelect = jest.fn().mockReturnValue({ single: mockSingle });
-      const mockEq = jest.fn().mockReturnValue({ select: mockSelect });
-      const mockUpdate = jest.fn().mockReturnValue({ eq: mockEq });
+      const mockSelect = (jest.fn() as any).mockReturnValue({ single: mockSingle });
+      const mockEq = (jest.fn() as any).mockReturnValue({ select: mockSelect });
+      const mockUpdate = (jest.fn() as any).mockReturnValue({ eq: mockEq });
       mockFrom.mockReturnValue({ update: mockUpdate });
 
       const result = await update('location-1', updateData);
@@ -349,12 +349,12 @@ describe('locationService', () => {
       const invalidParentData = { parentLocationId: '123e4567-e89b-12d3-a456-426614174000' };
 
       // Mock parent location not found (get() call)
-      const mockSingle = jest.fn().mockResolvedValue({
+      const mockSingle = (jest.fn() as any).mockResolvedValue({
         data: null,
         error: { code: 'PGRST116' },
       });
-      const mockEq = jest.fn().mockReturnValue({ single: mockSingle });
-      const mockSelect = jest.fn().mockReturnValue({ eq: mockEq });
+      const mockEq = (jest.fn() as any).mockReturnValue({ single: mockSingle });
+      const mockSelect = (jest.fn() as any).mockReturnValue({ eq: mockEq });
       mockFrom.mockReturnValue({ select: mockSelect });
 
       const result = await update('location-1', invalidParentData);
@@ -366,13 +366,13 @@ describe('locationService', () => {
     });
 
     it('should return NOT_FOUND when location to update does not exist', async () => {
-      const mockSingle = jest.fn().mockResolvedValue({
+      const mockSingle = (jest.fn() as any).mockResolvedValue({
         data: null,
         error: { code: 'PGRST116' },
       });
-      const mockSelect = jest.fn().mockReturnValue({ single: mockSingle });
-      const mockEq = jest.fn().mockReturnValue({ select: mockSelect });
-      const mockUpdate = jest.fn().mockReturnValue({ eq: mockEq });
+      const mockSelect = (jest.fn() as any).mockReturnValue({ single: mockSingle });
+      const mockEq = (jest.fn() as any).mockReturnValue({ select: mockSelect });
+      const mockUpdate = (jest.fn() as any).mockReturnValue({ eq: mockEq });
       mockFrom.mockReturnValue({ update: mockUpdate });
 
       const result = await update('nonexistent-id', updateData);
@@ -386,10 +386,10 @@ describe('locationService', () => {
 
   describe('deleteLocation', () => {
     it('should return success when location is deleted successfully', async () => {
-      const mockEq = jest.fn().mockResolvedValue({
+      const mockEq = (jest.fn() as any).mockResolvedValue({
         error: null,
       });
-      const mockDelete = jest.fn().mockReturnValue({ eq: mockEq });
+      const mockDelete = (jest.fn() as any).mockReturnValue({ eq: mockEq });
       mockFrom.mockReturnValue({ delete: mockDelete });
 
       const result = await deleteLocation('location-1');
@@ -398,10 +398,10 @@ describe('locationService', () => {
     });
 
     it('should return DATABASE_ERROR when delete fails', async () => {
-      const mockEq = jest.fn().mockResolvedValue({
+      const mockEq = (jest.fn() as any).mockResolvedValue({
         error: { message: 'Foreign key constraint violation' },
       });
-      const mockDelete = jest.fn().mockReturnValue({ eq: mockEq });
+      const mockDelete = (jest.fn() as any).mockReturnValue({ eq: mockEq });
       mockFrom.mockReturnValue({ delete: mockDelete });
 
       const result = await deleteLocation('location-1');
@@ -436,13 +436,13 @@ describe('locationService', () => {
         },
       ];
 
-      const mockRange = jest.fn().mockResolvedValue({
+      const mockRange = (jest.fn() as any).mockResolvedValue({
         data: mockLocations,
         error: null,
         count: 2,
       });
-      const mockOrder = jest.fn().mockReturnValue({ range: mockRange });
-      const mockSelect = jest.fn().mockReturnValue({ order: mockOrder });
+      const mockOrder = (jest.fn() as any).mockReturnValue({ range: mockRange });
+      const mockSelect = (jest.fn() as any).mockReturnValue({ order: mockOrder });
       mockFrom.mockReturnValue({ select: mockSelect });
 
       const filters: LocationFilterDTO = { page: 1, pageSize: 10 };
@@ -464,14 +464,14 @@ describe('locationService', () => {
         pageSize: 10,
       };
 
-      const mockRange = jest.fn().mockResolvedValue({
+      const mockRange = (jest.fn() as any).mockResolvedValue({
         data: [],
         error: null,
         count: 0,
       });
-      const mockOrder = jest.fn().mockReturnValue({ range: mockRange });
-      const mockEq = jest.fn().mockReturnValue({ order: mockOrder });
-      const mockSelect = jest.fn().mockReturnValue({ eq: mockEq });
+      const mockOrder = (jest.fn() as any).mockReturnValue({ range: mockRange });
+      const mockEq = (jest.fn() as any).mockReturnValue({ order: mockOrder });
+      const mockSelect = (jest.fn() as any).mockReturnValue({ eq: mockEq });
       mockFrom.mockReturnValue({ select: mockSelect });
 
       const result = await list(filters);
@@ -491,14 +491,14 @@ describe('locationService', () => {
         pageSize: 10,
       };
 
-      const mockRange = jest.fn().mockResolvedValue({
+      const mockRange = (jest.fn() as any).mockResolvedValue({
         data: [],
         error: null,
         count: 0,
       });
-      const mockOrder = jest.fn().mockReturnValue({ range: mockRange });
-      const mockIs = jest.fn().mockReturnValue({ order: mockOrder });
-      const mockSelect = jest.fn().mockReturnValue({ is: mockIs });
+      const mockOrder = (jest.fn() as any).mockReturnValue({ range: mockRange });
+      const mockIs = (jest.fn() as any).mockReturnValue({ order: mockOrder });
+      const mockSelect = (jest.fn() as any).mockReturnValue({ is: mockIs });
       mockFrom.mockReturnValue({ select: mockSelect });
 
       const result = await list(filters);
@@ -508,12 +508,12 @@ describe('locationService', () => {
     });
 
     it('should return DATABASE_ERROR when query fails', async () => {
-      const mockRange = jest.fn().mockResolvedValue({
+      const mockRange = (jest.fn() as any).mockResolvedValue({
         data: null,
         error: { message: 'Connection failed' },
       });
-      const mockOrder = jest.fn().mockReturnValue({ range: mockRange });
-      const mockSelect = jest.fn().mockReturnValue({ order: mockOrder });
+      const mockOrder = (jest.fn() as any).mockReturnValue({ range: mockRange });
+      const mockSelect = (jest.fn() as any).mockReturnValue({ order: mockOrder });
       mockFrom.mockReturnValue({ select: mockSelect });
 
       const result = await list();
@@ -545,14 +545,14 @@ describe('locationService', () => {
         },
       ];
 
-      const mockRange = jest.fn().mockResolvedValue({
+      const mockRange = (jest.fn() as any).mockResolvedValue({
         data: mockResults,
         error: null,
         count: 1,
       });
-      const mockOrder = jest.fn().mockReturnValue({ range: mockRange });
-      const mockOr = jest.fn().mockReturnValue({ order: mockOrder });
-      const mockSelect = jest.fn().mockReturnValue({ or: mockOr });
+      const mockOrder = (jest.fn() as any).mockReturnValue({ range: mockRange });
+      const mockOr = (jest.fn() as any).mockReturnValue({ order: mockOrder });
+      const mockSelect = (jest.fn() as any).mockReturnValue({ or: mockOr });
       mockFrom.mockReturnValue({ select: mockSelect });
 
       const result = await search(searchParams);
@@ -571,14 +571,14 @@ describe('locationService', () => {
         pageSize: 10,
       };
 
-      const mockRange = jest.fn().mockResolvedValue({
+      const mockRange = (jest.fn() as any).mockResolvedValue({
         data: [],
         error: null,
         count: 0,
       });
-      const mockOrder = jest.fn().mockReturnValue({ range: mockRange });
-      const mockOr = jest.fn().mockReturnValue({ order: mockOrder });
-      const mockSelect = jest.fn().mockReturnValue({ or: mockOr });
+      const mockOrder = (jest.fn() as any).mockReturnValue({ range: mockRange });
+      const mockOr = (jest.fn() as any).mockReturnValue({ order: mockOrder });
+      const mockSelect = (jest.fn() as any).mockReturnValue({ or: mockOr });
       mockFrom.mockReturnValue({ select: mockSelect });
 
       const result = await search(maliciousSearch);
@@ -632,11 +632,11 @@ describe('locationService', () => {
         },
       ];
 
-      const mockOrder = jest.fn().mockResolvedValue({
+      const mockOrder = (jest.fn() as any).mockResolvedValue({
         data: mockLocations,
         error: null,
       });
-      const mockSelect = jest.fn().mockReturnValue({ order: mockOrder });
+      const mockSelect = (jest.fn() as any).mockReturnValue({ order: mockOrder });
       mockFrom.mockReturnValue({ select: mockSelect });
 
       const result = await getHierarchy();
@@ -653,11 +653,11 @@ describe('locationService', () => {
     });
 
     it('should return DATABASE_ERROR when query fails', async () => {
-      const mockOrder = jest.fn().mockResolvedValue({
+      const mockOrder = (jest.fn() as any).mockResolvedValue({
         data: null,
         error: { message: 'Connection failed' },
       });
-      const mockSelect = jest.fn().mockReturnValue({ order: mockOrder });
+      const mockSelect = (jest.fn() as any).mockReturnValue({ order: mockOrder });
       mockFrom.mockReturnValue({ select: mockSelect });
 
       const result = await getHierarchy();
@@ -674,7 +674,7 @@ describe('locationService', () => {
       const parentId = 'country-1';
       
       // Mock get parent location (first call)
-      const mockSingle = jest.fn().mockResolvedValue({
+      const mockSingle = (jest.fn() as any).mockResolvedValue({
         data: {
           id: 'country-1',
           name: 'Costa Rica',
@@ -686,11 +686,11 @@ describe('locationService', () => {
         },
         error: null,
       });
-      const mockEq = jest.fn().mockReturnValue({ single: mockSingle });
-      const mockSelect1 = jest.fn().mockReturnValue({ eq: mockEq });
+      const mockEq = (jest.fn() as any).mockReturnValue({ single: mockSingle });
+      const mockSelect1 = (jest.fn() as any).mockReturnValue({ eq: mockEq });
 
       // Mock get all locations for hierarchy building (second call)
-      const mockOrder = jest.fn().mockResolvedValue({
+      const mockOrder = (jest.fn() as any).mockResolvedValue({
         data: [
           {
             id: 'country-1',
@@ -713,7 +713,7 @@ describe('locationService', () => {
         ],
         error: null,
       });
-      const mockSelect2 = jest.fn().mockReturnValue({ order: mockOrder });
+      const mockSelect2 = (jest.fn() as any).mockReturnValue({ order: mockOrder });
 
       let callCount = 0;
       mockFrom.mockImplementation((table: string) => {
@@ -739,12 +739,12 @@ describe('locationService', () => {
     });
 
     it('should return NOT_FOUND when parent location does not exist', async () => {
-      const mockSingle = jest.fn().mockResolvedValue({
+      const mockSingle = (jest.fn() as any).mockResolvedValue({
         data: null,
         error: { code: 'PGRST116' },
       });
-      const mockEq = jest.fn().mockReturnValue({ single: mockSingle });
-      const mockSelect = jest.fn().mockReturnValue({ eq: mockEq });
+      const mockEq = (jest.fn() as any).mockReturnValue({ single: mockSingle });
+      const mockSelect = (jest.fn() as any).mockReturnValue({ eq: mockEq });
       mockFrom.mockReturnValue({ select: mockSelect });
 
       const result = await getWithChildren('nonexistent-id');

@@ -1,0 +1,33 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - link "Skip to main content" [ref=e2] [cursor=pointer]:
+    - /url: "#main-content"
+  - link "Skip to main content" [ref=e3] [cursor=pointer]:
+    - /url: "#main-content"
+  - generic [ref=e4]:
+    - navigation "Main navigation" [ref=e5]:
+      - generic [ref=e7]:
+        - link "Admin" [ref=e8] [cursor=pointer]:
+          - /url: /admin
+          - text: 🌴Admin
+        - button "Content" [ref=e9]: 📝Content
+        - button "Guests" [ref=e10]: 👥Guests
+        - button "RSVPs" [ref=e11]: ✓RSVPs
+        - button "Logistics" [ref=e12]: 🚗Logistics
+        - button "Admin" [ref=e13]: ⚙️Admin
+    - banner [ref=e14]:
+      - generic [ref=e15]:
+        - heading "Wedding Admin" [level=1] [ref=e17]
+        - toolbar "User actions" [ref=e18]:
+          - link "Preview guest portal in new tab" [ref=e19] [cursor=pointer]:
+            - /url: /
+            - text: 👁️Preview Guest Portal
+          - button "Notifications (coming soon)" [ref=e20]: 🔔
+          - button "User menu" [ref=e22]:
+            - generic [ref=e23]: A
+            - text: Admin▼
+    - main [ref=e24]:
+      - img [ref=e27]
+```

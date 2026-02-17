@@ -1,0 +1,66 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - button "Open Next.js Dev Tools" [ref=e7] [cursor=pointer]:
+    - generic [ref=e10]:
+      - text: Compiling
+      - generic [ref=e11]:
+        - generic [ref=e12]: .
+        - generic [ref=e13]: .
+        - generic [ref=e14]: .
+  - link "Skip to main content" [ref=e15] [cursor=pointer]:
+    - /url: "#main-content"
+  - link "Skip to main content" [ref=e16] [cursor=pointer]:
+    - /url: "#main-content"
+  - generic [ref=e17]:
+    - navigation "Main navigation" [ref=e18]:
+      - generic [ref=e20]:
+        - generic [ref=e21]:
+          - generic [ref=e22]: 🌴
+          - generic [ref=e23]: Admin
+        - button "Open menu" [ref=e24]:
+          - generic [ref=e25]: ☰
+    - banner [ref=e26]:
+      - toolbar "User actions" [ref=e28]:
+        - link "Preview guest portal in new tab" [ref=e29] [cursor=pointer]:
+          - /url: /
+          - generic [ref=e30]: 👁️
+        - button "Notifications (coming soon)" [ref=e31]: 🔔
+        - button "User menu" [ref=e33]:
+          - generic [ref=e34]: A
+          - generic [ref=e35]: ▼
+    - main [ref=e36]:
+      - status "Loading dashboard" [ref=e38]:
+        - generic [ref=e39]:
+          - generic [ref=e40]:
+            - status "Loading content" [ref=e41]
+            - status "Loading content" [ref=e42]
+          - generic [ref=e43]:
+            - status "Loading content" [ref=e44]
+            - status "Loading content" [ref=e45]
+          - generic [ref=e46]:
+            - status "Loading content" [ref=e47]
+            - status "Loading content" [ref=e48]
+          - generic [ref=e49]:
+            - status "Loading content" [ref=e50]
+            - status "Loading content" [ref=e51]
+        - generic [ref=e52]:
+          - status "Loading card" [ref=e53]:
+            - status "Loading content" [ref=e54]
+            - generic [ref=e55]:
+              - status "Loading content" [ref=e56]
+              - status "Loading content" [ref=e57]
+              - status "Loading content" [ref=e58]
+              - status "Loading content" [ref=e59]
+              - status "Loading content" [ref=e60]
+          - status "Loading card" [ref=e61]:
+            - status "Loading content" [ref=e62]
+            - generic [ref=e63]:
+              - status "Loading content" [ref=e64]
+              - status "Loading content" [ref=e65]
+              - status "Loading content" [ref=e66]
+              - status "Loading content" [ref=e67]
+              - status "Loading content" [ref=e68]
+  - alert [ref=e69]
+```

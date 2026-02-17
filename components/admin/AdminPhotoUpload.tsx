@@ -155,7 +155,7 @@ export function AdminPhotoUpload({
     <div className="space-y-4">
       {/* Error Message */}
       {error && (
-        <div className="p-3 bg-volcano-50 border border-volcano-200 rounded-lg text-volcano-800 text-sm">
+        <div className="p-3 bg-volcano-50 border border-volcano-200 rounded-lg text-volcano-800 text-sm" role="alert">
           {error}
         </div>
       )}
@@ -164,7 +164,7 @@ export function AdminPhotoUpload({
       <div>
         <label htmlFor="admin-photo-upload" className="block cursor-pointer">
           <div className="border-2 border-dashed border-sage-300 rounded-lg p-8 text-center hover:border-jungle-400 hover:bg-jungle-50 transition-colors">
-            <div className="text-4xl mb-3">📷</div>
+            <div className="text-4xl mb-3" aria-hidden="true">📷</div>
             <h3 className="text-lg font-semibold text-sage-700 mb-2">
               Click to select photos
             </h3>
@@ -183,8 +183,13 @@ export function AdminPhotoUpload({
             onChange={handleFileSelect}
             className="hidden"
             disabled={uploading}
+            aria-label="Select photos to upload"
+            aria-describedby="photo-upload-instructions"
           />
         </label>
+        <div id="photo-upload-instructions" className="sr-only">
+          Select one or more image files to upload. Supported formats: JPG, PNG, GIF, WebP. Maximum file size: 10MB per file.
+        </div>
       </div>
 
       {/* Photo Previews */}
@@ -225,7 +230,8 @@ export function AdminPhotoUpload({
                     value={photo.caption}
                     onChange={(e) => updateCaption(index, e.target.value)}
                     placeholder="Caption (optional)"
-                    className="w-full px-3 py-1.5 text-sm border border-sage-300 rounded focus:ring-2 focus:ring-jungle-500 focus:border-jungle-500"
+                    aria-label={`Caption for photo ${index + 1}`}
+                    className="w-full px-3 py-1.5 text-sm border border-sage-300 rounded focus:ring-2 focus:ring-jungle-500 focus:border-jungle-500 min-h-[44px]"
                     disabled={uploading}
                   />
                   <input
@@ -233,7 +239,8 @@ export function AdminPhotoUpload({
                     value={photo.altText}
                     onChange={(e) => updateAltText(index, e.target.value)}
                     placeholder="Alt text for accessibility (optional)"
-                    className="w-full px-3 py-1.5 text-sm border border-sage-300 rounded focus:ring-2 focus:ring-jungle-500 focus:border-jungle-500"
+                    aria-label={`Alt text for photo ${index + 1}`}
+                    className="w-full px-3 py-1.5 text-sm border border-sage-300 rounded focus:ring-2 focus:ring-jungle-500 focus:border-jungle-500 min-h-[44px]"
                     disabled={uploading}
                   />
                   <p className="text-xs text-sage-600">
@@ -258,12 +265,14 @@ export function AdminPhotoUpload({
 
           {/* Upload Progress */}
           {uploading && (
-            <div>
+            <div role="status" aria-live="polite">
               <div className="flex items-center justify-between mb-2">
                 <span className="text-sm font-medium text-sage-700">Uploading...</span>
-                <span className="text-sm font-medium text-jungle-700">{uploadProgress}%</span>
+                <span className="text-sm font-medium text-jungle-700" aria-label={`Upload progress: ${uploadProgress} percent`}>
+                  {uploadProgress}%
+                </span>
               </div>
-              <div className="w-full bg-sage-200 rounded-full h-2">
+              <div className="w-full bg-sage-200 rounded-full h-2" role="progressbar" aria-valuenow={uploadProgress} aria-valuemin={0} aria-valuemax={100}>
                 <div
                   className="bg-jungle-600 h-2 rounded-full transition-all duration-300"
                   style={{ width: `${uploadProgress}%` }}
@@ -277,7 +286,8 @@ export function AdminPhotoUpload({
             <button
               onClick={handleUpload}
               disabled={uploading || photos.length === 0}
-              className="flex-1 px-4 py-2 bg-jungle-600 hover:bg-jungle-700 disabled:bg-sage-400 text-white font-medium rounded-lg transition-colors"
+              aria-label={`Upload ${photos.length} photo${photos.length > 1 ? 's' : ''}`}
+              className="flex-1 px-4 py-2 bg-jungle-600 hover:bg-jungle-700 disabled:bg-sage-400 text-white font-medium rounded-lg transition-colors min-h-[44px]"
             >
               {uploading ? 'Uploading...' : `Upload ${photos.length} Photo${photos.length > 1 ? 's' : ''}`}
             </button>
@@ -285,7 +295,8 @@ export function AdminPhotoUpload({
               <button
                 onClick={onCancel}
                 disabled={uploading}
-                className="px-4 py-2 bg-sage-200 hover:bg-sage-300 disabled:bg-sage-100 text-sage-700 font-medium rounded-lg transition-colors"
+                aria-label="Cancel photo upload"
+                className="px-4 py-2 bg-sage-200 hover:bg-sage-300 disabled:bg-sage-100 text-sage-700 font-medium rounded-lg transition-colors min-h-[44px]"
               >
                 Cancel
               </button>

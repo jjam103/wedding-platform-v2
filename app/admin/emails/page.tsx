@@ -21,6 +21,27 @@ export default function EmailsPage({}: EmailsPageProps) {
     setLoading(true);
     try {
       const response = await fetch('/api/admin/emails');
+      
+      // Check if response is OK before parsing JSON
+      if (!response.ok) {
+        const errorText = await response.text();
+        let errorMessage = 'Failed to load emails';
+        
+        try {
+          const errorData = JSON.parse(errorText);
+          errorMessage = errorData.error?.message || errorMessage;
+        } catch {
+          // If response is not JSON, use status text
+          errorMessage = `HTTP ${response.status}: ${response.statusText}`;
+        }
+        
+        addToast({
+          type: 'error',
+          message: errorMessage,
+        });
+        return;
+      }
+      
       const result = await response.json();
 
       if (result.success) {
@@ -32,9 +53,10 @@ export default function EmailsPage({}: EmailsPageProps) {
         });
       }
     } catch (error) {
+      console.error('Failed to fetch emails:', error);
       addToast({
         type: 'error',
-        message: 'Failed to load emails',
+        message: error instanceof Error ? error.message : 'Failed to load emails',
       });
     } finally {
       setLoading(false);
@@ -116,6 +138,7 @@ export default function EmailsPage({}: EmailsPageProps) {
           variant="primary"
           onClick={() => setShowComposer(true)}
           data-action="add-new"
+          aria-label="Compose new email"
         >
           Compose Email
         </Button>

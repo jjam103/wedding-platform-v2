@@ -208,7 +208,8 @@ export default function AccommodationsPage() {
           newAccommodationRef.current = result.data.id;
         }
         
-        // Refresh accommodation list
+        // Refresh accommodation list with a small delay to ensure database commit
+        await new Promise(resolve => setTimeout(resolve, 100));
         await fetchAccommodations();
         
         // Close form

@@ -44,6 +44,7 @@ export function SimpleReferenceSelector({ onSelect }: SimpleReferenceSelectorPro
     async function fetchItems() {
       setLoading(true);
       setError(null);
+      setItems([]); // Clear items immediately when type changes
 
       try {
         let endpoint = '';
@@ -69,21 +70,55 @@ export function SimpleReferenceSelector({ onSelect }: SimpleReferenceSelectorPro
 
         const result = await response.json();
         
+        console.log('[SimpleReferenceSelector] API Response:', {
+          endpoint,
+          selectedType,
+          resultSuccess: result.success,
+          hasData: !!result.data,
+          hasActivities: !!(result.data?.activities),
+          hasEvents: !!(result.data?.events),
+          hasItems: !!(result.data?.items),
+          isArray: Array.isArray(result.data),
+        });
+        
         if (result.success) {
           // Handle different response formats from different APIs
           let dataArray = [];
           
           if (result.data) {
-            // Check for paginated response (activities, events)
-            if (result.data.activities) {
-              dataArray = result.data.activities;
-            } else if (result.data.events) {
-              dataArray = result.data.events;
-            } else if (result.data.items) {
-              dataArray = result.data.items;
-            } else if (Array.isArray(result.data)) {
-              // Direct array response (content_pages, accommodations)
-              dataArray = result.data;
+            // CRITICAL FIX: Check selectedType FIRST to ensure we use the correct data
+            // Each API returns data in a different format:
+            // - Events API: { events: [...], total, page, pageSize, totalPages }
+            // - Activities API: { activities: [...], total, page, pageSize, totalPages }
+            // - Content Pages API: [...] (direct array)
+            // - Accommodations API: { items: [...], total, page, pageSize, totalPages }
+            
+            switch (selectedType) {
+              case 'event':
+                if (result.data.events && Array.isArray(result.data.events)) {
+                  dataArray = result.data.events;
+                  console.log('[SimpleReferenceSelector] Using events array, count:', dataArray.length);
+                }
+                break;
+              case 'activity':
+                if (result.data.activities && Array.isArray(result.data.activities)) {
+                  dataArray = result.data.activities;
+                  console.log('[SimpleReferenceSelector] Using activities array, count:', dataArray.length);
+                }
+                break;
+              case 'accommodation':
+                if (result.data.items && Array.isArray(result.data.items)) {
+                  dataArray = result.data.items;
+                  console.log('[SimpleReferenceSelector] Using items array, count:', dataArray.length);
+                }
+                break;
+              case 'content_page':
+                if (Array.isArray(result.data)) {
+                  // Direct array response
+                  dataArray = result.data;
+                  console.log('[SimpleReferenceSelector] Using direct array, count:', dataArray.length);
+                }
+                break;
             }
           }
           
@@ -91,19 +126,22 @@ export function SimpleReferenceSelector({ onSelect }: SimpleReferenceSelectorPro
             id: item.id,
             name: item.name || item.title,
             slug: item.slug,
-            date: item.date || item.start_time,
+            date: item.date || item.start_time || item.startDate || item.start_date,
             location: item.location?.name || item.locations?.name,
             capacity: item.capacity,
             room_count: item.room_count,
             type: item.type,
           }));
+          console.log('[SimpleReferenceSelector] Normalized items:', normalizedItems);
           setItems(normalizedItems);
         } else {
           setError(result.error?.message || 'Failed to load items');
+          setItems([]); // Clear items on error
         }
       } catch (err) {
         console.error('Error fetching items:', err);
         setError(err instanceof Error ? err.message : 'Failed to load items');
+        setItems([]); // Clear items on error
       } finally {
         setLoading(false);
       }
@@ -200,40 +238,46 @@ export function SimpleReferenceSelector({ onSelect }: SimpleReferenceSelectorPro
 
         {!loading && !error && items.length > 0 && (
           <div className="space-y-2">
-            {items.map((item) => (
-              <button
-                key={item.id}
-                type="button"
-                className="w-full text-left border border-gray-200 rounded-md p-3 hover:border-emerald-500 hover:bg-emerald-50 cursor-pointer transition-colors"
-                onClick={() => handleSelectItem(item)}
-              >
-                <div className="flex items-center gap-2 mb-1">
-                  <span
-                    className={`inline-block px-2 py-0.5 text-xs font-medium bg-${getTypeColor(selectedType)}-100 text-${getTypeColor(selectedType)}-800 rounded`}
-                  >
-                    {getTypeLabel(selectedType).slice(0, -1)}
-                  </span>
-                  <span className="font-medium text-gray-900">{item.name}</span>
-                </div>
-                {item.date && (
-                  <p className="text-xs text-gray-600">
-                    📅 {new Date(item.date).toLocaleDateString()}
-                  </p>
-                )}
-                {item.location && (
-                  <p className="text-xs text-gray-600">📍 {item.location}</p>
-                )}
-                {item.capacity && (
-                  <p className="text-xs text-gray-600">👥 Capacity: {item.capacity}</p>
-                )}
-                {item.room_count !== undefined && (
-                  <p className="text-xs text-gray-600">🏠 {item.room_count} rooms</p>
-                )}
-                {item.slug && (
-                  <p className="text-xs text-gray-600">🔗 /{item.slug}</p>
-                )}
-              </button>
-            ))}
+            {items.map((item) => {
+              console.log('[SimpleReferenceSelector] Rendering item:', item.id, item.name);
+              return (
+                <button
+                  key={item.id}
+                  type="button"
+                  data-testid={`reference-item-${item.id}`}
+                  data-reference-type={selectedType}
+                  data-reference-name={item.name}
+                  className="w-full text-left border border-gray-200 rounded-md p-3 hover:border-emerald-500 hover:bg-emerald-50 cursor-pointer transition-colors"
+                  onClick={() => handleSelectItem(item)}
+                >
+                  <div className="flex items-center gap-2 mb-1">
+                    <span
+                      className={`inline-block px-2 py-0.5 text-xs font-medium bg-${getTypeColor(selectedType)}-100 text-${getTypeColor(selectedType)}-800 rounded`}
+                    >
+                      {getTypeLabel(selectedType).slice(0, -1)}
+                    </span>
+                    <span className="font-medium text-gray-900">{item.name}</span>
+                  </div>
+                  {item.date && (
+                    <p className="text-xs text-gray-600">
+                      📅 {new Date(item.date).toLocaleDateString()}
+                    </p>
+                  )}
+                  {item.location && (
+                    <p className="text-xs text-gray-600">📍 {item.location}</p>
+                  )}
+                  {item.capacity && (
+                    <p className="text-xs text-gray-600">👥 Capacity: {item.capacity}</p>
+                  )}
+                  {item.room_count !== undefined && (
+                    <p className="text-xs text-gray-600">🏠 {item.room_count} rooms</p>
+                  )}
+                  {item.slug && (
+                    <p className="text-xs text-gray-600">🔗 /{item.slug}</p>
+                  )}
+                </button>
+              );
+            })}
           </div>
         )}
       </div>

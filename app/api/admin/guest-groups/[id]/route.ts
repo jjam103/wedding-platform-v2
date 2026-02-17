@@ -17,7 +17,7 @@ function getStatusCode(errorCode: string): number {
 
 /**
  * GET /api/admin/guest-groups/[id]
- * Get a specific guest group
+ * Get a specific guest group by ID
  */
 export async function GET(
   request: Request,
@@ -35,20 +35,22 @@ export async function GET(
       );
     }
     
-    // 2. Await params and validate ID
+    // 2. Await params (Next.js 15+ requirement)
     const { id } = await params;
-    const validation = z.string().uuid().safeParse(id);
-    if (!validation.success) {
+    
+    // 3. Validate ID
+    const idValidation = z.string().uuid().safeParse(id);
+    if (!idValidation.success) {
       return NextResponse.json(
         { success: false, error: { code: 'VALIDATION_ERROR', message: 'Invalid ID format' } },
         { status: 400 }
       );
     }
     
-    // 3. Service call
-    const result = await groupService.get(id);
+    // 4. Service call
+    const result = await groupService.get(idValidation.data);
     
-    // 4. Response
+    // 5. Response
     return NextResponse.json(result, { status: result.success ? 200 : getStatusCode(result.error.code) });
     
   } catch (error) {
@@ -80,8 +82,10 @@ export async function PUT(
       );
     }
     
-    // 2. Await params and validate ID
+    // 2. Await params (Next.js 15+ requirement)
     const { id } = await params;
+    
+    // 3. Validate ID
     const idValidation = z.string().uuid().safeParse(id);
     if (!idValidation.success) {
       return NextResponse.json(
@@ -90,7 +94,7 @@ export async function PUT(
       );
     }
     
-    // 3. Validate body
+    // 4. Validate body
     const body = await request.json();
     const validation = updateGroupSchema.safeParse(body);
     
@@ -101,10 +105,10 @@ export async function PUT(
       );
     }
     
-    // 4. Service call
-    const result = await groupService.update(id, validation.data);
+    // 5. Service call
+    const result = await groupService.update(idValidation.data, validation.data);
     
-    // 5. Response
+    // 6. Response
     return NextResponse.json(result, { status: result.success ? 200 : getStatusCode(result.error.code) });
     
   } catch (error) {
@@ -136,20 +140,22 @@ export async function DELETE(
       );
     }
     
-    // 2. Await params and validate ID
+    // 2. Await params (Next.js 15+ requirement)
     const { id } = await params;
-    const validation = z.string().uuid().safeParse(id);
-    if (!validation.success) {
+    
+    // 3. Validate ID
+    const idValidation = z.string().uuid().safeParse(id);
+    if (!idValidation.success) {
       return NextResponse.json(
         { success: false, error: { code: 'VALIDATION_ERROR', message: 'Invalid ID format' } },
         { status: 400 }
       );
     }
     
-    // 3. Service call
-    const result = await groupService.deleteGroup(id);
+    // 4. Service call
+    const result = await groupService.deleteGroup(idValidation.data);
     
-    // 4. Response
+    // 5. Response
     return NextResponse.json(result, { status: result.success ? 200 : getStatusCode(result.error.code) });
     
   } catch (error) {

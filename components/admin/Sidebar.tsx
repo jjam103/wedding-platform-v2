@@ -119,13 +119,26 @@ export function Sidebar({ currentSection, pendingPhotosCount = 0 }: SidebarProps
         </div>
 
         {/* Footer */}
-        {!isCollapsed && (
-          <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-sage-200 bg-sage-50">
+        <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-sage-200 bg-sage-50 space-y-2">
+          <Link
+            href="/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className={`flex items-center justify-center gap-2 px-3 py-2 bg-jungle-600 text-white rounded-lg hover:bg-jungle-700 transition-colors min-h-[44px] ${
+              isCollapsed ? 'flex-col text-xs' : ''
+            }`}
+            aria-label="Preview guest portal in new tab"
+            title="Preview Guest Portal"
+          >
+            <span className="text-lg" aria-hidden="true">👁️</span>
+            {!isCollapsed && <span className="text-sm font-medium">Preview Guest Portal</span>}
+          </Link>
+          {!isCollapsed && (
             <p className="text-xs text-sage-600 text-center">
               Pura Vida! ☀️
             </p>
-          </div>
-        )}
+          )}
+        </div>
       </aside>
 
       {/* Mobile toggle button (when sidebar is collapsed) */}

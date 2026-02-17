@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
-import { cookies } from 'next/headers';
+import { createAuthenticatedClient } from '@/lib/supabaseServer';
 import * as emailService from '@/services/emailService';
 import { scheduleEmailSchema } from '@/schemas/emailSchemas';
 
@@ -12,7 +11,7 @@ import { scheduleEmailSchema } from '@/schemas/emailSchemas';
 export async function POST(request: Request) {
   try {
     // 1. Auth check
-    const supabase = createRouteHandlerClient({ cookies });
+    const supabase = await createAuthenticatedClient();
     const { data: { session }, error: authError } = await supabase.auth.getSession();
     
     if (authError || !session) {

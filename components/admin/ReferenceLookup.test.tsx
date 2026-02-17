@@ -19,7 +19,7 @@ global.fetch = jest.fn();
 describe('ReferenceLookup', () => {
   const mockOnSelect = jest.fn();
   const defaultProps = {
-    entityTypes: ['event', 'activity', 'content_page'] as const,
+    entityTypes: ['event', 'activity', 'content_page'] as ('event' | 'activity' | 'content_page')[],
     onSelect: mockOnSelect,
   };
 

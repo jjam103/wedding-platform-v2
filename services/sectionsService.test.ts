@@ -13,7 +13,7 @@ import type { CreateSectionDTO, UpdateSectionDTO, Reference } from '../schemas/c
 // Mock Supabase
 jest.mock('../lib/supabase', () => ({
   supabase: {
-    from: jest.fn(),
+    from: (jest.fn() as any),
   },
 }));
 
@@ -69,9 +69,9 @@ describe('sectionsService', () => {
 
       // Mock section insert
       supabase.from.mockReturnValueOnce({
-        insert: jest.fn().mockReturnValue({
-          select: jest.fn().mockReturnValue({
-            single: jest.fn().mockResolvedValue({
+        insert: (jest.fn() as any).mockReturnValue({
+          select: (jest.fn() as any).mockReturnValue({
+            single: (jest.fn() as any).mockResolvedValue({
               data: mockSection,
               error: null,
             }),
@@ -81,8 +81,8 @@ describe('sectionsService', () => {
 
       // Mock columns insert
       supabase.from.mockReturnValueOnce({
-        insert: jest.fn().mockReturnValue({
-          select: jest.fn().mockResolvedValue({
+        insert: (jest.fn() as any).mockReturnValue({
+          select: (jest.fn() as any).mockResolvedValue({
             data: mockColumns,
             error: null,
           }),
@@ -118,9 +118,9 @@ describe('sectionsService', () => {
 
     it('should return DATABASE_ERROR when section insert fails', async () => {
       supabase.from.mockReturnValueOnce({
-        insert: jest.fn().mockReturnValue({
-          select: jest.fn().mockReturnValue({
-            single: jest.fn().mockResolvedValue({
+        insert: (jest.fn() as any).mockReturnValue({
+          select: (jest.fn() as any).mockReturnValue({
+            single: (jest.fn() as any).mockResolvedValue({
               data: null,
               error: { message: 'Insert failed' },
             }),
@@ -147,9 +147,9 @@ describe('sectionsService', () => {
 
       // Mock section insert success
       supabase.from.mockReturnValueOnce({
-        insert: jest.fn().mockReturnValue({
-          select: jest.fn().mockReturnValue({
-            single: jest.fn().mockResolvedValue({
+        insert: (jest.fn() as any).mockReturnValue({
+          select: (jest.fn() as any).mockReturnValue({
+            single: (jest.fn() as any).mockResolvedValue({
               data: mockSection,
               error: null,
             }),
@@ -159,8 +159,8 @@ describe('sectionsService', () => {
 
       // Mock columns insert failure
       supabase.from.mockReturnValueOnce({
-        insert: jest.fn().mockReturnValue({
-          select: jest.fn().mockResolvedValue({
+        insert: (jest.fn() as any).mockReturnValue({
+          select: (jest.fn() as any).mockResolvedValue({
             data: null,
             error: { message: 'Columns insert failed' },
           }),
@@ -169,8 +169,8 @@ describe('sectionsService', () => {
 
       // Mock rollback delete
       supabase.from.mockReturnValueOnce({
-        delete: jest.fn().mockReturnValue({
-          eq: jest.fn().mockResolvedValue({
+        delete: (jest.fn() as any).mockReturnValue({
+          eq: (jest.fn() as any).mockResolvedValue({
             error: null,
           }),
         }),
@@ -218,9 +218,9 @@ describe('sectionsService', () => {
 
       // Mock section insert
       supabase.from.mockReturnValueOnce({
-        insert: jest.fn().mockReturnValue({
-          select: jest.fn().mockReturnValue({
-            single: jest.fn().mockResolvedValue({
+        insert: (jest.fn() as any).mockReturnValue({
+          select: (jest.fn() as any).mockReturnValue({
+            single: (jest.fn() as any).mockResolvedValue({
               data: mockSection,
               error: null,
             }),
@@ -230,8 +230,8 @@ describe('sectionsService', () => {
 
       // Mock columns insert
       supabase.from.mockReturnValueOnce({
-        insert: jest.fn().mockReturnValue({
-          select: jest.fn().mockResolvedValue({
+        insert: (jest.fn() as any).mockReturnValue({
+          select: (jest.fn() as any).mockResolvedValue({
             data: mockColumns,
             error: null,
           }),
@@ -271,9 +271,9 @@ describe('sectionsService', () => {
 
       // Mock section select
       supabase.from.mockReturnValueOnce({
-        select: jest.fn().mockReturnValue({
-          eq: jest.fn().mockReturnValue({
-            single: jest.fn().mockResolvedValue({
+        select: (jest.fn() as any).mockReturnValue({
+          eq: (jest.fn() as any).mockReturnValue({
+            single: (jest.fn() as any).mockResolvedValue({
               data: mockSection,
               error: null,
             }),
@@ -283,9 +283,9 @@ describe('sectionsService', () => {
 
       // Mock columns select
       supabase.from.mockReturnValueOnce({
-        select: jest.fn().mockReturnValue({
-          eq: jest.fn().mockReturnValue({
-            order: jest.fn().mockResolvedValue({
+        select: (jest.fn() as any).mockReturnValue({
+          eq: (jest.fn() as any).mockReturnValue({
+            order: (jest.fn() as any).mockResolvedValue({
               data: mockColumns,
               error: null,
             }),
@@ -305,9 +305,9 @@ describe('sectionsService', () => {
 
     it('should return NOT_FOUND when section does not exist', async () => {
       supabase.from.mockReturnValueOnce({
-        select: jest.fn().mockReturnValue({
-          eq: jest.fn().mockReturnValue({
-            single: jest.fn().mockResolvedValue({
+        select: (jest.fn() as any).mockReturnValue({
+          eq: (jest.fn() as any).mockReturnValue({
+            single: (jest.fn() as any).mockResolvedValue({
               data: null,
               error: { code: 'PGRST116', message: 'Section not found' },
             }),
@@ -325,9 +325,9 @@ describe('sectionsService', () => {
 
     it('should return DATABASE_ERROR when section query fails', async () => {
       supabase.from.mockReturnValueOnce({
-        select: jest.fn().mockReturnValue({
-          eq: jest.fn().mockReturnValue({
-            single: jest.fn().mockResolvedValue({
+        select: (jest.fn() as any).mockReturnValue({
+          eq: (jest.fn() as any).mockReturnValue({
+            single: (jest.fn() as any).mockResolvedValue({
               data: null,
               error: { message: 'Database connection failed' },
             }),
@@ -354,9 +354,9 @@ describe('sectionsService', () => {
 
       // Mock section select success
       supabase.from.mockReturnValueOnce({
-        select: jest.fn().mockReturnValue({
-          eq: jest.fn().mockReturnValue({
-            single: jest.fn().mockResolvedValue({
+        select: (jest.fn() as any).mockReturnValue({
+          eq: (jest.fn() as any).mockReturnValue({
+            single: (jest.fn() as any).mockResolvedValue({
               data: mockSection,
               error: null,
             }),
@@ -366,9 +366,9 @@ describe('sectionsService', () => {
 
       // Mock columns select failure
       supabase.from.mockReturnValueOnce({
-        select: jest.fn().mockReturnValue({
-          eq: jest.fn().mockReturnValue({
-            order: jest.fn().mockResolvedValue({
+        select: (jest.fn() as any).mockReturnValue({
+          eq: (jest.fn() as any).mockReturnValue({
+            order: (jest.fn() as any).mockResolvedValue({
               data: null,
               error: { message: 'Columns query failed' },
             }),
@@ -401,8 +401,8 @@ describe('sectionsService', () => {
     it('should return success with updated section when valid input provided', async () => {
       // Mock section update
       supabase.from.mockReturnValueOnce({
-        update: jest.fn().mockReturnValue({
-          eq: jest.fn().mockResolvedValue({
+        update: (jest.fn() as any).mockReturnValue({
+          eq: (jest.fn() as any).mockResolvedValue({
             error: null,
           }),
         }),
@@ -410,8 +410,8 @@ describe('sectionsService', () => {
 
       // Mock columns delete
       supabase.from.mockReturnValueOnce({
-        delete: jest.fn().mockReturnValue({
-          eq: jest.fn().mockResolvedValue({
+        delete: (jest.fn() as any).mockReturnValue({
+          eq: (jest.fn() as any).mockResolvedValue({
             error: null,
           }),
         }),
@@ -419,7 +419,7 @@ describe('sectionsService', () => {
 
       // Mock columns insert
       supabase.from.mockReturnValueOnce({
-        insert: jest.fn().mockResolvedValue({
+        insert: (jest.fn() as any).mockResolvedValue({
           error: null,
         }),
       });
@@ -443,9 +443,9 @@ describe('sectionsService', () => {
 
       // Mock getSection - section select
       supabase.from.mockReturnValueOnce({
-        select: jest.fn().mockReturnValue({
-          eq: jest.fn().mockReturnValue({
-            single: jest.fn().mockResolvedValue({
+        select: (jest.fn() as any).mockReturnValue({
+          eq: (jest.fn() as any).mockReturnValue({
+            single: (jest.fn() as any).mockResolvedValue({
               data: mockSection,
               error: null,
             }),
@@ -455,9 +455,9 @@ describe('sectionsService', () => {
 
       // Mock getSection - columns select
       supabase.from.mockReturnValueOnce({
-        select: jest.fn().mockReturnValue({
-          eq: jest.fn().mockReturnValue({
-            order: jest.fn().mockResolvedValue({
+        select: (jest.fn() as any).mockReturnValue({
+          eq: (jest.fn() as any).mockReturnValue({
+            order: (jest.fn() as any).mockResolvedValue({
               data: mockSection.columns,
               error: null,
             }),
@@ -490,8 +490,8 @@ describe('sectionsService', () => {
 
     it('should return DATABASE_ERROR when section update fails', async () => {
       supabase.from.mockReturnValueOnce({
-        update: jest.fn().mockReturnValue({
-          eq: jest.fn().mockResolvedValue({
+        update: (jest.fn() as any).mockReturnValue({
+          eq: (jest.fn() as any).mockResolvedValue({
             error: { message: 'Update failed' },
           }),
         }),
@@ -509,8 +509,8 @@ describe('sectionsService', () => {
     it('should return DATABASE_ERROR when columns delete fails', async () => {
       // Mock section update success
       supabase.from.mockReturnValueOnce({
-        update: jest.fn().mockReturnValue({
-          eq: jest.fn().mockResolvedValue({
+        update: (jest.fn() as any).mockReturnValue({
+          eq: (jest.fn() as any).mockResolvedValue({
             error: null,
           }),
         }),
@@ -518,8 +518,8 @@ describe('sectionsService', () => {
 
       // Mock columns delete failure
       supabase.from.mockReturnValueOnce({
-        delete: jest.fn().mockReturnValue({
-          eq: jest.fn().mockResolvedValue({
+        delete: (jest.fn() as any).mockReturnValue({
+          eq: (jest.fn() as any).mockResolvedValue({
             error: { message: 'Delete failed' },
           }),
         }),
@@ -548,8 +548,8 @@ describe('sectionsService', () => {
       // Mock section update (no section-level changes)
       // Mock columns delete
       supabase.from.mockReturnValueOnce({
-        delete: jest.fn().mockReturnValue({
-          eq: jest.fn().mockResolvedValue({
+        delete: (jest.fn() as any).mockReturnValue({
+          eq: (jest.fn() as any).mockResolvedValue({
             error: null,
           }),
         }),
@@ -557,7 +557,7 @@ describe('sectionsService', () => {
 
       // Mock columns insert
       supabase.from.mockReturnValueOnce({
-        insert: jest.fn().mockResolvedValue({
+        insert: (jest.fn() as any).mockResolvedValue({
           error: null,
         }),
       });
@@ -581,9 +581,9 @@ describe('sectionsService', () => {
 
       // Mock getSection - section select
       supabase.from.mockReturnValueOnce({
-        select: jest.fn().mockReturnValue({
-          eq: jest.fn().mockReturnValue({
-            single: jest.fn().mockResolvedValue({
+        select: (jest.fn() as any).mockReturnValue({
+          eq: (jest.fn() as any).mockReturnValue({
+            single: (jest.fn() as any).mockResolvedValue({
               data: mockSection,
               error: null,
             }),
@@ -593,9 +593,9 @@ describe('sectionsService', () => {
 
       // Mock getSection - columns select
       supabase.from.mockReturnValueOnce({
-        select: jest.fn().mockReturnValue({
-          eq: jest.fn().mockReturnValue({
-            order: jest.fn().mockResolvedValue({
+        select: (jest.fn() as any).mockReturnValue({
+          eq: (jest.fn() as any).mockReturnValue({
+            order: (jest.fn() as any).mockResolvedValue({
               data: mockSection.columns,
               error: null,
             }),
@@ -613,8 +613,8 @@ describe('sectionsService', () => {
   describe('deleteSection', () => {
     it('should return success when section is deleted', async () => {
       supabase.from.mockReturnValue({
-        delete: jest.fn().mockReturnValue({
-          eq: jest.fn().mockResolvedValue({
+        delete: (jest.fn() as any).mockReturnValue({
+          eq: (jest.fn() as any).mockResolvedValue({
             error: null,
           }),
         }),
@@ -630,8 +630,8 @@ describe('sectionsService', () => {
 
     it('should return DATABASE_ERROR when delete fails', async () => {
       supabase.from.mockReturnValue({
-        delete: jest.fn().mockReturnValue({
-          eq: jest.fn().mockResolvedValue({
+        delete: (jest.fn() as any).mockReturnValue({
+          eq: (jest.fn() as any).mockResolvedValue({
             error: { message: 'Delete failed' },
           }),
         }),
@@ -683,10 +683,10 @@ describe('sectionsService', () => {
 
       // Mock sections select
       supabase.from.mockReturnValueOnce({
-        select: jest.fn().mockReturnValue({
-          eq: jest.fn().mockReturnValue({
-            eq: jest.fn().mockReturnValue({
-              order: jest.fn().mockResolvedValue({
+        select: (jest.fn() as any).mockReturnValue({
+          eq: (jest.fn() as any).mockReturnValue({
+            eq: (jest.fn() as any).mockReturnValue({
+              order: (jest.fn() as any).mockResolvedValue({
                 data: mockSections,
                 error: null,
               }),
@@ -697,9 +697,9 @@ describe('sectionsService', () => {
 
       // Mock columns select
       supabase.from.mockReturnValueOnce({
-        select: jest.fn().mockReturnValue({
-          in: jest.fn().mockReturnValue({
-            order: jest.fn().mockResolvedValue({
+        select: (jest.fn() as any).mockReturnValue({
+          in: (jest.fn() as any).mockReturnValue({
+            order: (jest.fn() as any).mockResolvedValue({
               data: mockColumns,
               error: null,
             }),
@@ -721,10 +721,10 @@ describe('sectionsService', () => {
 
     it('should return success with empty array when no sections exist', async () => {
       supabase.from.mockReturnValueOnce({
-        select: jest.fn().mockReturnValue({
-          eq: jest.fn().mockReturnValue({
-            eq: jest.fn().mockReturnValue({
-              order: jest.fn().mockResolvedValue({
+        select: (jest.fn() as any).mockReturnValue({
+          eq: (jest.fn() as any).mockReturnValue({
+            eq: (jest.fn() as any).mockReturnValue({
+              order: (jest.fn() as any).mockResolvedValue({
                 data: [],
                 error: null,
               }),
@@ -743,10 +743,10 @@ describe('sectionsService', () => {
 
     it('should return DATABASE_ERROR when sections query fails', async () => {
       supabase.from.mockReturnValueOnce({
-        select: jest.fn().mockReturnValue({
-          eq: jest.fn().mockReturnValue({
-            eq: jest.fn().mockReturnValue({
-              order: jest.fn().mockResolvedValue({
+        select: (jest.fn() as any).mockReturnValue({
+          eq: (jest.fn() as any).mockReturnValue({
+            eq: (jest.fn() as any).mockReturnValue({
+              order: (jest.fn() as any).mockResolvedValue({
                 data: null,
                 error: { message: 'Sections query failed' },
               }),
@@ -776,10 +776,10 @@ describe('sectionsService', () => {
 
       // Mock sections select success
       supabase.from.mockReturnValueOnce({
-        select: jest.fn().mockReturnValue({
-          eq: jest.fn().mockReturnValue({
-            eq: jest.fn().mockReturnValue({
-              order: jest.fn().mockResolvedValue({
+        select: (jest.fn() as any).mockReturnValue({
+          eq: (jest.fn() as any).mockReturnValue({
+            eq: (jest.fn() as any).mockReturnValue({
+              order: (jest.fn() as any).mockResolvedValue({
                 data: mockSections,
                 error: null,
               }),
@@ -790,9 +790,9 @@ describe('sectionsService', () => {
 
       // Mock columns select failure
       supabase.from.mockReturnValueOnce({
-        select: jest.fn().mockReturnValue({
-          in: jest.fn().mockReturnValue({
-            order: jest.fn().mockResolvedValue({
+        select: (jest.fn() as any).mockReturnValue({
+          in: (jest.fn() as any).mockReturnValue({
+            order: (jest.fn() as any).mockResolvedValue({
               data: null,
               error: { message: 'Columns query failed' },
             }),
@@ -816,9 +816,9 @@ describe('sectionsService', () => {
 
       // Mock each update call
       supabase.from.mockReturnValue({
-        update: jest.fn().mockReturnValue({
-          eq: jest.fn().mockReturnValue({
-            eq: jest.fn().mockResolvedValue({
+        update: (jest.fn() as any).mockReturnValue({
+          eq: (jest.fn() as any).mockReturnValue({
+            eq: (jest.fn() as any).mockResolvedValue({
               error: null,
             }),
           }),
@@ -839,18 +839,18 @@ describe('sectionsService', () => {
       // Mock first update success, second update failure
       supabase.from
         .mockReturnValueOnce({
-          update: jest.fn().mockReturnValue({
-            eq: jest.fn().mockReturnValue({
-              eq: jest.fn().mockResolvedValue({
+          update: (jest.fn() as any).mockReturnValue({
+            eq: (jest.fn() as any).mockReturnValue({
+              eq: (jest.fn() as any).mockResolvedValue({
                 error: null,
               }),
             }),
           }),
         })
         .mockReturnValueOnce({
-          update: jest.fn().mockReturnValue({
-            eq: jest.fn().mockReturnValue({
-              eq: jest.fn().mockResolvedValue({
+          update: (jest.fn() as any).mockReturnValue({
+            eq: (jest.fn() as any).mockReturnValue({
+              eq: (jest.fn() as any).mockResolvedValue({
                 error: { message: 'Update failed' },
               }),
             }),
@@ -872,9 +872,9 @@ describe('sectionsService', () => {
 
       // Create mock for each section update
       sectionIds.forEach((_, index) => {
-        const updateMock = jest.fn().mockReturnValue({
-          eq: jest.fn().mockReturnValue({
-            eq: jest.fn().mockResolvedValue({
+        const updateMock = (jest.fn() as any).mockReturnValue({
+          eq: (jest.fn() as any).mockReturnValue({
+            eq: (jest.fn() as any).mockResolvedValue({
               error: null,
             }),
           }),
@@ -904,9 +904,9 @@ describe('sectionsService', () => {
 
       // Mock activity exists
       supabase.from.mockReturnValueOnce({
-        select: jest.fn().mockReturnValue({
-          eq: jest.fn().mockReturnValue({
-            single: jest.fn().mockResolvedValue({
+        select: (jest.fn() as any).mockReturnValue({
+          eq: (jest.fn() as any).mockReturnValue({
+            single: (jest.fn() as any).mockResolvedValue({
               data: { id: 'activity-1' },
               error: null,
             }),
@@ -916,9 +916,9 @@ describe('sectionsService', () => {
 
       // Mock event exists
       supabase.from.mockReturnValueOnce({
-        select: jest.fn().mockReturnValue({
-          eq: jest.fn().mockReturnValue({
-            single: jest.fn().mockResolvedValue({
+        select: (jest.fn() as any).mockReturnValue({
+          eq: (jest.fn() as any).mockReturnValue({
+            single: (jest.fn() as any).mockResolvedValue({
               data: { id: 'event-1' },
               error: null,
             }),
@@ -944,9 +944,9 @@ describe('sectionsService', () => {
 
       // Mock activity exists
       supabase.from.mockReturnValueOnce({
-        select: jest.fn().mockReturnValue({
-          eq: jest.fn().mockReturnValue({
-            single: jest.fn().mockResolvedValue({
+        select: (jest.fn() as any).mockReturnValue({
+          eq: (jest.fn() as any).mockReturnValue({
+            single: (jest.fn() as any).mockResolvedValue({
               data: { id: 'activity-1' },
               error: null,
             }),
@@ -956,9 +956,9 @@ describe('sectionsService', () => {
 
       // Mock event does not exist
       supabase.from.mockReturnValueOnce({
-        select: jest.fn().mockReturnValue({
-          eq: jest.fn().mockReturnValue({
-            single: jest.fn().mockResolvedValue({
+        select: (jest.fn() as any).mockReturnValue({
+          eq: (jest.fn() as any).mockReturnValue({
+            single: (jest.fn() as any).mockResolvedValue({
               data: null,
               error: null,
             }),
@@ -987,9 +987,9 @@ describe('sectionsService', () => {
       // Mock all references exist
       references.forEach(() => {
         supabase.from.mockReturnValueOnce({
-          select: jest.fn().mockReturnValue({
-            eq: jest.fn().mockReturnValue({
-              single: jest.fn().mockResolvedValue({
+          select: (jest.fn() as any).mockReturnValue({
+            eq: (jest.fn() as any).mockReturnValue({
+              single: (jest.fn() as any).mockResolvedValue({
                 data: { id: 'exists' },
                 error: null,
               }),
@@ -1016,9 +1016,9 @@ describe('sectionsService', () => {
 
       // Mock no sections found for referenced activity
       supabase.from.mockReturnValueOnce({
-        select: jest.fn().mockReturnValue({
-          eq: jest.fn().mockReturnValue({
-            eq: jest.fn().mockResolvedValue({
+        select: (jest.fn() as any).mockReturnValue({
+          eq: (jest.fn() as any).mockReturnValue({
+            eq: (jest.fn() as any).mockResolvedValue({
               data: [],
               error: null,
             }),
@@ -1054,9 +1054,9 @@ describe('sectionsService', () => {
 
       // Mock sections for activity-2
       supabase.from.mockReturnValueOnce({
-        select: jest.fn().mockReturnValue({
-          eq: jest.fn().mockReturnValue({
-            eq: jest.fn().mockResolvedValue({
+        select: (jest.fn() as any).mockReturnValue({
+          eq: (jest.fn() as any).mockReturnValue({
+            eq: (jest.fn() as any).mockResolvedValue({
               data: [{ id: 'section-1' }],
               error: null,
             }),
@@ -1066,9 +1066,9 @@ describe('sectionsService', () => {
 
       // Mock columns for activity-2 that reference back to activity-1
       supabase.from.mockReturnValueOnce({
-        select: jest.fn().mockReturnValue({
-          in: jest.fn().mockReturnValue({
-            eq: jest.fn().mockResolvedValue({
+        select: (jest.fn() as any).mockReturnValue({
+          in: (jest.fn() as any).mockReturnValue({
+            eq: (jest.fn() as any).mockResolvedValue({
               data: [
                 {
                   content_data: {
@@ -1097,9 +1097,9 @@ describe('sectionsService', () => {
 
       // Mock sections for activity-2
       supabase.from.mockReturnValueOnce({
-        select: jest.fn().mockReturnValue({
-          eq: jest.fn().mockReturnValue({
-            eq: jest.fn().mockResolvedValue({
+        select: (jest.fn() as any).mockReturnValue({
+          eq: (jest.fn() as any).mockReturnValue({
+            eq: (jest.fn() as any).mockResolvedValue({
               data: [{ id: 'section-1' }],
               error: null,
             }),
@@ -1109,9 +1109,9 @@ describe('sectionsService', () => {
 
       // Mock columns for activity-2 that reference activity-3 (not circular)
       supabase.from.mockReturnValueOnce({
-        select: jest.fn().mockReturnValue({
-          in: jest.fn().mockReturnValue({
-            eq: jest.fn().mockResolvedValue({
+        select: (jest.fn() as any).mockReturnValue({
+          in: (jest.fn() as any).mockReturnValue({
+            eq: (jest.fn() as any).mockResolvedValue({
               data: [
                 {
                   content_data: {
@@ -1127,9 +1127,9 @@ describe('sectionsService', () => {
 
       // Mock sections for activity-3 (no references)
       supabase.from.mockReturnValueOnce({
-        select: jest.fn().mockReturnValue({
-          eq: jest.fn().mockReturnValue({
-            eq: jest.fn().mockResolvedValue({
+        select: (jest.fn() as any).mockReturnValue({
+          eq: (jest.fn() as any).mockReturnValue({
+            eq: (jest.fn() as any).mockResolvedValue({
               data: [],
               error: null,
             }),

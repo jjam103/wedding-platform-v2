@@ -49,14 +49,47 @@ export function GuestReferencePreview({ reference }: GuestReferencePreviewProps)
   const fetchDetails = async () => {
     setLoading(true);
     try {
-      const response = await fetch(`/api/admin/references/${reference.type}/${reference.id}`);
+      const response = await fetch(`/api/guest/references/${reference.type}/${reference.id}`);
+      
+      // Handle non-200 responses
+      if (!response.ok) {
+        console.error('Failed to fetch reference details:', response.status, response.statusText);
+        // Set empty details object so we don't stay in loading state forever
+        setDetails({
+          name: reference.name || 'Unknown',
+          description: 'Details could not be loaded',
+        });
+        setLoading(false);
+        return;
+      }
+      
       const result = await response.json();
       
-      if (result.success) {
-        setDetails(result.data);
+      if (result.success && result.data) {
+        // API returns { id, name, type, slug, status, details: {...} }
+        // Flatten the structure so details are at top level
+        const flattenedData = {
+          ...result.data.details,
+          name: result.data.name,
+          slug: result.data.slug,
+          status: result.data.status,
+        };
+        setDetails(flattenedData);
+      } else {
+        console.error('Reference details fetch failed:', result.error);
+        // Set fallback details
+        setDetails({
+          name: reference.name || 'Unknown',
+          description: 'Details could not be loaded',
+        });
       }
     } catch (error) {
       console.error('Failed to fetch reference details:', error);
+      // Set fallback details on error
+      setDetails({
+        name: reference.name || 'Unknown',
+        description: 'An error occurred while loading details',
+      });
     } finally {
       setLoading(false);
     }

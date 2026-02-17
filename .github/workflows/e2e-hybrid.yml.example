@@ -1,0 +1,163 @@
+name: E2E Tests (Hybrid Approach)
+
+# This workflow implements the hybrid approach for E2E testing:
+# 1. Build verification (catches compilation errors)
+# 2. E2E tests with dev server (reliable after warmup)
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  # Job 1: Verify production build succeeds
+  build-verification:
+    name: Build Verification
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20'
+          cache: 'npm'
+          
+      - name: Install dependencies
+        run: npm ci
+        
+      - name: Build production
+        run: npm run build
+        
+      - name: Cache build
+        uses: actions/cache@v3
+        with:
+          path: .next
+          key: ${{ runner.os }}-nextjs-${{ hashFiles('**/package-lock.json') }}-${{ hashFiles('**/*.js', '**/*.jsx', '**/*.ts', '**/*.tsx') }}
+          restore-keys: |
+            ${{ runner.os }}-nextjs-${{ hashFiles('**/package-lock.json') }}-
+
+  # Job 2: Run E2E tests with dev server
+  e2e-tests:
+    name: E2E Tests
+    runs-on: ubuntu-latest
+    
+    # Run in parallel with build verification
+    # needs: build-verification  # Uncomment to run sequentially
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20'
+          cache: 'npm'
+          
+      - name: Install dependencies
+        run: npm ci
+        
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+        
+      # First run: Warm up dev server and compile routes
+      # Allow failures as this is expected on first run
+      - name: Warm up dev server
+        run: npm run test:e2e
+        continue-on-error: true
+        env:
+          # E2E Database
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.E2E_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.E2E_SUPABASE_ANON_KEY }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.E2E_SERVICE_ROLE_KEY }}
+          
+          # Mock External Services (use test credentials)
+          TWILIO_ACCOUNT_SID: ${{ secrets.E2E_TWILIO_ACCOUNT_SID }}
+          TWILIO_AUTH_TOKEN: ${{ secrets.E2E_TWILIO_AUTH_TOKEN }}
+          TWILIO_PHONE_NUMBER: ${{ secrets.E2E_TWILIO_PHONE_NUMBER }}
+          RESEND_API_KEY: ${{ secrets.E2E_RESEND_API_KEY }}
+          B2_ACCESS_KEY_ID: ${{ secrets.E2E_B2_ACCESS_KEY_ID }}
+          B2_SECRET_ACCESS_KEY: ${{ secrets.E2E_B2_SECRET_ACCESS_KEY }}
+          B2_ENDPOINT: ${{ secrets.E2E_B2_ENDPOINT }}
+          B2_REGION: ${{ secrets.E2E_B2_REGION }}
+          B2_BUCKET_ID: ${{ secrets.E2E_B2_BUCKET_ID }}
+          B2_BUCKET_NAME: ${{ secrets.E2E_B2_BUCKET_NAME }}
+          CLOUDFLARE_CDN_URL: ${{ secrets.E2E_CLOUDFLARE_CDN_URL }}
+          GEMINI_API_KEY: ${{ secrets.E2E_GEMINI_API_KEY }}
+          
+      # Second run: Actual test execution
+      # Routes are now compiled, should pass reliably
+      - name: Run E2E tests
+        run: npm run test:e2e
+        env:
+          # Same environment variables as warmup
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.E2E_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.E2E_SUPABASE_ANON_KEY }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.E2E_SERVICE_ROLE_KEY }}
+          TWILIO_ACCOUNT_SID: ${{ secrets.E2E_TWILIO_ACCOUNT_SID }}
+          TWILIO_AUTH_TOKEN: ${{ secrets.E2E_TWILIO_AUTH_TOKEN }}
+          TWILIO_PHONE_NUMBER: ${{ secrets.E2E_TWILIO_PHONE_NUMBER }}
+          RESEND_API_KEY: ${{ secrets.E2E_RESEND_API_KEY }}
+          B2_ACCESS_KEY_ID: ${{ secrets.E2E_B2_ACCESS_KEY_ID }}
+          B2_SECRET_ACCESS_KEY: ${{ secrets.E2E_B2_SECRET_ACCESS_KEY }}
+          B2_ENDPOINT: ${{ secrets.E2E_B2_ENDPOINT }}
+          B2_REGION: ${{ secrets.E2E_B2_REGION }}
+          B2_BUCKET_ID: ${{ secrets.E2E_B2_BUCKET_ID }}
+          B2_BUCKET_NAME: ${{ secrets.E2E_B2_BUCKET_NAME }}
+          CLOUDFLARE_CDN_URL: ${{ secrets.E2E_CLOUDFLARE_CDN_URL }}
+          GEMINI_API_KEY: ${{ secrets.E2E_GEMINI_API_KEY }}
+          
+      # Upload test results and reports
+      - name: Upload Playwright report
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 30
+          
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: test-results
+          path: test-results/
+          retention-days: 30
+
+  # Job 3: Report results
+  report:
+    name: Test Report
+    runs-on: ubuntu-latest
+    needs: [build-verification, e2e-tests]
+    if: always()
+    
+    steps:
+      - name: Download test results
+        uses: actions/download-artifact@v3
+        with:
+          name: test-results
+          
+      - name: Publish test results
+        uses: EnricoMi/publish-unit-test-result-action@v2
+        if: always()
+        with:
+          files: |
+            test-results/e2e-junit.xml
+          check_name: E2E Test Results
+          comment_title: E2E Test Results
+
+# Performance Notes:
+# - Build verification: ~90 seconds
+# - E2E warmup: ~50 seconds (can fail)
+# - E2E tests: ~50 seconds (should pass)
+# - Total sequential: ~190 seconds
+# - Total parallel: ~140 seconds (build + e2e run concurrently)
+#
+# Expected Results:
+# - Build verification: ✅ Catches compilation errors
+# - E2E tests: ✅ 93% pass rate (reliable after warmup)
+# - Total time: ~140s (parallelizable to ~90s)

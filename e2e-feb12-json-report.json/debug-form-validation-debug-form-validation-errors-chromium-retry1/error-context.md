@@ -1,0 +1,860 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - link "Skip to main content" [ref=e2] [cursor=pointer]:
+    - /url: "#main-content"
+  - link "Skip to main content" [ref=e3] [cursor=pointer]:
+    - /url: "#main-content"
+  - generic [ref=e4]:
+    - navigation "Main navigation" [ref=e5]:
+      - generic [ref=e6]:
+        - generic [ref=e7]:
+          - link "Admin" [ref=e8] [cursor=pointer]:
+            - /url: /admin
+            - generic [ref=e9]: 🌴
+            - generic [ref=e10]: Admin
+          - button "Content" [ref=e11]:
+            - generic [ref=e12]: 📝
+            - generic [ref=e13]: Content
+          - button "Guests" [expanded] [ref=e14]:
+            - generic [ref=e15]: 👥
+            - generic [ref=e16]: Guests
+          - button "RSVPs" [ref=e17]:
+            - generic [ref=e18]: ✓
+            - generic [ref=e19]: RSVPs
+          - button "Logistics" [ref=e20]:
+            - generic [ref=e21]: 🚗
+            - generic [ref=e22]: Logistics
+          - button "Admin" [ref=e23]:
+            - generic [ref=e24]: ⚙️
+            - generic [ref=e25]: Admin
+        - tabpanel [ref=e26]:
+          - link "Guest List" [ref=e27] [cursor=pointer]:
+            - /url: /admin/guests
+          - link "Guest Groups" [ref=e28] [cursor=pointer]:
+            - /url: /admin/guest-groups
+          - link "Import/Export" [ref=e29] [cursor=pointer]:
+            - /url: /admin/guests/import-export
+    - banner [ref=e30]:
+      - generic [ref=e31]:
+        - heading "Wedding Admin" [level=1] [ref=e33]
+        - toolbar "User actions" [ref=e34]:
+          - link "Preview guest portal in new tab" [ref=e35] [cursor=pointer]:
+            - /url: /
+            - generic [ref=e36]: 👁️
+            - generic [ref=e37]: Preview Guest Portal
+          - button "Notifications (coming soon)" [ref=e38]: 🔔
+          - button "User menu" [ref=e40]:
+            - generic [ref=e41]: A
+            - generic [ref=e42]: Admin
+            - generic [ref=e43]: ▼
+    - main [ref=e44]:
+      - generic [ref=e46]:
+        - generic [ref=e47]:
+          - generic [ref=e48]:
+            - heading "Guest Management" [level=1] [ref=e49]
+            - paragraph [ref=e50]: Manage your wedding guest list and groups
+          - generic [ref=e51]:
+            - button "Import guests from CSV" [ref=e53] [cursor=pointer]: Import CSV
+            - button "Export guests to CSV" [ref=e54] [cursor=pointer]: Export CSV
+        - button "Manage Groups 566 groups • Click to expand" [ref=e56]:
+          - generic [ref=e57]:
+            - heading "Manage Groups" [level=2] [ref=e58]
+            - paragraph [ref=e59]: 566 groups • Click to expand
+          - generic [ref=e60]: ▼
+        - generic [ref=e61]:
+          - button "Add Guest" [ref=e62]:
+            - generic [ref=e63]: Add Guest
+            - generic [ref=e64]: ▼
+          - generic [ref=e65]:
+            - generic [ref=e66]:
+              - generic [ref=e67]:
+                - generic [ref=e68]: Group*
+                - combobox [ref=e69]
+              - generic [ref=e70]:
+                - generic [ref=e71]: First Name*
+                - textbox [ref=e72]:
+                  - /placeholder: Enter first name
+              - generic [ref=e73]:
+                - generic [ref=e74]: Last Name*
+                - textbox [ref=e75]:
+                  - /placeholder: Enter last name
+              - generic [ref=e76]:
+                - generic [ref=e77]: Email
+                - textbox [ref=e78]:
+                  - /placeholder: Enter email address
+              - generic [ref=e79]:
+                - generic [ref=e80]: Phone
+                - textbox [ref=e81]:
+                  - /placeholder: Enter phone number
+              - generic [ref=e82]:
+                - generic [ref=e83]: Age Type*
+                - combobox [ref=e84]
+              - generic [ref=e85]:
+                - generic [ref=e86]: Guest Type*
+                - combobox [ref=e87]
+              - generic [ref=e89]:
+                - generic [ref=e90]: Dietary Restrictions
+                - textbox [ref=e91]:
+                  - /placeholder: Enter any dietary restrictions
+              - generic [ref=e92]:
+                - generic [ref=e93]: Arrival Date
+                - textbox [ref=e94]
+              - generic [ref=e95]:
+                - generic [ref=e96]: Departure Date
+                - textbox [ref=e97]
+              - generic [ref=e98]:
+                - generic [ref=e99]: Airport
+                - combobox [ref=e100]
+              - generic [ref=e101]:
+                - generic [ref=e102]: Flight Number
+                - textbox [ref=e103]:
+                  - /placeholder: Enter flight number
+              - generic [ref=e104]:
+                - generic [ref=e105]: Plus-One Name
+                - textbox [ref=e106]:
+                  - /placeholder: Enter plus-one name
+              - generic [ref=e108]:
+                - generic [ref=e109]: Notes
+                - textbox [ref=e110]:
+                  - /placeholder: Enter any additional notes
+            - generic [ref=e111]:
+              - button [ref=e112]: Create
+              - button [ref=e113]: Cancel
+        - generic [ref=e114]:
+          - heading "Search & Filters" [level=2] [ref=e115]
+          - generic [ref=e116]:
+            - generic [ref=e117]: Search Guests
+            - textbox "Search Guests" [ref=e118]:
+              - /placeholder: Search by name, email, or phone...
+          - generic [ref=e119]:
+            - generic [ref=e120]:
+              - generic [ref=e121]: RSVP Status
+              - combobox "RSVP Status" [ref=e122]:
+                - option "All" [selected]
+                - option "Pending"
+                - option "Attending"
+                - option "Declined"
+                - option "Maybe"
+            - generic [ref=e123]:
+              - generic [ref=e124]: Activity
+              - combobox "Activity" [ref=e125]:
+                - option "All" [selected]
+                - option "Test Beach Volleyball"
+                - option "E2E Test Activity"
+                - option "E2E Test Activity"
+                - option "E2E Test Activity"
+                - option "E2E Test Activity"
+                - option "E2E Test Activity"
+                - option "E2E Test Activity"
+                - option "E2E Test Activity"
+                - option "E2E Test Activity"
+                - option "E2E Test Activity"
+                - option "E2E Test Activity"
+                - option "E2E Test Activity"
+                - option "E2E Test Activity"
+                - option "E2E Test Activity"
+                - option "E2E Test Activity"
+                - option "E2E Test Activity"
+                - option "E2E Test Activity"
+                - option "E2E Test Activity"
+                - option "E2E Test Activity"
+                - option "E2E Test Activity"
+                - option "E2E Test Activity"
+                - option "E2E Test Activity"
+                - option "E2E Test Activity"
+                - option "E2E Test Activity"
+                - option "Duplicate Activity Name"
+                - option "Duplicate Activity Name"
+                - option "Duplicate Activity Name"
+                - option "Duplicate Activity Name"
+                - option "Duplicate Activity Name"
+                - option "Duplicate Activity Name"
+                - option "Duplicate Activity Name"
+                - option "Duplicate Activity Name"
+                - option "Duplicate Activity Name"
+                - option "Duplicate Activity Name"
+                - option "Duplicate Activity Name"
+                - option "Duplicate Activity Name"
+                - option "Duplicate Activity Name"
+                - option "Duplicate Activity Name"
+                - option "Duplicate Activity Name"
+                - option "Duplicate Activity Name"
+            - generic [ref=e126]:
+              - generic [ref=e127]: Transportation
+              - combobox "Transportation" [ref=e128]:
+                - option "All" [selected]
+                - option "Has Transportation"
+                - option "No Transportation"
+            - generic [ref=e129]:
+              - generic [ref=e130]: Age Group
+              - combobox "Age Group" [ref=e131]:
+                - option "All" [selected]
+                - option "Adult"
+                - option "Child"
+                - option "Senior"
+            - generic [ref=e132]:
+              - generic [ref=e133]: Airport
+              - combobox "Airport" [ref=e134]:
+                - option "All" [selected]
+                - option "SJO (San José)"
+                - option "LIR (Liberia)"
+                - option "Other"
+          - generic [ref=e135]:
+            - generic [ref=e136]: Group By
+            - combobox "Group By" [ref=e137]:
+              - option "None" [selected]
+              - option "Group"
+              - option "Guest Type"
+              - option "Age Type"
+              - option "Airport"
+          - button "Clear All Filters" [ref=e139] [cursor=pointer]
+        - generic [ref=e140]:
+          - generic [ref=e142]:
+            - group "Filter controls" [ref=e143]:
+              - generic [ref=e144]:
+                - generic [ref=e145]: Filter by Group
+                - combobox "Filter by Group" [ref=e146]:
+                  - option "All Group" [selected]
+                  - option "Cleanup Test Group 1770225767151"
+                  - option "Debug Group 1770846562832"
+                  - option "Debug Group 1770846588978"
+                  - option "Debug Group 1770850594795"
+                  - option "Debug Group 1770850618768"
+                  - option "Debug Group 1770850982849"
+                  - option "Debug Group 1770876627939"
+                  - option "Debug Group 1770912792028"
+                  - option "Debug Group 1770914703346"
+                  - option "Debug Group 1770917823025"
+                  - option "Debug Group 1770917871671"
+                  - option "Debug Group 1770922330286"
+                  - option "Dropdown Test 1770845712196"
+                  - option "Dropdown Test 1770845716061"
+                  - option "Dropdown Test 1770845898013"
+                  - option "Dropdown Test 1770846141274"
+                  - option "Dropdown Test 1770851032344"
+                  - option "Dropdown Test 1770851526744"
+                  - option "Dropdown Test 1770851528277"
+                  - option "Dropdown Test 1770851531133"
+                  - option "Dropdown Test 1770851534436"
+                  - option "Dropdown Test 1770851953258"
+                  - option "Dropdown Test 1770852659145"
+                  - option "Dropdown Test 1770852662487"
+                  - option "Dropdown Test 1770912836280"
+                  - option "Dropdown Test 1770914735546"
+                  - option "Dropdown Test 1770917949921"
+                  - option "Dropdown Test 1770922366042"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "Error Test 1770844618316"
+                  - option "Error Test 1770844618316"
+                  - option "Error Test 1770844628467"
+                  - option "Error Test 1770844628467"
+                  - option "Error Test 1770844721084"
+                  - option "Error Test 1770844721084"
+                  - option "Error Test 1770844731103"
+                  - option "Error Test 1770844731103"
+                  - option "Error Test 1770845063774"
+                  - option "Error Test 1770845063774"
+                  - option "Error Test 1770845073047"
+                  - option "Error Test 1770845073047"
+                  - option "Error Test 1770845712212"
+                  - option "Error Test 1770845712212"
+                  - option "Error Test 1770845722475"
+                  - option "Error Test 1770845897950"
+                  - option "Error Test 1770845907994"
+                  - option "Error Test 1770846141273"
+                  - option "Error Test 1770846152128"
+                  - option "Error Test 1770846152128"
+                  - option "Error Test 1770851032349"
+                  - option "Error Test 1770851032349"
+                  - option "Error Test 1770851042717"
+                  - option "Error Test 1770851042717"
+                  - option "Error Test 1770851511435"
+                  - option "Error Test 1770851511435"
+                  - option "Error Test 1770851511486"
+                  - option "Error Test 1770851511486"
+                  - option "Error Test 1770851522399"
+                  - option "Error Test 1770851522399"
+                  - option "Error Test 1770851523451"
+                  - option "Error Test 1770851523451"
+                  - option "Error Test 1770851945277"
+                  - option "Error Test 1770851945277"
+                  - option "Error Test 1770852644953"
+                  - option "Error Test 1770852644953"
+                  - option "Error Test 1770852664517"
+                  - option "Error Test 1770852664517"
+                  - option "Error Test 1770876699945"
+                  - option "Error Test 1770876725903"
+                  - option "Error Test 1770912828629"
+                  - option "Error Test 1770912828629"
+                  - option "Error Test 1770914732568"
+                  - option "Error Test 1770914732568"
+                  - option "Error Test 1770917953606"
+                  - option "Error Test 1770922358430"
+                  - option "Error Test 1770922358430"
+                  - option "Group A 1770844606666"
+                  - option "Group A 1770844628441"
+                  - option "Group A 1770844710267"
+                  - option "Group A 1770844732489"
+                  - option "Group A 1770845052883"
+                  - option "Group A 1770845074952"
+                  - option "Group A 1770845700613"
+                  - option "Group A 1770845707831"
+                  - option "Group A 1770845858141"
+                  - option "Group A 1770845886595"
+                  - option "Group A 1770845893524"
+                  - option "Group A 1770846128235"
+                  - option "Group A 1770846135913"
+                  - option "Group A 1770851018567"
+                  - option "Group A 1770851026275"
+                  - option "Group A 1770851490252"
+                  - option "Group A 1770851490300"
+                  - option "Group A 1770851521120"
+                  - option "Group A 1770851521172"
+                  - option "Group A 1770851926434"
+                  - option "Group A 1770851943610"
+                  - option "Group A 1770852634235"
+                  - option "Group A 1770852655551"
+                  - option "Group A 1770876670174"
+                  - option "Group A 1770912809781"
+                  - option "Group A 1770912819341"
+                  - option "Group A 1770914723414"
+                  - option "Group A 1770917892223"
+                  - option "Group A 1770922342920"
+                  - option "Group A 1770922367413"
+                  - option "Group B 1770844606666"
+                  - option "Group B 1770844628441"
+                  - option "Group B 1770844710267"
+                  - option "Group B 1770844732489"
+                  - option "Group B 1770845052883"
+                  - option "Group B 1770845074952"
+                  - option "Group B 1770845700613"
+                  - option "Group B 1770845707831"
+                  - option "Group B 1770845858141"
+                  - option "Group B 1770845886595"
+                  - option "Group B 1770846128235"
+                  - option "Group B 1770846135913"
+                  - option "Group B 1770851018567"
+                  - option "Group B 1770851490252"
+                  - option "Group B 1770851490300"
+                  - option "Group B 1770851521120"
+                  - option "Group B 1770851521172"
+                  - option "Group B 1770851926434"
+                  - option "Group B 1770851943610"
+                  - option "Group B 1770852634235"
+                  - option "Group B 1770852655551"
+                  - option "Group B 1770876670174"
+                  - option "Group B 1770912809781"
+                  - option "Group B 1770912819341"
+                  - option "Group B 1770914723414"
+                  - option "Group B 1770922342920"
+                  - option "Group B 1770922367413"
+                  - option "Group C 1770844606666"
+                  - option "Group C 1770844710267"
+                  - option "Group C 1770844732489"
+                  - option "Group C 1770845052883"
+                  - option "Group C 1770845074952"
+                  - option "Group C 1770845707831"
+                  - option "Group C 1770845858141"
+                  - option "Group C 1770845893524"
+                  - option "Group C 1770846128235"
+                  - option "Group C 1770846135913"
+                  - option "Group C 1770851026275"
+                  - option "Group C 1770851521172"
+                  - option "Group C 1770851943610"
+                  - option "Group C 1770852655551"
+                  - option "Group C 1770912809781"
+                  - option "Group C 1770912819341"
+                  - option "Group C 1770914723414"
+                  - option "Group C 1770922342920"
+                  - option "Group C 1770922367413"
+                  - option "Isolation Test Group 1770225766626"
+                  - option "Navigation Test 1770844624165"
+                  - option "Navigation Test 1770844631439"
+                  - option "Navigation Test 1770844727430"
+                  - option "Navigation Test 1770844734156"
+                  - option "Navigation Test 1770845089221"
+                  - option "Navigation Test 1770845096531"
+                  - option "Navigation Test 1770845720338"
+                  - option "Navigation Test 1770845728112"
+                  - option "Navigation Test 1770845901104"
+                  - option "Navigation Test 1770845909782"
+                  - option "Navigation Test 1770846144804"
+                  - option "Navigation Test 1770846154214"
+                  - option "Navigation Test 1770851035704"
+                  - option "Navigation Test 1770851043245"
+                  - option "Navigation Test 1770851534188"
+                  - option "Navigation Test 1770851534200"
+                  - option "Navigation Test 1770851547402"
+                  - option "Navigation Test 1770851953411"
+                  - option "Navigation Test 1770851964338"
+                  - option "Navigation Test 1770852666355"
+                  - option "Navigation Test 1770852675615"
+                  - option "Navigation Test 1770876712142"
+                  - option "Navigation Test 1770876747059"
+                  - option "Navigation Test 1770912839507"
+                  - option "Navigation Test 1770912859072"
+                  - option "Navigation Test 1770914741226"
+                  - option "Navigation Test 1770914755889"
+                  - option "Navigation Test 1770917917187"
+                  - option "Navigation Test 1770917972828"
+                  - option "Navigation Test 1770922371267"
+                  - option "Navigation Test 1770922398666"
+                  - option "Original Group 1770845903080"
+                  - option "Original Group 1770846145569"
+                  - option "Original Group 1770851036696"
+                  - option "Original Group 1770851926397"
+                  - option "Original Group 1770852634218"
+                  - option "Original Group 1770852649921"
+                  - option "Original Group 1770876644791"
+                  - option "Original Group 1770876675827"
+                  - option "Original Group 1770912808057"
+                  - option "Original Group 1770912826567"
+                  - option "Original Group 1770914716322"
+                  - option "Original Group 1770914734847"
+                  - option "Original Group 1770917824684"
+                  - option "Original Group 1770917867162"
+                  - option "Original Group 1770922340599"
+                  - option "Original Group 1770922358541"
+                  - option "Reactivity Test 1770846562811"
+                  - option "Reactivity Test 1770850594787"
+                  - option "Reactivity Test 1770850982834"
+                  - option "Reactivity Test 1770876627910"
+                  - option "Reactivity Test 1770912793256"
+                  - option "Reactivity Test 1770914708705"
+                  - option "Reactivity Test 1770917823039"
+                  - option "Reactivity Test 1770922330288"
+                  - option "Test Family"
+                  - option "Test Family"
+                  - option "Updated Group 1770844606657"
+                  - option "Updated Group 1770844619723"
+                  - option "Updated Group 1770844710253"
+                  - option "Updated Group 1770844722704"
+                  - option "Updated Group 1770845052928"
+                  - option "Updated Group 1770845068979"
+                  - option "Updated Group 1770845700652"
+                  - option "Updated Group 1770845719339"
+                  - option "Updated Group 1770845858107"
+                  - option "Updated Group 1770845886628"
+                  - option "Updated Group 1770846128151"
+                  - option "Updated Group 1770851018581"
+                  - option "Updated Group 1770851490218"
+                  - option "Updated Group 1770851490402"
+                  - option "Updated Group 1770851514585"
+                  - option "Updated Group 1770851514960"
+                  - option "Updated Group 1770851954010"
+              - generic [ref=e147]:
+                - generic [ref=e148]: Filter by Guest Type
+                - combobox "Filter by Guest Type" [ref=e149]:
+                  - option "All Guest Type" [selected]
+                  - option "Wedding Party"
+                  - option "Wedding Guest"
+                  - option "Pre-wedding Only"
+                  - option "Post-wedding Only"
+              - generic [ref=e150]:
+                - generic [ref=e151]: Filter by Age Type
+                - combobox "Filter by Age Type" [ref=e152]:
+                  - option "All Age Type" [selected]
+                  - option "Adult"
+                  - option "Child"
+                  - option "Senior"
+            - button "Export guests to CSV" [ref=e154] [cursor=pointer]: Export
+          - table "guests data table" [ref=e157]:
+            - rowgroup [ref=e158]:
+              - row "Select all rows First Name Last Name Email Group Guest Type Age Type Airport Actions" [ref=e159]:
+                - columnheader "Select all rows" [ref=e160]:
+                  - checkbox "Select all rows" [ref=e161]
+                - columnheader [ref=e162]
+                - columnheader "First Name" [ref=e163] [cursor=pointer]:
+                  - generic [ref=e165]: First Name
+                - columnheader "Last Name" [ref=e166] [cursor=pointer]:
+                  - generic [ref=e168]: Last Name
+                - columnheader "Email" [ref=e169] [cursor=pointer]:
+                  - generic [ref=e171]: Email
+                - columnheader "Group" [ref=e172] [cursor=pointer]:
+                  - generic [ref=e174]: Group
+                - columnheader "Guest Type" [ref=e175] [cursor=pointer]:
+                  - generic [ref=e177]: Guest Type
+                - columnheader "Age Type" [ref=e178] [cursor=pointer]:
+                  - generic [ref=e180]: Age Type
+                - columnheader "Airport" [ref=e181] [cursor=pointer]:
+                  - generic [ref=e183]: Airport
+                - columnheader "Actions" [ref=e184]
+            - rowgroup [ref=e185]:
+              - row "Select row 1 Expand RSVPs Test Guest guest-1770924661936@example.com Test Family Wedding Guest Adult - Delete guest 1" [ref=e186] [cursor=pointer]:
+                - cell "Select row 1" [ref=e187]:
+                  - checkbox "Select row 1" [ref=e188]
+                - cell "Expand RSVPs" [ref=e189]:
+                  - button "Expand RSVPs" [ref=e190]: ▶
+                - cell "Test" [ref=e191]
+                - cell "Guest" [ref=e192]
+                - cell "guest-1770924661936@example.com" [ref=e193]
+                - cell "Test Family" [ref=e194]
+                - cell "Wedding Guest" [ref=e195]
+                - cell "Adult" [ref=e196]
+                - cell "-" [ref=e197]
+                - cell "Delete guest 1" [ref=e198]:
+                  - button "Delete guest 1" [ref=e199]: Delete
+              - row "Select row 2 Expand RSVPs Test Guest guest-1770924662045@example.com Test Family Wedding Guest Adult - Delete guest 2" [ref=e200] [cursor=pointer]:
+                - cell "Select row 2" [ref=e201]:
+                  - checkbox "Select row 2" [ref=e202]
+                - cell "Expand RSVPs" [ref=e203]:
+                  - button "Expand RSVPs" [ref=e204]: ▶
+                - cell "Test" [ref=e205]
+                - cell "Guest" [ref=e206]
+                - cell "guest-1770924662045@example.com" [ref=e207]
+                - cell "Test Family" [ref=e208]
+                - cell "Wedding Guest" [ref=e209]
+                - cell "Adult" [ref=e210]
+                - cell "-" [ref=e211]
+                - cell "Delete guest 2" [ref=e212]:
+                  - button "Delete guest 2" [ref=e213]: Delete
+  - button "Open Next.js Dev Tools" [ref=e219] [cursor=pointer]:
+    - generic [ref=e222]:
+      - text: Compiling
+      - generic [ref=e223]:
+        - generic [ref=e224]: .
+        - generic [ref=e225]: .
+        - generic [ref=e226]: .
+  - alert [ref=e227]
+```

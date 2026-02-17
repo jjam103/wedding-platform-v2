@@ -1,0 +1,120 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e1]:
+  - link "Skip to main content" [ref=e2] [cursor=pointer]:
+    - /url: "#main-content"
+  - link "Skip to main content" [ref=e3] [cursor=pointer]:
+    - /url: "#main-content"
+  - generic [ref=e4]:
+    - navigation "Main navigation" [ref=e5]:
+      - generic [ref=e6]:
+        - generic [ref=e7]:
+          - link "Admin" [ref=e8] [cursor=pointer]:
+            - /url: /admin
+            - generic [ref=e9]: 🌴
+            - generic [ref=e10]: Admin
+          - button "Content" [ref=e11]:
+            - generic [ref=e12]: 📝
+            - generic [ref=e13]: Content
+          - button "Guests" [ref=e14]:
+            - generic [ref=e15]: 👥
+            - generic [ref=e16]: Guests
+          - button "RSVPs" [ref=e17]:
+            - generic [ref=e18]: ✓
+            - generic [ref=e19]: RSVPs
+          - button "Logistics" [expanded] [ref=e20]:
+            - generic [ref=e21]: 🚗
+            - generic [ref=e22]: Logistics
+          - button "Admin" [ref=e23]:
+            - generic [ref=e24]: ⚙️
+            - generic [ref=e25]: Admin
+        - tabpanel [ref=e26]:
+          - link "Accommodations" [ref=e27] [cursor=pointer]:
+            - /url: /admin/accommodations
+          - link "Transportation" [ref=e28] [cursor=pointer]:
+            - /url: /admin/transportation
+          - link "Budget" [ref=e29] [cursor=pointer]:
+            - /url: /admin/budget
+          - link "Vendors" [ref=e30] [cursor=pointer]:
+            - /url: /admin/vendors
+    - banner [ref=e31]:
+      - generic [ref=e32]:
+        - heading "Wedding Admin" [level=1] [ref=e34]
+        - toolbar "User actions" [ref=e35]:
+          - link "Preview guest portal in new tab" [ref=e36] [cursor=pointer]:
+            - /url: /
+            - generic [ref=e37]: 👁️
+            - generic [ref=e38]: Preview Guest Portal
+          - button "Notifications (coming soon)" [ref=e39]: 🔔
+          - button "User menu" [ref=e41]:
+            - generic [ref=e42]: A
+            - generic [ref=e43]: Admin
+            - generic [ref=e44]: ▼
+    - main [ref=e45]:
+      - generic [ref=e47]:
+        - generic [ref=e48]:
+          - generic [ref=e49]:
+            - button "← Back to Accommodations" [ref=e51] [cursor=pointer]
+            - 'heading "Room Types: E2E Test Accommodation" [level=1] [ref=e52]'
+            - paragraph [ref=e53]: Manage room types and guest assignments
+          - button "Create new room type" [ref=e54] [cursor=pointer]: + Add Room Type
+        - generic [ref=e55]:
+          - button "Add New Room Type" [ref=e56]:
+            - generic [ref=e57]: Add New Room Type
+            - generic [ref=e58]: ▼
+          - generic [ref=e59]:
+            - generic [ref=e60]:
+              - generic [ref=e61]:
+                - generic [ref=e62]: Room Type Name*
+                - textbox [ref=e63]:
+                  - /placeholder: Enter room type name (e.g., Ocean View Suite)
+              - generic [ref=e64]:
+                - generic [ref=e65]: Capacity*
+                - spinbutton [active] [ref=e66]
+              - generic [ref=e67]:
+                - generic [ref=e68]: Total Rooms*
+                - spinbutton [ref=e69]
+              - generic [ref=e70]:
+                - generic [ref=e71]: Price Per Night*
+                - spinbutton [ref=e72]
+              - generic [ref=e73]:
+                - generic [ref=e74]: Host Subsidy Per Night
+                - spinbutton [ref=e75]
+              - generic [ref=e76]:
+                - generic [ref=e77]: Description
+                - textbox [ref=e78]:
+                  - /placeholder: Enter room type description
+            - generic [ref=e79]:
+              - button [ref=e80]: Create Room Type
+              - button [ref=e81]: Cancel
+        - generic [ref=e82]:
+          - button "Export items to CSV" [ref=e86] [cursor=pointer]: Export
+          - table "items data table" [ref=e89]:
+            - rowgroup [ref=e90]:
+              - row "Name Capacity Total Rooms Price/Night Occupancy Actions Actions" [ref=e91]:
+                - columnheader "Name" [ref=e92] [cursor=pointer]:
+                  - generic [ref=e94]: Name
+                - columnheader "Capacity" [ref=e95] [cursor=pointer]:
+                  - generic [ref=e97]: Capacity
+                - columnheader "Total Rooms" [ref=e98] [cursor=pointer]:
+                  - generic [ref=e100]: Total Rooms
+                - columnheader "Price/Night" [ref=e101] [cursor=pointer]:
+                  - generic [ref=e103]: Price/Night
+                - columnheader "Occupancy" [ref=e104]:
+                  - generic [ref=e106]: Occupancy
+                - columnheader "Actions" [ref=e107]:
+                  - generic [ref=e109]: Actions
+                - columnheader "Actions" [ref=e110]
+            - rowgroup [ref=e111]:
+              - row "No items found" [ref=e112]:
+                - cell "No items found" [ref=e113]
+  - button "Open Next.js Dev Tools" [ref=e119] [cursor=pointer]:
+    - generic [ref=e122]:
+      - text: Compiling
+      - generic [ref=e123]:
+        - generic [ref=e124]: .
+        - generic [ref=e125]: .
+        - generic [ref=e126]: .
+  - alert [ref=e127]
+```

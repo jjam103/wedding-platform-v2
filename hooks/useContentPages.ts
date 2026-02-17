@@ -64,8 +64,9 @@ export function useContentPages(): UseContentPagesReturn {
         };
       }
 
-      // Optimistic update
-      setData((prev) => [...prev, result.data]);
+      // Don't do optimistic update - let refetch handle it
+      // This ensures we get the complete data from the server
+      // setData((prev) => [...prev, result.data]);
 
       return { success: true, data: result.data };
     } catch (err) {

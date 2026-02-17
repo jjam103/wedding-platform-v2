@@ -250,3 +250,4 @@ GROUP BY bucket_id;
 ## Conclusion
 
 The photos storage bucket is now set up and configured. Photo uploads through the Section Editor will work correctly, with automatic failover between B2 (primary) and Supabase Storage (fallback). The system tracks which storage is used for each photo, allowing for future optimization and migration if needed.
+I

@@ -99,7 +99,13 @@ export function TopNavigation({ className = '' }: TopNavigationProps) {
   const [activeTab, setActiveTab] = useState<string>('');
   const [activeSubItem, setActiveSubItem] = useState<string>('');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
+  const [isMobile, setIsMobile] = useState(() => {
+    // Initialize based on window width if available (SSR-safe)
+    if (typeof window !== 'undefined') {
+      return window.innerWidth < 768;
+    }
+    return false;
+  });
 
   // Detect mobile viewport
   useEffect(() => {
@@ -150,6 +156,48 @@ export function TopNavigation({ className = '' }: TopNavigationProps) {
     // On desktop, clicking tab shows sub-items automatically
   }, []);
 
+  // Handle keyboard navigation
+  const handleKeyDown = useCallback((e: React.KeyboardEvent, tabId: string, index: number) => {
+    const tabs = NAVIGATION_TABS;
+    
+    switch (e.key) {
+      case 'ArrowLeft':
+        e.preventDefault();
+        if (index > 0) {
+          const prevTab = tabs[index - 1];
+          handleTabClick(prevTab.id);
+          // Focus previous tab button
+          const prevButton = document.querySelector(`button[data-tab-id="${prevTab.id}"]`) as HTMLButtonElement;
+          prevButton?.focus();
+        }
+        break;
+      case 'ArrowRight':
+        e.preventDefault();
+        if (index < tabs.length - 1) {
+          const nextTab = tabs[index + 1];
+          handleTabClick(nextTab.id);
+          // Focus next tab button
+          const nextButton = document.querySelector(`button[data-tab-id="${nextTab.id}"]`) as HTMLButtonElement;
+          nextButton?.focus();
+        }
+        break;
+      case 'Home':
+        e.preventDefault();
+        const firstTab = tabs[0];
+        handleTabClick(firstTab.id);
+        const firstButton = document.querySelector(`button[data-tab-id="${firstTab.id}"]`) as HTMLButtonElement;
+        firstButton?.focus();
+        break;
+      case 'End':
+        e.preventDefault();
+        const lastTab = tabs[tabs.length - 1];
+        handleTabClick(lastTab.id);
+        const lastButton = document.querySelector(`button[data-tab-id="${lastTab.id}"]`) as HTMLButtonElement;
+        lastButton?.focus();
+        break;
+    }
+  }, [handleTabClick]);
+
   // Handle sub-item click
   const handleSubItemClick = useCallback((tabId: string, subItemId: string) => {
     setActiveTab(tabId);
@@ -187,11 +235,11 @@ export function TopNavigation({ className = '' }: TopNavigationProps) {
     <>
       {/* Top Navigation Bar */}
       <nav
-        className={`sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-sage-200 shadow-sm ${className}`}
+        className={`sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-sage-200 shadow-sm overflow-x-hidden ${className}`}
         role="navigation"
         aria-label="Main navigation"
       >
-        <div className="max-w-full px-4">
+        <div className="max-w-full px-4 w-full">
           {/* Mobile Header */}
           {isMobile && (
             <div className="flex items-center justify-between h-16">
@@ -225,17 +273,23 @@ export function TopNavigation({ className = '' }: TopNavigationProps) {
               </Link>
 
               {/* Tabs */}
-              {NAVIGATION_TABS.map((tab) => (
+              {NAVIGATION_TABS.map((tab, index) => (
                 <button
                   key={tab.id}
+                  data-tab-id={tab.id}
                   onClick={() => handleTabClick(tab.id)}
+                  onKeyDown={(e) => handleKeyDown(e, tab.id, index)}
                   className={`flex items-center gap-2 px-4 py-2 rounded-t-lg transition-all duration-200 border-b-2 ${
                     activeTab === tab.id
                       ? 'bg-emerald-50 text-emerald-700 border-emerald-600 font-medium'
                       : 'text-sage-700 hover:bg-sage-50 hover:text-sage-900 border-transparent'
                   }`}
+                  role="button"
                   aria-label={tab.label}
                   aria-current={activeTab === tab.id ? 'page' : undefined}
+                  aria-expanded={activeTab === tab.id}
+                  aria-controls={`${tab.id}-panel`}
+                  tabIndex={0}
                 >
                   <span className="text-lg" aria-hidden="true">{tab.icon}</span>
                   <span>{tab.label}</span>
@@ -245,8 +299,14 @@ export function TopNavigation({ className = '' }: TopNavigationProps) {
           )}
 
           {/* Desktop Sub-Navigation */}
-          {!isMobile && activeTabObj && (
-            <div className="flex items-center gap-2 py-3 border-t border-sage-100">
+          {activeTabObj && (
+            <div 
+              className={`items-center gap-2 py-3 border-t border-sage-100 ${isMobile ? 'hidden' : 'flex'}`}
+              role="tabpanel"
+              id={`${activeTabObj.id}-panel`}
+              aria-labelledby={`${activeTabObj.id}-tab`}
+              hidden={isMobile}
+            >
               {activeTabObj.subItems.map((subItem) => (
                 <Link
                   key={subItem.id}
@@ -279,7 +339,7 @@ export function TopNavigation({ className = '' }: TopNavigationProps) {
 
           {/* Menu Panel */}
           <div
-            className="fixed inset-y-0 left-0 w-full max-w-sm bg-white z-50 overflow-y-auto shadow-2xl"
+            className="fixed inset-y-0 left-0 w-[min(100vw,24rem)] bg-white z-50 overflow-y-auto shadow-2xl"
             role="dialog"
             aria-label="Mobile navigation menu"
           >

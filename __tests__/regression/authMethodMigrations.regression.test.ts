@@ -25,7 +25,7 @@ describe('Regression: Authentication Method Migrations', () => {
       .select()
       .single();
 
-    testGroupId = group!.id;
+    testGroupId = (group as any)!.id;
   });
 
   afterAll(async () => {
@@ -52,13 +52,13 @@ describe('Regression: Authentication Method Migrations', () => {
 
       expect(error).toBeNull();
       expect(guest).toBeDefined();
-      expect(guest.first_name).toBe('Regression');
-      expect(guest.last_name).toBe('Test');
-      expect(guest.email).toBe('regression.test@example.com');
-      expect(guest.auth_method).toBe('email_matching'); // Default value
+      expect((guest as any).first_name).toBe('Regression');
+      expect((guest as any).last_name).toBe('Test');
+      expect((guest as any).email).toBe('regression.test@example.com');
+      expect((guest as any).auth_method).toBe('email_matching'); // Default value
 
       // Clean up
-      await supabase.from('guests').delete().eq('id', guest.id);
+      await supabase.from('guests').delete().eq('id', (guest as any).id);
     });
 
     it('should not break existing guest updates', async () => {
@@ -76,7 +76,7 @@ describe('Regression: Authentication Method Migrations', () => {
         .select()
         .single();
 
-      const guestId = guest!.id;
+      const guestId = (guest as any)!.id;
 
       // Update guest (without touching auth_method)
       const { data: updated, error } = await supabase
@@ -91,9 +91,9 @@ describe('Regression: Authentication Method Migrations', () => {
 
       expect(error).toBeNull();
       expect(updated).toBeDefined();
-      expect(updated.first_name).toBe('Updated');
-      expect(updated.phone).toBe('+1234567890');
-      expect(updated.auth_method).toBe('email_matching'); // Should remain unchanged
+      expect((updated as any).first_name).toBe('Updated');
+      expect((updated as any).phone).toBe('+1234567890');
+      expect((updated as any).auth_method).toBe('email_matching'); // Should remain unchanged
 
       // Clean up
       await supabase.from('guests').delete().eq('id', guestId);
@@ -139,7 +139,7 @@ describe('Regression: Authentication Method Migrations', () => {
       // Clean up
       if (created) {
         for (const guest of created) {
-          await supabase.from('guests').delete().eq('id', guest.id);
+          await supabase.from('guests').delete().eq('id', (guest as any).id);
         }
       }
     });
@@ -159,7 +159,7 @@ describe('Regression: Authentication Method Migrations', () => {
         .select()
         .single();
 
-      const guestId = guest!.id;
+      const guestId = (guest as any)!.id;
 
       // Delete guest
       const { error } = await supabase
@@ -190,8 +190,8 @@ describe('Regression: Authentication Method Migrations', () => {
 
       expect(error).toBeNull();
       expect(settings).toBeDefined();
-      expect(settings.default_auth_method).toBeDefined();
-      expect(['email_matching', 'magic_link']).toContain(settings.default_auth_method);
+      expect((settings as any).default_auth_method).toBeDefined();
+      expect(['email_matching', 'magic_link']).toContain((settings as any).default_auth_method);
     });
 
     it('should not break existing settings updates', async () => {
@@ -203,26 +203,26 @@ describe('Regression: Authentication Method Migrations', () => {
         .single();
 
       if (settings) {
-        const originalTimezone = settings.timezone;
+        const originalTimezone = (settings as any).timezone;
 
         // Update settings (without touching default_auth_method)
         const { data: updated, error } = await supabase
           .from('system_settings')
           .update({ timezone: 'America/New_York' })
-          .eq('id', settings.id)
+          .eq('id', (settings as any).id)
           .select()
           .single();
 
         expect(error).toBeNull();
         expect(updated).toBeDefined();
-        expect(updated.timezone).toBe('America/New_York');
-        expect(updated.default_auth_method).toBeDefined();
+        expect((updated as any).timezone).toBe('America/New_York');
+        expect((updated as any).default_auth_method).toBeDefined();
 
         // Restore original timezone
         await supabase
           .from('system_settings')
           .update({ timezone: originalTimezone })
-          .eq('id', settings.id);
+          .eq('id', (settings as any).id);
       }
     });
   });
@@ -246,11 +246,11 @@ describe('Regression: Authentication Method Migrations', () => {
 
       expect(error).toBeNull();
       expect(guest).toBeDefined();
-      expect(guest.email).toBeNull();
-      expect(guest.auth_method).toBe('email_matching');
+      expect((guest as any).email).toBeNull();
+      expect((guest as any).auth_method).toBe('email_matching');
 
       // Clean up
-      await supabase.from('guests').delete().eq('id', guest.id);
+      await supabase.from('guests').delete().eq('id', (guest as any).id);
     });
 
     it('should maintain existing guest relationships', async () => {
@@ -268,7 +268,7 @@ describe('Regression: Authentication Method Migrations', () => {
         .select()
         .single();
 
-      const guestId = guest!.id;
+      const guestId = (guest as any)!.id;
 
       // Create event
       const { data: event } = await supabase
@@ -282,7 +282,7 @@ describe('Regression: Authentication Method Migrations', () => {
         .select()
         .single();
 
-      const eventId = event!.id;
+      const eventId = (event as any)!.id;
 
       // Create RSVP
       const { data: rsvp, error: rsvpError } = await supabase
@@ -297,10 +297,10 @@ describe('Regression: Authentication Method Migrations', () => {
 
       expect(rsvpError).toBeNull();
       expect(rsvp).toBeDefined();
-      expect(rsvp.guest_id).toBe(guestId);
+      expect((rsvp as any).guest_id).toBe(guestId);
 
       // Clean up
-      await supabase.from('rsvps').delete().eq('id', rsvp.id);
+      await supabase.from('rsvps').delete().eq('id', (rsvp as any).id);
       await supabase.from('events').delete().eq('id', eventId);
       await supabase.from('guests').delete().eq('id', guestId);
     });
@@ -343,7 +343,7 @@ describe('Regression: Authentication Method Migrations', () => {
         .select()
         .single();
 
-      const guestId = guest!.id;
+      const guestId = (guest as any)!.id;
 
       // Create magic link token
       const { data: token } = await supabase
@@ -356,7 +356,7 @@ describe('Regression: Authentication Method Migrations', () => {
         .select()
         .single();
 
-      const tokenId = token!.id;
+      const tokenId = (token as any)!.id;
 
       // Verify token references guest
       const { data: tokenWithGuest } = await supabase
@@ -366,7 +366,7 @@ describe('Regression: Authentication Method Migrations', () => {
         .single();
 
       expect(tokenWithGuest).toBeDefined();
-      expect(tokenWithGuest.guest_id).toBe(guestId);
+      expect((tokenWithGuest as any).guest_id).toBe(guestId);
 
       // Delete guest (should cascade delete token)
       await supabase.from('guests').delete().eq('id', guestId);
@@ -428,7 +428,7 @@ describe('Regression: Authentication Method Migrations', () => {
       // Clean up
       if (created) {
         for (const guest of created) {
-          await supabase.from('guests').delete().eq('id', guest.id);
+          await supabase.from('guests').delete().eq('id', (guest as any).id);
         }
       }
 
@@ -465,7 +465,7 @@ describe('Regression: Authentication Method Migrations', () => {
       const queryTime = Date.now() - startTime;
 
       // Clean up
-      await supabase.from('guests').delete().eq('id', guest!.id);
+      await supabase.from('guests').delete().eq('id', (guest as any)!.id);
 
       // Query should be fast with composite index (< 50ms)
       expect(queryTime).toBeLessThan(50);

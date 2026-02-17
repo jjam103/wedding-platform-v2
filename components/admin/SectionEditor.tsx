@@ -875,6 +875,7 @@ export function SectionEditor({ pageType, pageId, onSave, onClose }: SectionEdit
                       variant="primary"
                       onClick={() => handleSaveSection(section.id)}
                       disabled={savingSection === section.id}
+                      data-testid={`section-save-button-${section.id}`}
                     >
                       {savingSection === section.id ? (
                         <span className="flex items-center gap-2">
@@ -893,6 +894,7 @@ export function SectionEditor({ pageType, pageId, onSave, onClose }: SectionEdit
                     size="sm"
                     variant="secondary"
                     onClick={() => setViewingSection(viewingSection === section.id ? null : section.id)}
+                    data-testid={`section-view-button-${section.id}`}
                   >
                     {viewingSection === section.id ? 'Hide' : 'View'}
                   </Button>
@@ -900,6 +902,7 @@ export function SectionEditor({ pageType, pageId, onSave, onClose }: SectionEdit
                     size="sm"
                     variant="secondary"
                     onClick={() => setEditingSection(editingSection === section.id ? null : section.id)}
+                    data-testid={`section-edit-button-${section.id}`}
                   >
                     {editingSection === section.id ? 'Close' : 'Edit'}
                   </Button>
@@ -908,6 +911,7 @@ export function SectionEditor({ pageType, pageId, onSave, onClose }: SectionEdit
                     variant="danger"
                     onClick={() => handleDeleteSection(section.id)}
                     disabled={saving}
+                    data-testid={`section-delete-button-${section.id}`}
                   >
                     Delete
                   </Button>

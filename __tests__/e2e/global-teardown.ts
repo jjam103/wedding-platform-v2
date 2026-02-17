@@ -16,6 +16,10 @@ import path from 'path';
 /**
  * Global teardown function
  * Called once after all tests complete
+ * 
+ * IMPORTANT: This runs AFTER all tests finish, not between test files.
+ * Do not delete shared resources like auth files here - they're needed
+ * for the entire test suite execution.
  */
 async function globalTeardown(config: FullConfig) {
   console.log('\n🧹 E2E Global Teardown Starting...\n');
@@ -29,10 +33,11 @@ async function globalTeardown(config: FullConfig) {
     await cleanupTestData(errors);
     console.log('✅ Test data cleaned\n');
     
-    // 2. Remove authentication state files
-    console.log('🔓 Removing authentication state...');
-    await removeAuthState(errors);
-    console.log('✅ Authentication state removed\n');
+    // 2. Keep authentication state files for debugging
+    // Don't remove them - they're useful for troubleshooting
+    console.log('🔓 Keeping authentication state for debugging...');
+    console.log('   Auth files preserved in .auth/ directory');
+    console.log('   Run "rm -rf .auth" to clean up manually\n');
     
     // 3. Log execution summary
     const duration = Date.now() - startTime;
@@ -77,7 +82,7 @@ async function cleanupTestData(errors: string[]): Promise<void> {
  */
 async function removeAuthState(errors: string[]): Promise<void> {
   const authDir = '.auth';
-  const authFiles = ['user.json', 'guest.json'];
+  const authFiles = ['admin.json', 'guest.json'];
   
   try {
     // Check if .auth directory exists

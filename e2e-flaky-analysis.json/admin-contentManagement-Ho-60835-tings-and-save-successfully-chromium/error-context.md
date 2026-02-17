@@ -1,0 +1,95 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - link "Skip to main content" [ref=e2] [cursor=pointer]:
+    - /url: "#main-content"
+  - link "Skip to main content" [ref=e3] [cursor=pointer]:
+    - /url: "#main-content"
+  - generic [ref=e4]:
+    - navigation "Main navigation" [ref=e5]:
+      - generic [ref=e6]:
+        - generic [ref=e7]:
+          - link "Admin" [ref=e8] [cursor=pointer]:
+            - /url: /admin
+            - generic [ref=e9]: 🌴
+            - generic [ref=e10]: Admin
+          - button "Content" [expanded] [ref=e11]:
+            - generic [ref=e12]: 📝
+            - generic [ref=e13]: Content
+          - button "Guests" [ref=e14]:
+            - generic [ref=e15]: 👥
+            - generic [ref=e16]: Guests
+          - button "RSVPs" [ref=e17]:
+            - generic [ref=e18]: ✓
+            - generic [ref=e19]: RSVPs
+          - button "Logistics" [ref=e20]:
+            - generic [ref=e21]: 🚗
+            - generic [ref=e22]: Logistics
+          - button "Admin" [ref=e23]:
+            - generic [ref=e24]: ⚙️
+            - generic [ref=e25]: Admin
+        - tabpanel [ref=e26]:
+          - link "Home Page" [ref=e27] [cursor=pointer]:
+            - /url: /admin/home-page
+          - link "Activities" [ref=e28] [cursor=pointer]:
+            - /url: /admin/activities
+          - link "Events" [ref=e29] [cursor=pointer]:
+            - /url: /admin/events
+          - link "Content Pages" [ref=e30] [cursor=pointer]:
+            - /url: /admin/content-pages
+          - link "Locations" [ref=e31] [cursor=pointer]:
+            - /url: /admin/locations
+          - link "Photos" [ref=e32] [cursor=pointer]:
+            - /url: /admin/photos
+    - banner [ref=e33]:
+      - generic [ref=e34]:
+        - heading "Wedding Admin" [level=1] [ref=e36]
+        - toolbar "User actions" [ref=e37]:
+          - link "Preview guest portal in new tab" [ref=e38] [cursor=pointer]:
+            - /url: /
+            - generic [ref=e39]: 👁️
+            - generic [ref=e40]: Preview Guest Portal
+          - button "Notifications (coming soon)" [ref=e41]: 🔔
+          - button "User menu" [ref=e43]:
+            - generic [ref=e44]: A
+            - generic [ref=e45]: Admin
+            - generic [ref=e46]: ▼
+    - main [ref=e47]:
+      - generic [ref=e49]:
+        - generic [ref=e50]:
+          - heading "Home Page Editor" [level=1] [ref=e51]
+          - paragraph [ref=e52]: Customize your wedding homepage with a title, subtitle, welcome message, and hero image.
+        - generic [ref=e53]:
+          - generic [ref=e54]:
+            - generic [ref=e55]: Wedding Title *
+            - textbox "Wedding Title *" [ref=e56]:
+              - /placeholder: Sarah & Michael's Costa Rica Wedding
+              - text: Test Wedding 1770914104795
+            - paragraph [ref=e57]: The main title displayed on your wedding homepage
+          - generic [ref=e58]:
+            - generic [ref=e59]: Subtitle
+            - textbox "Subtitle" [ref=e60]:
+              - /placeholder: June 14-16, 2025 • Tamarindo, Costa Rica
+              - text: June 14-16, 2025 • Test Location 1770914104795
+            - paragraph [ref=e61]: Optional subtitle with date and location
+          - generic [ref=e62]:
+            - generic [ref=e63]: Hero Image URL
+            - textbox "Hero Image URL" [ref=e64]:
+              - /placeholder: https://example.com/hero-image.jpg
+              - text: https://picsum.photos/800/400
+            - img "Hero preview" [ref=e66]
+            - paragraph [ref=e67]: URL of the hero image displayed at the top of the homepage
+          - generic [ref=e68]:
+            - generic [ref=e69]: Welcome Message
+            - paragraph [ref=e87]: Rich text welcome message displayed on the homepage
+          - generic [ref=e88]:
+            - generic [ref=e89]:
+              - button "Manage Sections (Full Editor)" [ref=e90] [cursor=pointer]
+              - button "Show Inline Section Editor" [ref=e91] [cursor=pointer]
+              - button "Preview" [ref=e92] [cursor=pointer]
+            - button "Save Changes" [disabled] [ref=e93]
+  - button "Open Next.js Dev Tools" [ref=e99] [cursor=pointer]:
+    - img [ref=e100]
+  - alert [ref=e103]
+```

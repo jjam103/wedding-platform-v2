@@ -9,6 +9,7 @@ import {
   parseFilters,
 } from '@/lib/apiHelpers';
 import { z } from 'zod';
+import { ERROR_CODES } from '@/types';
 
 /**
  * Example API Route Template
@@ -152,7 +153,7 @@ export async function PUT(request: NextRequest) {
       const id = pathParts[pathParts.length - 1];
 
       if (!id) {
-        return errorResponse('INVALID_REQUEST', 'Example ID is required', 400);
+        return errorResponse(ERROR_CODES.VALIDATION_ERROR, 'Example ID is required', 400);
       }
 
       const body = await request.json();
@@ -218,7 +219,7 @@ export async function DELETE(request: NextRequest) {
       const id = pathParts[pathParts.length - 1];
 
       if (!id) {
-        return errorResponse('INVALID_REQUEST', 'Example ID is required', 400);
+        return errorResponse(ERROR_CODES.VALIDATION_ERROR, 'Example ID is required', 400);
       }
 
       // TODO: Replace with actual service call

@@ -19,10 +19,12 @@
  */
 
 import { test, expect } from '@playwright/test';
+import { waitForStyles, waitForElementStable, waitForCondition } from '../../helpers/waitHelpers';
 
 test.describe('Admin Navigation', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/admin');
+    await waitForStyles(page);
     await page.waitForSelector('nav[aria-label="Main navigation"]');
   });
 
@@ -129,10 +131,15 @@ test.describe('Admin Navigation', () => {
 
     test('should have sticky navigation with glassmorphism effect', async ({ page }) => {
       await page.goto('/admin/guests');
+      await waitForStyles(page);
 
       const nav = page.getByRole('navigation', { name: 'Main navigation' });
       
       // Verify sticky positioning
+      await waitForCondition(async () => {
+        const classes = await nav.getAttribute('class');
+        return classes?.includes('sticky') && classes?.includes('top-0') || false;
+      }, 5000);
       await expect(nav).toHaveClass(/sticky/);
       await expect(nav).toHaveClass(/top-0/);
       
@@ -141,6 +148,7 @@ test.describe('Admin Navigation', () => {
 
       // Scroll down and verify navigation stays visible
       await page.evaluate(() => window.scrollTo(0, 500));
+      await page.waitForTimeout(100); // Wait for scroll to complete
       await expect(nav).toBeInViewport();
     });
   });
@@ -153,24 +161,38 @@ test.describe('Admin Navigation', () => {
     test('should support keyboard navigation', async ({ page }) => {
       // Tab to first interactive element
       await page.keyboard.press('Tab');
+      await waitForCondition(async () => {
+        const focused = await page.evaluate(() => document.activeElement?.tagName);
+        return focused === 'A' || focused === 'BUTTON';
+      }, 5000);
       await expect(page.getByRole('link', { name: /admin/i })).toBeFocused();
 
       // Tab to Content tab
       await page.keyboard.press('Tab');
+      await waitForElementStable(page, page.getByRole('button', { name: 'Content' }));
       await expect(page.getByRole('button', { name: 'Content' })).toBeFocused();
 
       // Press Enter to activate
       await page.keyboard.press('Enter');
+      await waitForCondition(async () => {
+        return await page.getByRole('link', { name: 'Activities' }).isVisible();
+      }, 5000);
       await expect(page.getByRole('link', { name: 'Activities' })).toBeVisible();
     });
 
     test('should mark active elements with aria-current', async ({ page }) => {
       await page.getByRole('button', { name: 'Content' }).click();
+      await waitForElementStable(page, page.getByRole('link', { name: 'Activities' }));
       await page.getByRole('link', { name: 'Activities' }).click();
       await page.waitForURL('/admin/activities');
+      await waitForStyles(page);
 
       // Verify aria-current on active tab
       const contentTab = page.getByRole('button', { name: 'Content' });
+      await waitForCondition(async () => {
+        const ariaCurrent = await contentTab.getAttribute('aria-current');
+        return ariaCurrent === 'page';
+      }, 5000);
       await expect(contentTab).toHaveAttribute('aria-current', 'page');
 
       // Verify aria-current on active sub-item
@@ -181,47 +203,72 @@ test.describe('Admin Navigation', () => {
     test('should handle browser back navigation', async ({ page }) => {
       // Navigate to Activities
       await page.getByRole('button', { name: 'Content' }).click();
+      await waitForElementStable(page, page.getByRole('link', { name: 'Activities' }));
       await page.getByRole('link', { name: 'Activities' }).click();
       await page.waitForURL('/admin/activities');
+      await waitForStyles(page);
 
       // Navigate to Events
+      await waitForElementStable(page, page.getByRole('link', { name: 'Events' }));
       await page.getByRole('link', { name: 'Events' }).click();
       await page.waitForURL('/admin/events');
+      await waitForStyles(page);
 
       // Go back
       await page.goBack();
       await page.waitForURL('/admin/activities');
+      await waitForStyles(page);
 
       // Verify Activities is highlighted again
       const activitiesLink = page.getByRole('link', { name: 'Activities' });
+      await waitForCondition(async () => {
+        const classes = await activitiesLink.getAttribute('class');
+        return classes?.includes('bg-emerald-600') || false;
+      }, 5000);
       await expect(activitiesLink).toHaveClass(/bg-emerald-600/);
     });
 
     test('should handle browser forward navigation', async ({ page }) => {
       // Navigate to Activities
       await page.getByRole('button', { name: 'Content' }).click();
+      await waitForElementStable(page, page.getByRole('link', { name: 'Activities' }));
       await page.getByRole('link', { name: 'Activities' }).click();
       await page.waitForURL('/admin/activities');
+      await waitForStyles(page);
 
       // Navigate to Events
+      await waitForElementStable(page, page.getByRole('link', { name: 'Events' }));
       await page.getByRole('link', { name: 'Events' }).click();
       await page.waitForURL('/admin/events');
+      await waitForStyles(page);
 
       // Go back then forward
       await page.goBack();
       await page.waitForURL('/admin/activities');
+      await waitForStyles(page);
+      
       await page.goForward();
       await page.waitForURL('/admin/events');
+      await waitForStyles(page);
 
       // Verify Events is highlighted
       const eventsLink = page.getByRole('link', { name: 'Events' });
+      await waitForCondition(async () => {
+        const classes = await eventsLink.getAttribute('class');
+        return classes?.includes('bg-emerald-600') || false;
+      }, 5000);
       await expect(eventsLink).toHaveClass(/bg-emerald-600/);
     });
 
     test('should use emerald color scheme for active elements', async ({ page }) => {
       await page.getByRole('button', { name: 'Content' }).click();
+      await waitForStyles(page);
 
       const contentTab = page.getByRole('button', { name: 'Content' });
+      await waitForCondition(async () => {
+        const classes = await contentTab.getAttribute('class');
+        return classes?.includes('bg-emerald-50') && classes?.includes('text-emerald-700') || false;
+      }, 5000);
       await expect(contentTab).toHaveClass(/bg-emerald-50/);
       await expect(contentTab).toHaveClass(/text-emerald-700/);
     });
@@ -231,6 +278,7 @@ test.describe('Admin Navigation', () => {
     test.use({ viewport: { width: 375, height: 667 } });
 
     test('should display hamburger menu and hide desktop tabs', async ({ page }) => {
+      await waitForStyles(page);
       await expect(page.getByRole('button', { name: /open menu/i })).toBeVisible();
       await expect(page.getByRole('button', { name: 'Content' })).not.toBeVisible();
     });
@@ -282,19 +330,30 @@ test.describe('Admin Navigation', () => {
     test('should persist navigation state across page refreshes', async ({ page }) => {
       // Navigate to Budget
       await page.getByRole('button', { name: 'Logistics' }).click();
+      await waitForElementStable(page, page.getByRole('link', { name: 'Budget' }));
       await page.getByRole('link', { name: 'Budget' }).click();
       await page.waitForURL('/admin/budget');
+      await waitForStyles(page);
 
       // Reload page
       await page.reload();
+      await waitForStyles(page);
       await page.waitForSelector('nav[aria-label="Main navigation"]');
 
       // Verify Logistics tab is still active
       const logisticsTab = page.getByRole('button', { name: 'Logistics' });
+      await waitForCondition(async () => {
+        const classes = await logisticsTab.getAttribute('class');
+        return classes?.includes('bg-emerald-50') || false;
+      }, 5000);
       await expect(logisticsTab).toHaveClass(/bg-emerald-50/);
 
       // Verify Budget sub-item is still highlighted
       const budgetLink = page.getByRole('link', { name: 'Budget' });
+      await waitForCondition(async () => {
+        const classes = await budgetLink.getAttribute('class');
+        return classes?.includes('bg-emerald-600') || false;
+      }, 5000);
       await expect(budgetLink).toHaveClass(/bg-emerald-600/);
     });
 
@@ -302,15 +361,23 @@ test.describe('Admin Navigation', () => {
       await page.setViewportSize({ width: 375, height: 667 });
 
       await page.getByRole('button', { name: /open menu/i }).click();
+      await waitForElementStable(page, page.getByRole('button', { name: /logistics/i }));
       await page.getByRole('button', { name: /logistics/i }).click();
+      await waitForElementStable(page, page.getByRole('link', { name: 'Budget' }));
       await page.getByRole('link', { name: 'Budget' }).click();
       await page.waitForURL('/admin/budget');
+      await waitForStyles(page);
 
       // Open menu again
       await page.getByRole('button', { name: /open menu/i }).click();
+      await waitForStyles(page);
 
       // Verify Logistics tab is still active
       const logisticsTab = page.getByRole('button', { name: /logistics/i });
+      await waitForCondition(async () => {
+        const classes = await logisticsTab.getAttribute('class');
+        return classes?.includes('bg-emerald-50') || false;
+      }, 5000);
       await expect(logisticsTab).toHaveClass(/bg-emerald-50/);
     });
   });

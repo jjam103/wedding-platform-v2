@@ -1,0 +1,151 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - link "Skip to main content" [ref=e2] [cursor=pointer]:
+    - /url: "#main-content"
+  - link "Skip to main content" [ref=e3] [cursor=pointer]:
+    - /url: "#main-content"
+  - generic [ref=e4]:
+    - navigation "Main navigation" [ref=e5]:
+      - generic [ref=e7]:
+        - link "Admin" [ref=e8] [cursor=pointer]:
+          - /url: /admin
+          - text: 🌴Admin
+        - button "Content" [ref=e9]: 📝Content
+        - button "Guests" [ref=e10]: 👥Guests
+        - button "RSVPs" [ref=e11]: ✓RSVPs
+        - button "Logistics" [ref=e12]: 🚗Logistics
+        - button "Admin" [ref=e13]: ⚙️Admin
+    - banner [ref=e14]:
+      - generic [ref=e15]:
+        - heading "Wedding Admin" [level=1] [ref=e17]
+        - toolbar "User actions" [ref=e18]:
+          - button "Notifications (coming soon)" [ref=e19]: 🔔
+          - button "User menu" [ref=e21]:
+            - generic [ref=e22]: A
+            - text: Admin▼
+    - main [ref=e23]:
+      - generic [ref=e25]:
+        - generic [ref=e27]:
+          - heading "RSVP Management" [level=1] [ref=e28]
+          - paragraph [ref=e29]: View and manage all RSVPs across events and activities
+        - generic [ref=e30]:
+          - generic [ref=e31]:
+            - generic [ref=e32]:
+              - generic [ref=e33]: Total RSVPs
+              - generic [ref=e34]: "0"
+            - generic [ref=e35]:
+              - generic [ref=e36]: Attending
+              - generic [ref=e37]: "0"
+              - generic [ref=e38]: 0 total guests
+            - generic [ref=e39]:
+              - generic [ref=e40]: Declined
+              - generic [ref=e41]: "0"
+            - generic [ref=e42]:
+              - generic [ref=e43]: Maybe
+              - generic [ref=e44]: "0"
+            - generic [ref=e45]:
+              - generic [ref=e46]: Pending
+              - generic [ref=e47]: "0"
+          - status "Loading table":
+            - generic:
+              - generic:
+                - status "Loading content"
+                - status "Loading content"
+                - status "Loading content"
+                - status "Loading content"
+                - status "Loading content"
+                - status "Loading content"
+                - status "Loading content"
+            - generic:
+              - generic:
+                - status "Loading content"
+                - status "Loading content"
+                - status "Loading content"
+                - status "Loading content"
+                - status "Loading content"
+                - status "Loading content"
+                - status "Loading content"
+            - generic:
+              - generic:
+                - status "Loading content"
+                - status "Loading content"
+                - status "Loading content"
+                - status "Loading content"
+                - status "Loading content"
+                - status "Loading content"
+                - status "Loading content"
+            - generic:
+              - generic:
+                - status "Loading content"
+                - status "Loading content"
+                - status "Loading content"
+                - status "Loading content"
+                - status "Loading content"
+                - status "Loading content"
+                - status "Loading content"
+            - generic:
+              - generic:
+                - status "Loading content"
+                - status "Loading content"
+                - status "Loading content"
+                - status "Loading content"
+                - status "Loading content"
+                - status "Loading content"
+                - status "Loading content"
+            - generic:
+              - generic:
+                - status "Loading content"
+                - status "Loading content"
+                - status "Loading content"
+                - status "Loading content"
+                - status "Loading content"
+                - status "Loading content"
+                - status "Loading content"
+            - generic:
+              - generic:
+                - status "Loading content"
+                - status "Loading content"
+                - status "Loading content"
+                - status "Loading content"
+                - status "Loading content"
+                - status "Loading content"
+                - status "Loading content"
+            - generic:
+              - generic:
+                - status "Loading content"
+                - status "Loading content"
+                - status "Loading content"
+                - status "Loading content"
+                - status "Loading content"
+                - status "Loading content"
+                - status "Loading content"
+            - generic:
+              - generic:
+                - status "Loading content"
+                - status "Loading content"
+                - status "Loading content"
+                - status "Loading content"
+                - status "Loading content"
+                - status "Loading content"
+                - status "Loading content"
+            - generic:
+              - generic:
+                - status "Loading content"
+                - status "Loading content"
+                - status "Loading content"
+                - status "Loading content"
+                - status "Loading content"
+                - status "Loading content"
+                - status "Loading content"
+            - generic:
+              - generic:
+                - status "Loading content"
+                - status "Loading content"
+                - status "Loading content"
+                - status "Loading content"
+                - status "Loading content"
+                - status "Loading content"
+                - status "Loading content"
+```

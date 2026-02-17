@@ -1,0 +1,70 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - navigation [ref=e3]:
+      - generic [ref=e5]:
+        - link "Wedding Portal" [ref=e7] [cursor=pointer]:
+          - /url: /guest/dashboard
+        - generic [ref=e8]:
+          - link "Home" [ref=e9] [cursor=pointer]:
+            - /url: /guest/dashboard
+            - img [ref=e10]
+            - generic [ref=e13]: Home
+          - link "Events" [ref=e14] [cursor=pointer]:
+            - /url: /guest/events
+            - img [ref=e15]
+            - generic [ref=e17]: Events
+          - link "Activities" [ref=e18] [cursor=pointer]:
+            - /url: /guest/activities
+            - img [ref=e19]
+            - generic [ref=e21]: Activities
+          - link "Itinerary" [ref=e22] [cursor=pointer]:
+            - /url: /guest/itinerary
+            - img [ref=e23]
+            - generic [ref=e26]: Itinerary
+          - link "Photos" [ref=e27] [cursor=pointer]:
+            - /url: /guest/photos
+            - img [ref=e28]
+            - generic [ref=e31]: Photos
+          - button "Info" [ref=e33]:
+            - img [ref=e34]
+            - generic [ref=e36]: Info
+            - img [ref=e37]
+        - button "Log Out" [ref=e40]
+    - main [ref=e41]:
+      - generic [ref=e44]:
+        - generic [ref=e45]:
+          - heading "Activities" [level=1] [ref=e46]
+          - paragraph [ref=e47]: Browse all wedding activities and manage your participation
+        - generic [ref=e48]:
+          - heading "Filter Activities" [level=2] [ref=e49]
+          - generic [ref=e50]:
+            - generic [ref=e51]:
+              - generic [ref=e52]: Activity Type
+              - combobox "Activity Type" [ref=e53]:
+                - option "All Types" [selected]
+                - option "Ceremony"
+                - option "Reception"
+                - option "Meal"
+                - option "Transport"
+                - option "Activity"
+                - option "Other"
+            - generic [ref=e54]:
+              - generic [ref=e55]: From Date
+              - textbox "From Date" [ref=e56]
+            - generic [ref=e57]:
+              - generic [ref=e58]: To Date
+              - textbox "To Date" [ref=e59]
+            - button "Clear Filters" [ref=e61]
+        - paragraph [ref=e63]: No activities found. Check back later for updates!
+  - button "Open Next.js Dev Tools" [ref=e69] [cursor=pointer]:
+    - generic [ref=e72]:
+      - text: Compiling
+      - generic [ref=e73]:
+        - generic [ref=e74]: .
+        - generic [ref=e75]: .
+        - generic [ref=e76]: .
+  - alert [ref=e77]
+```

@@ -1,0 +1,122 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - button "Open Next.js Dev Tools" [ref=e7] [cursor=pointer]:
+    - generic [ref=e10]:
+      - text: Compiling
+      - generic [ref=e11]:
+        - generic [ref=e12]: .
+        - generic [ref=e13]: .
+        - generic [ref=e14]: .
+  - link "Skip to main content" [ref=e15] [cursor=pointer]:
+    - /url: "#main-content"
+  - link "Skip to main content" [ref=e16] [cursor=pointer]:
+    - /url: "#main-content"
+  - generic [ref=e17]:
+    - navigation "Main navigation" [ref=e18]:
+      - generic [ref=e20]:
+        - generic [ref=e21]:
+          - generic [ref=e22]: 🌴
+          - generic [ref=e23]: Admin
+        - button "Open menu" [ref=e24]:
+          - generic [ref=e25]: ☰
+    - banner [ref=e26]:
+      - toolbar "User actions" [ref=e28]:
+        - button "Notifications (coming soon)" [ref=e29]: 🔔
+        - button "User menu" [ref=e31]:
+          - generic [ref=e32]: A
+          - generic [ref=e33]: ▼
+    - main [ref=e34]:
+      - generic [ref=e36]:
+        - generic [ref=e37]:
+          - button "👥 0 Total Guests" [ref=e38]:
+            - generic [ref=e39]:
+              - generic [ref=e40]: 👥
+              - generic [ref=e41]: "0"
+            - heading "Total Guests" [level=3] [ref=e42]
+          - button "✉️ 0.0% RSVP Response Rate" [ref=e43]:
+            - generic [ref=e44]:
+              - generic [ref=e45]: ✉️
+              - generic [ref=e46]: 0.0%
+            - heading "RSVP Response Rate" [level=3] [ref=e47]
+          - button "💰 $0 Total Budget" [ref=e48]:
+            - generic [ref=e49]:
+              - generic [ref=e50]: 💰
+              - generic [ref=e51]: $0
+            - heading "Total Budget" [level=3] [ref=e52]
+          - button "📅 0 Upcoming Events" [ref=e53]:
+            - generic [ref=e54]:
+              - generic [ref=e55]: 📅
+              - generic [ref=e56]: "0"
+            - heading "Upcoming Events" [level=3] [ref=e57]
+          - button "📸 0 Pending Photos" [ref=e58]:
+            - generic [ref=e59]:
+              - generic [ref=e60]: 📸
+              - generic [ref=e61]: "0"
+            - heading "Pending Photos" [level=3] [ref=e62]
+          - button "⚠️ 0 Capacity Alerts" [ref=e63]:
+            - generic [ref=e64]:
+              - generic [ref=e65]: ⚠️
+              - generic [ref=e66]: "0"
+            - heading "Capacity Alerts" [level=3] [ref=e67]
+        - generic [ref=e68]:
+          - heading "Quick Actions" [level=2] [ref=e69]
+          - generic [ref=e70]:
+            - button "Add Guest" [ref=e71]:
+              - generic [ref=e72]: 👤
+              - generic [ref=e73]: Add Guest
+            - button "Create Event" [ref=e74]:
+              - generic [ref=e75]: 📅
+              - generic [ref=e76]: Create Event
+            - button "Add Activity" [ref=e77]:
+              - generic [ref=e78]: 🎯
+              - generic [ref=e79]: Add Activity
+            - button "Manage Vendors" [ref=e80]:
+              - generic [ref=e81]: 🤝
+              - generic [ref=e82]: Manage Vendors
+            - button "View RSVPs" [ref=e83]:
+              - generic [ref=e84]: ✉️
+              - generic [ref=e85]: View RSVPs
+            - button "Moderate Photos" [ref=e86]:
+              - generic [ref=e87]: 📸
+              - generic [ref=e88]: Moderate Photos
+        - generic [ref=e89]:
+          - generic [ref=e90]:
+            - heading "Recent Activity" [level=3] [ref=e91]
+            - generic [ref=e92]:
+              - generic [ref=e93]:
+                - generic [ref=e94]: 👤
+                - generic [ref=e95]:
+                  - paragraph [ref=e96]: "New guest added: John Doe"
+                  - paragraph [ref=e97]: 5 minutes ago
+              - generic [ref=e98]:
+                - generic [ref=e99]: ✉️
+                - generic [ref=e100]:
+                  - paragraph [ref=e101]: RSVP received from Jane Smith
+                  - paragraph [ref=e102]: 15 minutes ago
+              - generic [ref=e103]:
+                - generic [ref=e104]: 📸
+                - generic [ref=e105]:
+                  - paragraph [ref=e106]: 3 new photos pending moderation
+                  - paragraph [ref=e107]: 1 hour ago
+          - generic [ref=e108]:
+            - heading "Upcoming Deadlines" [level=3] [ref=e109]
+            - generic [ref=e110]:
+              - generic [ref=e111]:
+                - generic [ref=e112]:
+                  - paragraph [ref=e113]: RSVP Deadline
+                  - paragraph [ref=e114]: March 15, 2025
+                - generic [ref=e115]: 48 days
+              - generic [ref=e116]:
+                - generic [ref=e117]:
+                  - paragraph [ref=e118]: Final Payment Due
+                  - paragraph [ref=e119]: April 1, 2025
+                - generic [ref=e120]: 65 days
+              - generic [ref=e121]:
+                - generic [ref=e122]:
+                  - paragraph [ref=e123]: Menu Selection
+                  - paragraph [ref=e124]: March 20, 2025
+                - generic [ref=e125]: 53 days
+  - alert [ref=e126]
+```

@@ -3,12 +3,12 @@ import type { UpdateSystemSettingsDTO } from '@/schemas/settingsSchemas';
 
 // Mock Supabase lib
 const mockSupabase = {
-  from: jest.fn().mockReturnThis(),
-  select: jest.fn().mockReturnThis(),
-  insert: jest.fn().mockReturnThis(),
-  update: jest.fn().mockReturnThis(),
-  eq: jest.fn().mockReturnThis(),
-  single: jest.fn(),
+  from: (jest.fn() as any).mockReturnThis(),
+  select: (jest.fn() as any).mockReturnThis(),
+  insert: (jest.fn() as any).mockReturnThis(),
+  update: (jest.fn() as any).mockReturnThis(),
+  eq: (jest.fn() as any).mockReturnThis(),
+  single: (jest.fn() as any),
 };
 
 jest.mock('../lib/supabase', () => ({
@@ -145,23 +145,23 @@ describe('settingsService', () => {
         error: null,
       });
 
-      const result = await settingsService.updateSettings(validUpdateData);
+      const result = await settingsService.updateSetting('wedding_date', validUpdateData.wedding_date);
 
       expect(result.success).toBe(true);
       if (result.success) {
         expect(result.data.id).toBe('settings-1');
-        expect(result.data.wedding_date).toBe('2024-06-15T00:00:00Z');
-        expect(result.data.venue_name).toBe('Dreams Las Mareas');
+        expect(result.data.value).toBe('2024-06-15T00:00:00Z');
       }
 
-      expect(mockSupabase.update).toHaveBeenCalledWith(validUpdateData);
-      expect(mockSupabase.eq).toHaveBeenCalledWith('id', 'settings-1');
+      expect(mockSupabase.update).toHaveBeenCalled();
+      expect(mockSupabase.eq).toHaveBeenCalledWith('key', 'wedding_date');
     });
 
     it('should return success with created settings when no existing settings', async () => {
       const createdSettings = {
         id: 'settings-1',
-        ...validUpdateData,
+        key: 'wedding_date',
+        value: validUpdateData.wedding_date,
         created_at: '2024-01-01T00:00:00Z',
         updated_at: '2024-01-01T00:00:00Z',
       };
@@ -178,7 +178,7 @@ describe('settingsService', () => {
         error: null,
       });
 
-      const result = await settingsService.updateSettings(validUpdateData);
+      const result = await settingsService.updateSetting('wedding_date', validUpdateData.wedding_date);
 
       expect(result.success).toBe(true);
       if (result.success) {

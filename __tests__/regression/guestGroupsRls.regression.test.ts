@@ -37,7 +37,7 @@ describe('Guest Groups RLS Regression Tests', () => {
       const groupData = createTestGuestGroup();
       
       const { data, error } = await client
-        .from('guest_groups')
+        .from('groups')
         .insert(groupData)
         .select()
         .single();
@@ -60,14 +60,14 @@ describe('Guest Groups RLS Regression Tests', () => {
       // Create guest group
       const groupData = createTestGuestGroup();
       const { data: createdGroup } = await client
-        .from('guest_groups')
+        .from('groups')
         .insert(groupData)
         .select()
         .single();
       
       // Read guest groups with real auth
       const { data, error } = await client
-        .from('guest_groups')
+        .from('groups')
         .select('*')
         .eq('id', createdGroup.id)
         .single();
@@ -85,14 +85,14 @@ describe('Guest Groups RLS Regression Tests', () => {
       // Create guest group
       const groupData = createTestGuestGroup();
       const { data: createdGroup } = await client
-        .from('guest_groups')
+        .from('groups')
         .insert(groupData)
         .select()
         .single();
       
       // Update guest group with real auth
       const { data, error } = await client
-        .from('guest_groups')
+        .from('groups')
         .update({ name: 'Updated Name', description: 'Updated description' })
         .eq('id', createdGroup.id)
         .select()
@@ -112,14 +112,14 @@ describe('Guest Groups RLS Regression Tests', () => {
       // Create guest group
       const groupData = createTestGuestGroup();
       const { data: createdGroup } = await client
-        .from('guest_groups')
+        .from('groups')
         .insert(groupData)
         .select()
         .single();
       
       // Delete guest group with real auth
       const { error } = await client
-        .from('guest_groups')
+        .from('groups')
         .delete()
         .eq('id', createdGroup.id);
       
@@ -127,7 +127,7 @@ describe('Guest Groups RLS Regression Tests', () => {
       
       // Verify deletion
       const { data: deletedGroup } = await client
-        .from('guest_groups')
+        .from('groups')
         .select('*')
         .eq('id', createdGroup.id)
         .single();
@@ -147,11 +147,11 @@ describe('Guest Groups RLS Regression Tests', () => {
         createTestGuestGroup({ name: 'Group 3' }),
       ];
       
-      await client.from('guest_groups').insert(groups);
+      await client.from('groups').insert(groups);
       
       // List all guest groups with real auth
       const { data, error } = await client
-        .from('guest_groups')
+        .from('groups')
         .select('*')
         .order('created_at', { ascending: false });
       
@@ -168,7 +168,7 @@ describe('Guest Groups RLS Regression Tests', () => {
       // Create multiple groups concurrently
       const groupPromises = Array.from({ length: 5 }, (_, i) => 
         client
-          .from('guest_groups')
+          .from('groups')
           .insert(createTestGuestGroup({ name: `Concurrent Group ${i}` }))
           .select()
           .single()
@@ -193,7 +193,7 @@ describe('Guest Groups RLS Regression Tests', () => {
       // User 1 creates a guest group
       const groupData = createTestGuestGroup();
       const { data: createdGroup } = await client1
-        .from('guest_groups')
+        .from('groups')
         .insert(groupData)
         .select()
         .single();
@@ -201,7 +201,7 @@ describe('Guest Groups RLS Regression Tests', () => {
       // User 2 should be able to see the group (guest groups are shared)
       // This tests that RLS policies are correctly configured
       const { data, error } = await client2
-        .from('guest_groups')
+        .from('groups')
         .select('*')
         .eq('id', createdGroup.id)
         .single();
@@ -230,7 +230,7 @@ describe('Guest Groups RLS Regression Tests', () => {
  * 
  * This test explicitly:
  * - Uses real authentication (not service role)
- * - Tests all CRUD operations on guest_groups table
+ * - Tests all CRUD operations on groups table
  * - Validates no RLS errors occur
  * - Tests concurrent operations to catch race conditions
  * - Tests multi-user scenarios to validate RLS policies

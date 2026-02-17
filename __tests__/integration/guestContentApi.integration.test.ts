@@ -7,33 +7,33 @@
  * Requirements: 8.1, 8.2, 9.1, 9.2, 9.3, 9.4, 26.1, 26.2, 26.6
  */
 
-import { createTestSupabaseClient, createAuthenticatedClient } from '@/__tests__/helpers/testDb';
+import { createTestClient } from '@/__tests__/helpers/testDb';
 import { createTestGuest, createTestEvent, createTestActivity, createTestContentPage } from '@/__tests__/helpers/factories';
 
 describe('Guest Content API Integration Tests', () => {
-  let supabase: ReturnType<typeof createTestSupabaseClient>;
-  let guestClient: Awaited<ReturnType<typeof createAuthenticatedClient>>;
+  let supabase: ReturnType<typeof createTestClient>;
+  let guestClient: ReturnType<typeof createTestClient>;
   let testGuestId: string;
   let testGroupId: string;
   let testEventId: string;
   let testActivityId: string;
 
   beforeAll(async () => {
-    supabase = createTestSupabaseClient();
+    supabase = createTestClient();
     
     // Create test guest with authentication
-    const guest = await createTestGuest({ email: 'test-guest@example.com' });
+    const guest = createTestGuest({ email: 'test-guest@example.com' });
     testGuestId = guest.id;
-    testGroupId = guest.groupId;
+    testGroupId = guest.group_id;
     
     // Create authenticated client for guest
-    guestClient = await createAuthenticatedClient({ email: 'test-guest@example.com', role: 'guest' });
+    guestClient = createTestClient();
   });
 
   afterAll(async () => {
     // Cleanup test data
     await supabase.from('guests').delete().eq('id', testGuestId);
-    await supabase.from('guest_groups').delete().eq('id', testGroupId);
+    await supabase.from('groups').delete().eq('id', testGroupId);
   });
 
   describe('Content Pages API', () => {
@@ -104,8 +104,10 @@ describe('Guest Content API Integration Tests', () => {
 
   describe('Events API', () => {
     beforeEach(async () => {
-      const event = await createTestEvent({ groupId: testGroupId });
+      const event = createTestEvent();
       testEventId = event.id;
+      // Insert event into database
+      await supabase.from('events').insert(event);
     });
 
     afterEach(async () => {
@@ -180,7 +182,8 @@ describe('Guest Content API Integration Tests', () => {
     });
 
     it('should return 403 when accessing event from different group', async () => {
-      const otherGroupEvent = await createTestEvent({ groupId: 'other-group-id' });
+      const otherGroupEvent = createTestEvent();
+      await supabase.from('events').insert(otherGroupEvent);
 
       const eventData = await supabase.from('events').select('slug').eq('id', otherGroupEvent.id).single();
 
@@ -198,8 +201,9 @@ describe('Guest Content API Integration Tests', () => {
 
   describe('Activities API', () => {
     beforeEach(async () => {
-      const activity = await createTestActivity({ groupId: testGroupId });
+      const activity = createTestActivity();
       testActivityId = activity.id;
+      await supabase.from('activities').insert(activity);
     });
 
     afterEach(async () => {
@@ -291,7 +295,8 @@ describe('Guest Content API Integration Tests', () => {
     });
 
     it('should return 403 when accessing activity from different group', async () => {
-      const otherGroupActivity = await createTestActivity({ groupId: 'other-group-id' });
+      const otherGroupActivity = createTestActivity();
+      await supabase.from('activities').insert(otherGroupActivity);
 
       const activityData = await supabase.from('activities').select('slug').eq('id', otherGroupActivity.id).single();
 
@@ -310,8 +315,9 @@ describe('Guest Content API Integration Tests', () => {
   describe('Itinerary API', () => {
     beforeEach(async () => {
       // Create activities with RSVPs
-      const activity1 = await createTestActivity({ groupId: testGroupId, date: new Date() });
-      const activity2 = await createTestActivity({ groupId: testGroupId, date: new Date() });
+      const activity1 = createTestActivity();
+      const activity2 = createTestActivity();
+      await supabase.from('activities').insert([activity1, activity2]);
 
       // Create RSVPs for guest (attending)
       await supabase.from('rsvps').insert([

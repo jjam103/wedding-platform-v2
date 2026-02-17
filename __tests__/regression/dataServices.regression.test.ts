@@ -131,7 +131,7 @@ describe('Regression: Data Service Operations', () => {
     const validEvent = {
       name: 'Wedding Ceremony',
       eventType: 'ceremony' as const,
-      startDate: new Date('2025-06-15T14:00:00Z'),
+      startDate: '2025-06-15T14:00:00Z',
       rsvpRequired: true,
       visibility: ['wedding_party', 'wedding_guest'],
       status: 'published' as const,
@@ -164,7 +164,7 @@ describe('Regression: Data Service Operations', () => {
         error: null,
       });
 
-      const result = await eventService.checkSchedulingConflict(
+      const result = await eventService.checkSchedulingConflicts(
         conflictingEvent
       );
 
@@ -179,7 +179,7 @@ describe('Regression: Data Service Operations', () => {
     const validActivity = {
       name: 'Beach Volleyball',
       activityType: 'activity' as const,
-      startTime: new Date('2025-06-16T10:00:00Z'),
+      startTime: '2025-06-16T10:00:00Z',
       capacity: 20,
       costPerPerson: 25,
       hostSubsidy: 10,
@@ -222,11 +222,11 @@ describe('Regression: Data Service Operations', () => {
 
   describe('RSVP Service CRUD', () => {
     const validRSVP = {
-      guestId: 'guest-1',
-      eventId: 'event-1',
+      guest_id: 'guest-1',
+      event_id: 'event-1',
       status: 'attending' as const,
-      guestCount: 2,
-      dietaryNotes: 'Vegetarian',
+      guest_count: 2,
+      dietary_notes: 'Vegetarian',
     };
 
     it('should create RSVP with valid data', async () => {

@@ -1,0 +1,293 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e1]:
+  - link "Skip to main content" [ref=e2] [cursor=pointer]:
+    - /url: "#main-content"
+  - link "Skip to main content" [ref=e3] [cursor=pointer]:
+    - /url: "#main-content"
+  - generic [ref=e4]:
+    - navigation "Main navigation" [ref=e5]:
+      - generic [ref=e6]:
+        - generic [ref=e7]:
+          - link "Admin" [ref=e8] [cursor=pointer]:
+            - /url: /admin
+            - generic [ref=e9]: 🌴
+            - generic [ref=e10]: Admin
+          - button "Content" [ref=e11]:
+            - generic [ref=e12]: 📝
+            - generic [ref=e13]: Content
+          - button "Guests" [expanded] [ref=e14]:
+            - generic [ref=e15]: 👥
+            - generic [ref=e16]: Guests
+          - button "RSVPs" [ref=e17]:
+            - generic [ref=e18]: ✓
+            - generic [ref=e19]: RSVPs
+          - button "Logistics" [ref=e20]:
+            - generic [ref=e21]: 🚗
+            - generic [ref=e22]: Logistics
+          - button "Admin" [ref=e23]:
+            - generic [ref=e24]: ⚙️
+            - generic [ref=e25]: Admin
+        - tabpanel [ref=e26]:
+          - link "Guest List" [ref=e27] [cursor=pointer]:
+            - /url: /admin/guests
+          - link "Guest Groups" [ref=e28] [cursor=pointer]:
+            - /url: /admin/guest-groups
+          - link "Import/Export" [ref=e29] [cursor=pointer]:
+            - /url: /admin/guests/import-export
+    - banner [ref=e30]:
+      - generic [ref=e31]:
+        - heading "Wedding Admin" [level=1] [ref=e33]
+        - toolbar "User actions" [ref=e34]:
+          - link "Preview guest portal in new tab" [ref=e35] [cursor=pointer]:
+            - /url: /
+            - generic [ref=e36]: 👁️
+            - generic [ref=e37]: Preview Guest Portal
+          - button "Notifications (coming soon)" [ref=e38]: 🔔
+          - button "User menu" [ref=e40]:
+            - generic [ref=e41]: A
+            - generic [ref=e42]: Admin
+            - generic [ref=e43]: ▼
+    - main [ref=e44]:
+      - generic [ref=e46]:
+        - generic [ref=e47]:
+          - generic [ref=e48]:
+            - heading "Guest Management" [level=1] [ref=e49]
+            - paragraph [ref=e50]: Manage your wedding guest list and groups
+          - generic [ref=e51]:
+            - button "Import guests from CSV" [ref=e53] [cursor=pointer]: Import CSV
+            - button "Export guests to CSV" [ref=e54] [cursor=pointer]: Export CSV
+        - generic [ref=e55]:
+          - button "Manage Groups 0 groups • Click to collapse" [expanded] [ref=e56]:
+            - generic [ref=e57]:
+              - heading "Manage Groups" [level=2] [ref=e58]
+              - paragraph [ref=e59]: 0 groups • Click to collapse
+            - generic [ref=e60]: ▼
+          - generic [ref=e62]:
+            - heading "Add New Group" [level=3] [ref=e63]
+            - generic [ref=e64]:
+              - generic [ref=e65]:
+                - generic [ref=e66]: Group Name *
+                - textbox "Group Name *" [active] [ref=e67]:
+                  - /placeholder: e.g., Smith Family, Bride's Friends
+              - generic [ref=e68]:
+                - generic [ref=e69]: Description
+                - textbox "Description" [ref=e70]:
+                  - /placeholder: Optional description of the group
+              - button "Create Group" [ref=e72]
+        - generic [ref=e73]:
+          - button "Add Guest" [ref=e74]:
+            - generic [ref=e75]: Add Guest
+            - generic [ref=e76]: ▼
+          - generic [ref=e77]:
+            - generic [ref=e78]:
+              - generic [ref=e79]:
+                - generic [ref=e80]: Group*
+                - combobox [ref=e81]
+              - generic [ref=e82]:
+                - generic [ref=e83]: First Name*
+                - textbox [ref=e84]:
+                  - /placeholder: Enter first name
+              - generic [ref=e85]:
+                - generic [ref=e86]: Last Name*
+                - textbox [ref=e87]:
+                  - /placeholder: Enter last name
+              - generic [ref=e88]:
+                - generic [ref=e89]: Email
+                - textbox [ref=e90]:
+                  - /placeholder: Enter email address
+              - generic [ref=e91]:
+                - generic [ref=e92]: Phone
+                - textbox [ref=e93]:
+                  - /placeholder: Enter phone number
+              - generic [ref=e94]:
+                - generic [ref=e95]: Age Type*
+                - combobox [ref=e96]
+              - generic [ref=e97]:
+                - generic [ref=e98]: Guest Type*
+                - combobox [ref=e99]
+              - generic [ref=e101]:
+                - generic [ref=e102]: Dietary Restrictions
+                - textbox [ref=e103]:
+                  - /placeholder: Enter any dietary restrictions
+              - generic [ref=e104]:
+                - generic [ref=e105]: Arrival Date
+                - textbox [ref=e106]
+              - generic [ref=e107]:
+                - generic [ref=e108]: Departure Date
+                - textbox [ref=e109]
+              - generic [ref=e110]:
+                - generic [ref=e111]: Airport
+                - combobox [ref=e112]
+              - generic [ref=e113]:
+                - generic [ref=e114]: Flight Number
+                - textbox [ref=e115]:
+                  - /placeholder: Enter flight number
+              - generic [ref=e116]:
+                - generic [ref=e117]: Plus-One Name
+                - textbox [ref=e118]:
+                  - /placeholder: Enter plus-one name
+              - generic [ref=e120]:
+                - generic [ref=e121]: Notes
+                - textbox [ref=e122]:
+                  - /placeholder: Enter any additional notes
+            - generic [ref=e123]:
+              - button [ref=e124]: Create
+              - button [ref=e125]: Cancel
+        - generic [ref=e126]:
+          - heading "Search & Filters" [level=2] [ref=e127]
+          - generic [ref=e128]:
+            - generic [ref=e129]: Search Guests
+            - textbox "Search Guests" [ref=e130]:
+              - /placeholder: Search by name, email, or phone...
+          - generic [ref=e131]:
+            - generic [ref=e132]:
+              - generic [ref=e133]: RSVP Status
+              - combobox "RSVP Status" [ref=e134]:
+                - option "All" [selected]
+                - option "Pending"
+                - option "Attending"
+                - option "Declined"
+                - option "Maybe"
+            - generic [ref=e135]:
+              - generic [ref=e136]: Activity
+              - combobox "Activity" [ref=e137]:
+                - option "All" [selected]
+                - option "Test Beach Volleyball"
+                - option "E2E Test Activity"
+                - option "E2E Test Activity"
+                - option "E2E Test Activity"
+                - option "E2E Test Activity"
+                - option "E2E Test Activity"
+                - option "E2E Test Activity"
+                - option "E2E Test Activity"
+                - option "E2E Test Activity"
+                - option "E2E Test Activity"
+                - option "E2E Test Activity"
+                - option "E2E Test Activity"
+                - option "E2E Test Activity"
+                - option "E2E Test Activity"
+                - option "E2E Test Activity"
+                - option "E2E Test Activity"
+                - option "E2E Test Activity"
+                - option "E2E Test Activity"
+                - option "E2E Test Activity"
+                - option "E2E Test Activity"
+                - option "E2E Test Activity"
+                - option "E2E Test Activity"
+                - option "E2E Test Activity"
+                - option "E2E Test Activity"
+                - option "Duplicate Activity Name"
+                - option "Duplicate Activity Name"
+                - option "Duplicate Activity Name"
+                - option "Duplicate Activity Name"
+                - option "Duplicate Activity Name"
+                - option "Duplicate Activity Name"
+                - option "Duplicate Activity Name"
+                - option "Duplicate Activity Name"
+                - option "Duplicate Activity Name"
+                - option "Duplicate Activity Name"
+                - option "Duplicate Activity Name"
+                - option "Duplicate Activity Name"
+                - option "Duplicate Activity Name"
+                - option "Duplicate Activity Name"
+                - option "Duplicate Activity Name"
+                - option "Duplicate Activity Name"
+            - generic [ref=e138]:
+              - generic [ref=e139]: Transportation
+              - combobox "Transportation" [ref=e140]:
+                - option "All" [selected]
+                - option "Has Transportation"
+                - option "No Transportation"
+            - generic [ref=e141]:
+              - generic [ref=e142]: Age Group
+              - combobox "Age Group" [ref=e143]:
+                - option "All" [selected]
+                - option "Adult"
+                - option "Child"
+                - option "Senior"
+            - generic [ref=e144]:
+              - generic [ref=e145]: Airport
+              - combobox "Airport" [ref=e146]:
+                - option "All" [selected]
+                - option "SJO (San José)"
+                - option "LIR (Liberia)"
+                - option "Other"
+          - generic [ref=e147]:
+            - generic [ref=e148]: Group By
+            - combobox "Group By" [ref=e149]:
+              - option "None" [selected]
+              - option "Group"
+              - option "Guest Type"
+              - option "Age Type"
+              - option "Airport"
+          - button "Clear All Filters" [ref=e151] [cursor=pointer]
+        - generic [ref=e152]:
+          - generic [ref=e154]:
+            - group "Filter controls" [ref=e155]:
+              - generic [ref=e156]:
+                - generic [ref=e157]: Filter by Group
+                - combobox "Filter by Group" [ref=e158]:
+                  - option "All Group" [selected]
+              - generic [ref=e159]:
+                - generic [ref=e160]: Filter by Guest Type
+                - combobox "Filter by Guest Type" [ref=e161]:
+                  - option "All Guest Type" [selected]
+                  - option "Wedding Party"
+                  - option "Wedding Guest"
+                  - option "Pre-wedding Only"
+                  - option "Post-wedding Only"
+              - generic [ref=e162]:
+                - generic [ref=e163]: Filter by Age Type
+                - combobox "Filter by Age Type" [ref=e164]:
+                  - option "All Age Type" [selected]
+                  - option "Adult"
+                  - option "Child"
+                  - option "Senior"
+            - button "Export guests to CSV" [ref=e166] [cursor=pointer]: Export
+          - table "guests data table" [ref=e169]:
+            - rowgroup [ref=e170]:
+              - row "Select all rows First Name Last Name Email Group Guest Type Age Type Airport Actions" [ref=e171]:
+                - columnheader "Select all rows" [ref=e172]:
+                  - checkbox "Select all rows" [ref=e173]
+                - columnheader [ref=e174]
+                - columnheader "First Name" [ref=e175] [cursor=pointer]:
+                  - generic [ref=e177]: First Name
+                - columnheader "Last Name" [ref=e178] [cursor=pointer]:
+                  - generic [ref=e180]: Last Name
+                - columnheader "Email" [ref=e181] [cursor=pointer]:
+                  - generic [ref=e183]: Email
+                - columnheader "Group" [ref=e184] [cursor=pointer]:
+                  - generic [ref=e186]: Group
+                - columnheader "Guest Type" [ref=e187] [cursor=pointer]:
+                  - generic [ref=e189]: Guest Type
+                - columnheader "Age Type" [ref=e190] [cursor=pointer]:
+                  - generic [ref=e192]: Age Type
+                - columnheader "Airport" [ref=e193] [cursor=pointer]:
+                  - generic [ref=e195]: Airport
+                - columnheader "Actions" [ref=e196]
+            - rowgroup [ref=e197]:
+              - row "Select row 1 Expand RSVPs Debug User debug.1770917882447@example.com - Wedding Guest Adult - Delete guest 1" [ref=e198] [cursor=pointer]:
+                - cell "Select row 1" [ref=e199]:
+                  - checkbox "Select row 1" [ref=e200]
+                - cell "Expand RSVPs" [ref=e201]:
+                  - button "Expand RSVPs" [ref=e202]: ▶
+                - cell "Debug" [ref=e203]
+                - cell "User" [ref=e204]
+                - cell "debug.1770917882447@example.com" [ref=e205]
+                - cell "-" [ref=e206]
+                - cell "Wedding Guest" [ref=e207]
+                - cell "Adult" [ref=e208]
+                - cell "-" [ref=e209]
+                - cell "Delete guest 1" [ref=e210]:
+                  - button "Delete guest 1" [ref=e211]: Delete
+  - button "Open Next.js Dev Tools" [ref=e217] [cursor=pointer]:
+    - generic [ref=e220]:
+      - text: Rendering
+      - generic [ref=e221]:
+        - generic [ref=e222]: .
+        - generic [ref=e223]: .
+        - generic [ref=e224]: .
+  - alert [ref=e225]
+```

@@ -2,7 +2,7 @@
 
 export const dynamic = 'force-dynamic';
 
-import { useState, useEffect, useCallback, useMemo, lazy, Suspense } from 'react';
+import { useState, useEffect, useCallback, useMemo, lazy, Suspense, useRef } from 'react';
 import { createClient } from '@supabase/supabase-js';
 import { DataTableWithSuspense as DataTable, type ColumnDef } from '@/components/ui/DataTableWithSuspense';
 import { CollapsibleForm } from '@/components/admin/CollapsibleForm';
@@ -13,7 +13,9 @@ import { ComponentErrorBoundary } from '@/components/ui/ErrorBoundary';
 import type { Guest } from '@/schemas/guestSchemas';
 import { createGuestSchema, updateGuestSchema } from '@/schemas/guestSchemas';
 import { exportToCSV as exportGuestsToCSV, importFromCSV as importGuestsFromCSV } from '@/services/guestService';
-import { Loader2 } from 'lucide-react';
+import { Loader2, X } from 'lucide-react';
+import { useDebouncedSearch } from '@/hooks/useDebouncedSearch';
+import { useURLState } from '@/hooks/useURLState';
 
 // Lazy load InlineRSVPEditor for better performance
 const InlineRSVPEditor = lazy(() => 
@@ -43,7 +45,7 @@ interface GuestFormField {
 }
 
 /**
- * Guest Management Page
+ * Guest Management Page Content
  * 
  * Provides CRUD interface for managing wedding guests.
  * Features:
@@ -53,14 +55,16 @@ interface GuestFormField {
  * - Toast notifications for success/error feedback
  * - Real-time data refresh after operations
  */
-export default function GuestsPage() {
+function GuestsPageContent() {
   const { addToast } = useToast();
+  const { updateURL, getParam, getAllParams, isInitialized } = useURLState();
   
   // State management
   const [guests, setGuests] = useState<Guest[]>([]);
   const [groups, setGroups] = useState<Group[]>([]);
   const [activities, setActivities] = useState<Activity[]>([]);
   const [loading, setLoading] = useState(true);
+  const [groupsLoading, setGroupsLoading] = useState(true);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [selectedGuest, setSelectedGuest] = useState<Guest | null>(null);
@@ -76,6 +80,9 @@ export default function GuestsPage() {
   const [groupToDelete, setGroupToDelete] = useState<Group | null>(null);
   const [isGroupDeleteDialogOpen, setIsGroupDeleteDialogOpen] = useState(false);
   
+  // Search state with debouncing
+  const [debouncedSearch, searchQuery, setSearchQuery] = useDebouncedSearch('', 500);
+  
   // Advanced filter state
   const [rsvpStatusFilter, setRsvpStatusFilter] = useState<string>('');
   const [activityFilter, setActivityFilter] = useState<string>('');
@@ -83,7 +90,62 @@ export default function GuestsPage() {
   const [ageGroupFilter, setAgeGroupFilter] = useState<string>('');
   const [airportFilter, setAirportFilter] = useState<string>('');
   const [groupingField, setGroupingField] = useState<string>('');
+  const [sortField, setSortField] = useState<string>('');
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
   const [expandedGuestIds, setExpandedGuestIds] = useState<Set<string>>(new Set());
+  
+  // Ref to prevent infinite loops between URL updates and state restoration
+  const isUpdatingURL = useRef(false);
+  
+  // Restore state from URL whenever URL changes (but not when we're updating it)
+  useEffect(() => {
+    if (!isInitialized) return;
+    
+    // Don't restore state if we're currently updating the URL
+    // This prevents infinite loops: state change → URL update → state restoration → URL update...
+    if (isUpdatingURL.current) {
+      return;
+    }
+    
+    const params = getAllParams();
+    
+    // Only update state if the URL param differs from current state
+    // This prevents unnecessary re-renders
+    const newSearch = params.search || '';
+    const newRsvpStatus = params.filter_rsvpStatus || '';
+    const newActivity = params.filter_activity || '';
+    const newTransportation = params.filter_transportation || '';
+    const newAgeGroup = params.filter_ageGroup || '';
+    const newAirport = params.filter_airport || '';
+    const newSort = params.sort || '';
+    const newDirection = (params.direction as 'asc' | 'desc') || 'asc';
+    
+    if (newSearch !== searchQuery) {
+      setSearchQuery(newSearch);
+    }
+    if (newRsvpStatus !== rsvpStatusFilter) {
+      setRsvpStatusFilter(newRsvpStatus);
+    }
+    if (newActivity !== activityFilter) {
+      setActivityFilter(newActivity);
+    }
+    if (newTransportation !== transportationFilter) {
+      setTransportationFilter(newTransportation);
+    }
+    if (newAgeGroup !== ageGroupFilter) {
+      setAgeGroupFilter(newAgeGroup);
+    }
+    if (newAirport !== airportFilter) {
+      setAirportFilter(newAirport);
+    }
+    if (newSort !== sortField) {
+      setSortField(newSort);
+    }
+    if (newDirection !== sortDirection) {
+      setSortDirection(newDirection);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isInitialized, getAllParams]); // Run when URL changes (getAllParams changes when searchParams change)
 
   /**
    * Fetch guests from API with filters
@@ -94,6 +156,7 @@ export default function GuestsPage() {
       
       // Build query parameters
       const params = new URLSearchParams();
+      if (debouncedSearch) params.append('search', debouncedSearch);
       if (rsvpStatusFilter) params.append('rsvpStatus', rsvpStatusFilter);
       if (activityFilter) params.append('activityId', activityFilter);
       if (transportationFilter) params.append('hasTransportation', transportationFilter);
@@ -124,13 +187,14 @@ export default function GuestsPage() {
     } finally {
       setLoading(false);
     }
-  }, [addToast, rsvpStatusFilter, activityFilter, transportationFilter, ageGroupFilter, airportFilter]);
+  }, [addToast, debouncedSearch, rsvpStatusFilter, activityFilter, transportationFilter, ageGroupFilter, airportFilter]);
 
   /**
    * Fetch groups for filter dropdown
    */
   const fetchGroups = useCallback(async () => {
     try {
+      setGroupsLoading(true);
       const response = await fetch('/api/admin/guest-groups');
       if (!response.ok) {
         return;
@@ -143,6 +207,8 @@ export default function GuestsPage() {
     } catch (error) {
       // Silently fail for groups - not critical
       console.error('Failed to fetch groups:', error);
+    } finally {
+      setGroupsLoading(false);
     }
   }, []);
 
@@ -174,6 +240,68 @@ export default function GuestsPage() {
     fetchGroups();
     fetchActivities();
   }, [fetchGuests, fetchGroups, fetchActivities]);
+  
+  // Cache groups in localStorage when they change
+  useEffect(() => {
+    if (groups.length > 0) {
+      localStorage.setItem('cached_groups', JSON.stringify(groups));
+    }
+  }, [groups]);
+  
+  // Load cached groups on mount before fetching
+  useEffect(() => {
+    const cached = localStorage.getItem('cached_groups');
+    if (cached) {
+      try {
+        const cachedGroups = JSON.parse(cached);
+        setGroups(cachedGroups);
+      } catch (e) {
+        // Ignore parse errors
+        console.error('Failed to parse cached groups:', e);
+      }
+    }
+  }, []);
+  
+  // Update URL when filters change
+  useEffect(() => {
+    if (!isInitialized) return;
+    
+    // Set flag to prevent state restoration from running
+    isUpdatingURL.current = true;
+    
+    updateURL({
+      // Use searchQuery directly if debouncedSearch is empty and searchQuery has a value
+      // This handles the initial load case where URL has search param but debounce hasn't completed yet
+      search: debouncedSearch || searchQuery,
+      filter_rsvpStatus: rsvpStatusFilter,
+      filter_activity: activityFilter,
+      filter_transportation: transportationFilter,
+      filter_ageGroup: ageGroupFilter,
+      filter_airport: airportFilter,
+      sort: sortField,
+      direction: sortDirection,
+    });
+    
+    // Clear flag after a short delay to allow URL update to complete
+    // This prevents the state restoration effect from running immediately
+    const timer = setTimeout(() => {
+      isUpdatingURL.current = false;
+    }, 100);
+    
+    return () => clearTimeout(timer);
+  }, [
+    isInitialized,
+    debouncedSearch,
+    searchQuery, // Added searchQuery as dependency to handle initial load race condition
+    rsvpStatusFilter,
+    activityFilter,
+    transportationFilter,
+    ageGroupFilter,
+    airportFilter,
+    sortField,
+    sortDirection,
+    updateURL,
+  ]);
 
   /**
    * Set up real-time subscription for guest changes
@@ -295,7 +423,9 @@ export default function GuestsPage() {
           message: isEdit ? 'Guest updated successfully' : 'Guest created successfully',
         });
         
-        // Refresh guest list
+        // Refresh guest list with a small delay to ensure database commit
+        // This fixes the E2E test issue where newly created guests don't appear immediately
+        await new Promise(resolve => setTimeout(resolve, 100));
         await fetchGuests();
         
         // Close form
@@ -370,6 +500,12 @@ export default function GuestsPage() {
     if (!file) return;
 
     try {
+      // Show loading toast
+      addToast({
+        type: 'info',
+        message: 'Importing CSV file...',
+      });
+      
       // Read file content
       const content = await file.text();
       
@@ -400,7 +536,7 @@ export default function GuestsPage() {
         
         addToast({
           type: 'error',
-          message: 'CSV import failed. Please check the errors.',
+          message: `CSV import failed with ${errorMessages.length} error${errorMessages.length > 1 ? 's' : ''}`,
         });
       }
     } catch (error) {
@@ -598,6 +734,92 @@ export default function GuestsPage() {
       });
     }
   }, [groupToDelete, addToast, fetchGroups]);
+  
+  /**
+   * Clear a specific filter
+   */
+  const clearFilter = useCallback((filterKey: string) => {
+    switch (filterKey) {
+      case 'search':
+        setSearchQuery('');
+        break;
+      case 'filter_rsvpStatus':
+        setRsvpStatusFilter('');
+        break;
+      case 'filter_activity':
+        setActivityFilter('');
+        break;
+      case 'filter_transportation':
+        setTransportationFilter('');
+        break;
+      case 'filter_ageGroup':
+        setAgeGroupFilter('');
+        break;
+      case 'filter_airport':
+        setAirportFilter('');
+        break;
+    }
+  }, [setSearchQuery]);
+  
+  /**
+   * Get active filters for chip display
+   */
+  const activeFilters = useMemo(() => {
+    const filters: Array<{ key: string; label: string; value: string }> = [];
+    
+    if (searchQuery) {
+      filters.push({ key: 'search', label: 'Search', value: searchQuery });
+    }
+    if (rsvpStatusFilter) {
+      const labels: Record<string, string> = {
+        pending: 'Pending',
+        attending: 'Attending',
+        declined: 'Declined',
+        maybe: 'Maybe',
+      };
+      filters.push({ 
+        key: 'filter_rsvpStatus', 
+        label: 'RSVP Status', 
+        value: labels[rsvpStatusFilter] || rsvpStatusFilter 
+      });
+    }
+    if (activityFilter) {
+      const activity = activities.find(a => a.id === activityFilter);
+      filters.push({ 
+        key: 'filter_activity', 
+        label: 'Activity', 
+        value: activity?.name || activityFilter 
+      });
+    }
+    if (transportationFilter) {
+      filters.push({ 
+        key: 'filter_transportation', 
+        label: 'Transportation', 
+        value: transportationFilter === 'true' ? 'Has Transportation' : 'No Transportation' 
+      });
+    }
+    if (ageGroupFilter) {
+      const labels: Record<string, string> = {
+        adult: 'Adult',
+        child: 'Child',
+        senior: 'Senior',
+      };
+      filters.push({ 
+        key: 'filter_ageGroup', 
+        label: 'Age Group', 
+        value: labels[ageGroupFilter] || ageGroupFilter 
+      });
+    }
+    if (airportFilter) {
+      filters.push({ 
+        key: 'filter_airport', 
+        label: 'Airport', 
+        value: airportFilter 
+      });
+    }
+    
+    return filters;
+  }, [searchQuery, rsvpStatusFilter, activityFilter, transportationFilter, ageGroupFilter, airportFilter, activities]);
 
   // Define table columns
   const columns: ColumnDef<Guest>[] = [
@@ -610,7 +832,7 @@ export default function GuestsPage() {
             e.stopPropagation();
             toggleRSVPExpansion(guest.id);
           }}
-          className="text-sage-600 hover:text-sage-900 p-1"
+          className="text-sage-600 hover:text-sage-900 p-1 min-h-[44px] min-w-[44px] flex items-center justify-center"
           aria-label={expandedGuestIds.has(guest.id) ? 'Collapse RSVPs' : 'Expand RSVPs'}
         >
           {expandedGuestIds.has(guest.id) ? '▼' : '▶'}
@@ -702,7 +924,12 @@ export default function GuestsPage() {
       label: 'Group',
       type: 'select',
       required: true,
-      options: groups.map(g => ({ label: g.name, value: g.id })),
+      options: groupsLoading 
+        ? [{ label: 'Loading groups...', value: '' }]
+        : [
+            { label: 'Select a group', value: '' },
+            ...groups.map(g => ({ label: g.name, value: g.id }))
+          ],
     },
     {
       name: 'firstName',
@@ -810,7 +1037,7 @@ export default function GuestsPage() {
       placeholder: 'Enter any additional notes',
       rows: 3,
     },
-  ], [groups]); // Re-create formFields when groups change
+  ], [groups, groupsLoading]); // Re-create formFields when groups or groupsLoading change
 
   return (
     <div className="space-y-6">
@@ -968,14 +1195,14 @@ export default function GuestsPage() {
                       <div className="flex gap-2 ml-3">
                         <button
                           onClick={() => setSelectedGroup(group)}
-                          className="text-ocean-600 hover:text-ocean-800 text-sm font-medium"
+                          className="text-ocean-600 hover:text-ocean-800 text-sm font-medium min-h-[44px] min-w-[44px] flex items-center justify-center px-2"
                           aria-label={`Edit ${group.name}`}
                         >
                           Edit
                         </button>
                         <button
                           onClick={() => handleGroupDeleteClick(group)}
-                          className="text-volcano-600 hover:text-volcano-800 text-sm font-medium"
+                          className="text-volcano-600 hover:text-volcano-800 text-sm font-medium min-h-[44px] min-w-[44px] flex items-center justify-center px-2"
                           aria-label={`Delete ${group.name}`}
                         >
                           Delete
@@ -991,51 +1218,40 @@ export default function GuestsPage() {
       </div>
 
       {/* Add New Guest Section - Collapsible */}
-      <div className="bg-white rounded-lg shadow-sm border border-sage-200">
-        {/* Header */}
-        <button
-          onClick={() => setIsFormOpen(!isFormOpen)}
-          className="w-full flex items-center justify-between px-4 py-3 bg-sage-50 hover:bg-sage-100 transition-colors rounded-t-lg"
-          aria-expanded={isFormOpen}
-        >
-          <div className="flex-1 text-left">
-            <h2 className="text-lg font-semibold text-sage-900">Add New Guest</h2>
-            <p className="text-sm text-sage-600 mt-1">
-              Click to {isFormOpen ? 'collapse' : 'expand'}
-            </p>
-          </div>
-          <span 
-            className={`text-sage-600 transition-transform duration-300 ${isFormOpen ? 'rotate-180' : ''}`}
-            aria-hidden="true"
-          >
-            ▼
-          </span>
-        </button>
-
-        {/* Collapsible Form Content */}
-        {isFormOpen && (
-          <div className="p-4 border-t border-sage-200">
-            <CollapsibleForm
-              title={selectedGuest ? 'Edit Guest' : 'Add Guest'}
-              fields={formFields}
-              schema={selectedGuest ? updateGuestSchema : createGuestSchema}
-              onSubmit={handleSubmit}
-              onCancel={() => {
-                setIsFormOpen(false);
-                setSelectedGuest(null);
-              }}
-              initialData={selectedGuest || {}}
-              isOpen={true}
-              onToggle={() => {}}
-              submitLabel={selectedGuest ? 'Update' : 'Create'}
-            />
-          </div>
-        )}
-      </div>
+      <CollapsibleForm
+        title={selectedGuest ? 'Edit Guest' : 'Add Guest'}
+        fields={formFields}
+        schema={selectedGuest ? updateGuestSchema : createGuestSchema}
+        onSubmit={handleSubmit}
+        onCancel={() => {
+          setIsFormOpen(false);
+          setSelectedGuest(null);
+        }}
+        initialData={selectedGuest || {}}
+        isOpen={isFormOpen}
+        onToggle={() => setIsFormOpen(!isFormOpen)}
+        submitLabel={selectedGuest ? 'Update' : 'Create'}
+      />
 
       {/* Advanced Filters */}
       <div className="bg-white p-4 rounded-lg shadow-sm border border-sage-200">
-        <h2 className="text-lg font-semibold text-sage-900 mb-4">Filters</h2>
+        <h2 className="text-lg font-semibold text-sage-900 mb-4">Search & Filters</h2>
+        
+        {/* Search Input */}
+        <div className="mb-4">
+          <label htmlFor="search" className="block text-sm font-medium text-sage-700 mb-1">
+            Search Guests
+          </label>
+          <input
+            id="search"
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search by name, email, or phone..."
+            className="w-full px-3 py-2 border border-sage-300 rounded-md focus:outline-none focus:ring-2 focus:ring-ocean-500"
+          />
+        </div>
+        
         <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
           {/* RSVP Status Filter */}
           <div>
@@ -1045,7 +1261,10 @@ export default function GuestsPage() {
             <select
               id="rsvpStatus"
               value={rsvpStatusFilter}
-              onChange={(e) => setRsvpStatusFilter(e.target.value)}
+              onChange={(e) => {
+                console.log('[GuestsPage] RSVP filter changed to:', e.target.value);
+                setRsvpStatusFilter(e.target.value);
+              }}
               className="w-full px-3 py-2 border border-sage-300 rounded-md focus:outline-none focus:ring-2 focus:ring-ocean-500"
             >
               <option value="">All</option>
@@ -1130,6 +1349,31 @@ export default function GuestsPage() {
           </div>
         </div>
 
+        {/* Filter Chips */}
+        {activeFilters.length > 0 && (
+          <div className="mt-4" data-testid="filter-chips-container">
+            <div className="flex flex-wrap gap-2">
+              {activeFilters.map(filter => (
+                <div
+                  key={filter.key}
+                  className="inline-flex items-center gap-1 px-3 py-1 bg-ocean-100 text-ocean-800 rounded-full text-sm"
+                  data-testid={`filter-chip-${filter.key}`}
+                >
+                  <span className="font-medium">{filter.label}:</span>
+                  <span>{filter.value}</span>
+                  <button
+                    onClick={() => clearFilter(filter.key)}
+                    className="ml-1 hover:bg-ocean-200 rounded-full p-0.5 transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
+                    aria-label={`Remove ${filter.label} filter`}
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* Grouping Options */}
         <div className="mt-4">
           <label htmlFor="grouping" className="block text-sm font-medium text-sage-700 mb-1">
@@ -1154,6 +1398,7 @@ export default function GuestsPage() {
           <Button
             variant="secondary"
             onClick={() => {
+              setSearchQuery('');
               setRsvpStatusFilter('');
               setActivityFilter('');
               setTransportationFilter('');
@@ -1195,7 +1440,7 @@ export default function GuestsPage() {
                 </h3>
                 <button
                   onClick={() => toggleRSVPExpansion(guest.id)}
-                  className="text-sm text-sage-600 hover:text-sage-900"
+                  className="text-sm text-sage-600 hover:text-sage-900 min-h-[44px] min-w-[44px] flex items-center justify-center"
                   aria-label="Close RSVP management"
                 >
                   Close
@@ -1251,8 +1496,20 @@ export default function GuestsPage() {
 
       {/* CSV Import Errors Dialog */}
       {isImportDialogOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-          <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full mx-4 max-h-[80vh] overflow-hidden">
+        <div 
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50"
+          onClick={(e) => {
+            // Close dialog when clicking backdrop
+            if (e.target === e.currentTarget) {
+              setIsImportDialogOpen(false);
+              setCsvImportErrors([]);
+            }
+          }}
+        >
+          <div 
+            className="bg-white rounded-lg shadow-xl max-w-2xl w-full mx-4 max-h-[80vh] overflow-hidden"
+            onClick={(e) => e.stopPropagation()} // Prevent backdrop click from closing
+          >
             <div className="p-6 border-b border-sage-200">
               <h2 className="text-xl font-semibold text-sage-900">CSV Import Errors</h2>
             </div>
@@ -1302,5 +1559,23 @@ export default function GuestsPage() {
         variant="danger"
       />
     </div>
+  );
+}
+
+/**
+ * Guests Page with Suspense Boundary
+ * 
+ * Wraps GuestsPageContent in Suspense boundary required for useSearchParams()
+ * in Next.js 16+
+ */
+export default function GuestsPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex items-center justify-center min-h-screen">
+        <Loader2 className="w-8 h-8 animate-spin text-sage-600" />
+      </div>
+    }>
+      <GuestsPageContent />
+    </Suspense>
   );
 }

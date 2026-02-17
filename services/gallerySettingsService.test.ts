@@ -157,6 +157,7 @@ describe('gallerySettingsService', () => {
         page_type: 'invalid' as any,
         page_id: '',
         display_mode: 'invalid' as any,
+        show_captions: true,
       };
 
       const result = await upsertSettings(invalidData);
@@ -172,6 +173,7 @@ describe('gallerySettingsService', () => {
         page_type: 'activity' as const,
         page_id: 'activity-456',
         display_mode: 'gallery' as const,
+        show_captions: true,
       };
 
       mockSupabase.from.mockReturnValue({
@@ -198,6 +200,7 @@ describe('gallerySettingsService', () => {
         page_type: 'activity' as const,
         page_id: 'activity-456',
         display_mode: 'gallery' as const,
+        show_captions: true,
       };
 
       mockSupabase.from.mockImplementation(() => {

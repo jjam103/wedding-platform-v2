@@ -1,5 +1,5 @@
 import * as fc from 'fast-check';
-import { POST } from '@/app/api/auth/guest/email-match/route';
+import { POST } from '@/app/api/guest-auth/email-match/route';
 import { createSupabaseClient } from '@/lib/supabase';
 
 /**
@@ -57,7 +57,7 @@ describe('Feature: destination-wedding-platform, Property 14: Email Matching Aut
             .mockResolvedValueOnce({ data: { id: 'session-id', token: 'token' }, error: null });
           mockSupabase.insert.mockResolvedValueOnce({ data: null, error: null });
 
-          const request = new Request('http://localhost:3000/api/auth/guest/email-match', {
+          const request = new Request('http://localhost:3000/api/guest-auth/email-match', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ email }),
@@ -84,7 +84,7 @@ describe('Feature: destination-wedding-platform, Property 14: Email Matching Aut
         // Arrange
         mockSupabase.single.mockResolvedValueOnce({ data: null, error: { message: 'Not found' } });
 
-        const request = new Request('http://localhost:3000/api/auth/guest/email-match', {
+        const request = new Request('http://localhost:3000/api/guest-auth/email-match', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ email }),
@@ -132,7 +132,7 @@ describe('Feature: destination-wedding-platform, Property 14: Email Matching Aut
           ];
 
           for (const emailVariation of emailVariations) {
-            const request = new Request('http://localhost:3000/api/auth/guest/email-match', {
+            const request = new Request('http://localhost:3000/api/guest-auth/email-match', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ email: emailVariation }),
@@ -165,7 +165,7 @@ describe('Feature: destination-wedding-platform, Property 14: Email Matching Aut
         ),
         async (invalidEmail) => {
           // Arrange
-          const request = new Request('http://localhost:3000/api/auth/guest/email-match', {
+          const request = new Request('http://localhost:3000/api/guest-auth/email-match', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ email: invalidEmail }),
@@ -210,7 +210,7 @@ describe('Feature: destination-wedding-platform, Property 14: Email Matching Aut
               .mockResolvedValueOnce({ data: { id: `session-${i}`, token: `token-${i}` }, error: null });
             mockSupabase.insert.mockResolvedValueOnce({ data: null, error: null });
 
-            const request = new Request('http://localhost:3000/api/auth/guest/email-match', {
+            const request = new Request('http://localhost:3000/api/guest-auth/email-match', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ email }),
@@ -262,7 +262,7 @@ describe('Feature: destination-wedding-platform, Property 14: Email Matching Aut
             mockSupabase.single.mockResolvedValueOnce({ data: null, error: { message: 'Not found' } });
           }
 
-          const request = new Request('http://localhost:3000/api/auth/guest/email-match', {
+          const request = new Request('http://localhost:3000/api/guest-auth/email-match', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ email }),
@@ -300,7 +300,7 @@ describe('Feature: destination-wedding-platform, Property 14: Email Matching Aut
           // Arrange
           mockSupabase.single.mockResolvedValueOnce({ data: null, error: { message: 'Not found' } });
 
-          const request = new Request('http://localhost:3000/api/auth/guest/email-match', {
+          const request = new Request('http://localhost:3000/api/guest-auth/email-match', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ email: maliciousEmail }),
@@ -346,7 +346,7 @@ describe('Feature: destination-wedding-platform, Property 14: Email Matching Aut
 
           const beforeRequest = Date.now();
 
-          const request = new Request('http://localhost:3000/api/auth/guest/email-match', {
+          const request = new Request('http://localhost:3000/api/guest-auth/email-match', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ email }),

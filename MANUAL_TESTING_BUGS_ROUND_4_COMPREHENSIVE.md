@@ -134,7 +134,7 @@
 ---
 
 ### 14. Draft Content Preview 💡 MEDIUM
-**Request**: Ability to preview draft content pages  
+**Request**: Ability to preview draft content pages, draft activities, draft events, and draft accomodations 
 **Current**: No preview for draft content  
 **Desired**: Preview button for draft pages  
 **Benefit**: Review content before publishing

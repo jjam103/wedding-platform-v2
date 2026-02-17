@@ -10,7 +10,6 @@ CREATE TABLE IF NOT EXISTS sections (
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
-
 -- Columns table: Stores column content within sections (1-2 columns per section)
 CREATE TABLE IF NOT EXISTS columns (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -22,7 +21,6 @@ CREATE TABLE IF NOT EXISTS columns (
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   UNIQUE(section_id, column_number)
 );
-
 -- Gallery settings table: Stores photo gallery configuration per page
 CREATE TABLE IF NOT EXISTS gallery_settings (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -37,7 +35,6 @@ CREATE TABLE IF NOT EXISTS gallery_settings (
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   UNIQUE(page_type, page_id)
 );
-
 -- Version history table: Stores snapshots of page content for version control
 CREATE TABLE IF NOT EXISTS content_versions (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -47,17 +44,14 @@ CREATE TABLE IF NOT EXISTS content_versions (
   sections_snapshot JSONB NOT NULL,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
-
 -- Indexes for performance
 CREATE INDEX IF NOT EXISTS idx_sections_page ON sections(page_type, page_id);
 CREATE INDEX IF NOT EXISTS idx_sections_display_order ON sections(page_id, display_order);
 CREATE INDEX IF NOT EXISTS idx_columns_section ON columns(section_id);
 CREATE INDEX IF NOT EXISTS idx_gallery_settings_page ON gallery_settings(page_type, page_id);
 CREATE INDEX IF NOT EXISTS idx_content_versions_page ON content_versions(page_type, page_id, created_at DESC);
-
 -- RLS Policies for sections table
 ALTER TABLE sections ENABLE ROW LEVEL SECURITY;
-
 -- Hosts can manage all sections
 CREATE POLICY "hosts_manage_sections"
 ON sections FOR ALL
@@ -68,7 +62,6 @@ USING (
     AND role IN ('super_admin', 'host')
   )
 );
-
 -- Guests can view sections for published pages
 CREATE POLICY "guests_view_published_sections"
 ON sections FOR SELECT
@@ -91,10 +84,8 @@ USING (
   ))
   OR page_type = 'custom'
 );
-
 -- RLS Policies for columns table
 ALTER TABLE columns ENABLE ROW LEVEL SECURITY;
-
 -- Hosts can manage all columns
 CREATE POLICY "hosts_manage_columns"
 ON columns FOR ALL
@@ -105,7 +96,6 @@ USING (
     AND role IN ('super_admin', 'host')
   )
 );
-
 -- Guests can view columns for published sections
 CREATE POLICY "guests_view_published_columns"
 ON columns FOR SELECT
@@ -134,10 +124,8 @@ USING (
     )
   )
 );
-
 -- RLS Policies for gallery_settings table
 ALTER TABLE gallery_settings ENABLE ROW LEVEL SECURITY;
-
 -- Hosts can manage all gallery settings
 CREATE POLICY "hosts_manage_gallery_settings"
 ON gallery_settings FOR ALL
@@ -148,7 +136,6 @@ USING (
     AND role IN ('super_admin', 'host')
   )
 );
-
 -- Guests can view gallery settings for published pages
 CREATE POLICY "guests_view_published_gallery_settings"
 ON gallery_settings FOR SELECT
@@ -171,10 +158,8 @@ USING (
   ))
   OR page_type IN ('custom', 'memory')
 );
-
 -- RLS Policies for content_versions table
 ALTER TABLE content_versions ENABLE ROW LEVEL SECURITY;
-
 -- Only super admins can view version history
 CREATE POLICY "super_admins_view_versions"
 ON content_versions FOR SELECT
@@ -185,7 +170,6 @@ USING (
     AND role = 'super_admin'
   )
 );
-
 -- Hosts can view version history
 CREATE POLICY "hosts_view_versions"
 ON content_versions FOR SELECT
@@ -196,12 +180,10 @@ USING (
     AND role = 'host'
   )
 );
-
 -- System can insert version history
 CREATE POLICY "system_insert_versions"
 ON content_versions FOR INSERT
 WITH CHECK (true);
-
 -- Add updated_at trigger for sections
 CREATE OR REPLACE FUNCTION update_sections_updated_at()
 RETURNS TRIGGER AS $$
@@ -210,12 +192,10 @@ BEGIN
   RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
-
 CREATE TRIGGER sections_updated_at
 BEFORE UPDATE ON sections
 FOR EACH ROW
 EXECUTE FUNCTION update_sections_updated_at();
-
 -- Add updated_at trigger for columns
 CREATE OR REPLACE FUNCTION update_columns_updated_at()
 RETURNS TRIGGER AS $$
@@ -224,12 +204,10 @@ BEGIN
   RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
-
 CREATE TRIGGER columns_updated_at
 BEFORE UPDATE ON columns
 FOR EACH ROW
 EXECUTE FUNCTION update_columns_updated_at();
-
 -- Add updated_at trigger for gallery_settings
 CREATE OR REPLACE FUNCTION update_gallery_settings_updated_at()
 RETURNS TRIGGER AS $$
@@ -238,7 +216,6 @@ BEGIN
   RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
-
 CREATE TRIGGER gallery_settings_updated_at
 BEFORE UPDATE ON gallery_settings
 FOR EACH ROW

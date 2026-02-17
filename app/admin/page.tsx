@@ -103,12 +103,16 @@ export default function AdminDashboard() {
       }
 
       const result = await response.json();
-      if (result.success) {
+      if (result.success && Array.isArray(result.data)) {
         setAlerts(result.data);
+      } else {
+        // If data is not an array, set empty array
+        setAlerts([]);
       }
     } catch (err) {
       // Silently fail for alerts
       console.error('Failed to fetch alerts:', err);
+      setAlerts([]); // Ensure alerts is always an array
     }
   }, []);
 
@@ -197,7 +201,7 @@ export default function AdminDashboard() {
   }
 
   return (
-    <div>
+    <div className="w-full overflow-x-hidden">
         {/* Error Display */}
         {error && (
           <div className="mb-6 bg-volcano-50 border border-volcano-200 rounded-lg p-4">

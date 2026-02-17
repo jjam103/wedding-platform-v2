@@ -31,7 +31,7 @@ describe('Magic Link Authentication API - Integration Tests', () => {
       });
 
       // Act - Request magic link
-      const response = await fetch('http://localhost:3000/api/auth/guest/magic-link', {
+      const response = await fetch('http://localhost:3000/api/guest-auth/magic-link', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: 'magiclink@example.com' }),
@@ -67,7 +67,7 @@ describe('Magic Link Authentication API - Integration Tests', () => {
       });
 
       // Act - Send email with mixed case
-      const response = await fetch('http://localhost:3000/api/auth/guest/magic-link', {
+      const response = await fetch('http://localhost:3000/api/guest-auth/magic-link', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: 'UPPERCASE@EXAMPLE.COM' }),
@@ -94,17 +94,17 @@ describe('Magic Link Authentication API - Integration Tests', () => {
 
       // Act - Request multiple magic links
       const responses = await Promise.all([
-        fetch('http://localhost:3000/api/auth/guest/magic-link', {
+        fetch('http://localhost:3000/api/guest-auth/magic-link', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ email: 'multiple@example.com' }),
         }),
-        fetch('http://localhost:3000/api/auth/guest/magic-link', {
+        fetch('http://localhost:3000/api/guest-auth/magic-link', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ email: 'multiple@example.com' }),
         }),
-        fetch('http://localhost:3000/api/auth/guest/magic-link', {
+        fetch('http://localhost:3000/api/guest-auth/magic-link', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ email: 'multiple@example.com' }),
@@ -135,7 +135,7 @@ describe('Magic Link Authentication API - Integration Tests', () => {
       });
 
       // Act
-      const response = await fetch('http://localhost:3000/api/auth/guest/magic-link', {
+      const response = await fetch('http://localhost:3000/api/guest-auth/magic-link', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -165,7 +165,7 @@ describe('Magic Link Authentication API - Integration Tests', () => {
       });
 
       // Act
-      const response = await fetch('http://localhost:3000/api/auth/guest/magic-link', {
+      const response = await fetch('http://localhost:3000/api/guest-auth/magic-link', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: 'audit@example.com' }),
@@ -186,7 +186,7 @@ describe('Magic Link Authentication API - Integration Tests', () => {
 
     it('should return 404 when email not found in database', async () => {
       // Act
-      const response = await fetch('http://localhost:3000/api/auth/guest/magic-link', {
+      const response = await fetch('http://localhost:3000/api/guest-auth/magic-link', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: 'notfound@example.com' }),
@@ -209,7 +209,7 @@ describe('Magic Link Authentication API - Integration Tests', () => {
       });
 
       // Act - Try to request magic link
-      const response = await fetch('http://localhost:3000/api/auth/guest/magic-link', {
+      const response = await fetch('http://localhost:3000/api/guest-auth/magic-link', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: 'emailmatch@example.com' }),
@@ -224,7 +224,7 @@ describe('Magic Link Authentication API - Integration Tests', () => {
 
     it('should return 400 for invalid email format', async () => {
       // Act
-      const response = await fetch('http://localhost:3000/api/auth/guest/magic-link', {
+      const response = await fetch('http://localhost:3000/api/guest-auth/magic-link', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: 'not-an-email' }),
@@ -254,7 +254,7 @@ describe('Magic Link Authentication API - Integration Tests', () => {
       });
 
       // Act - Verify token
-      const response = await fetch(`http://localhost:3000/api/auth/guest/magic-link/verify?token=${token.token}`, {
+      const response = await fetch(`http://localhost:3000/api/guest-auth/magic-link/verify?token=${token.token}`, {
         method: 'GET',
       });
 
@@ -299,7 +299,7 @@ describe('Magic Link Authentication API - Integration Tests', () => {
       });
 
       // Act - Try to verify expired token
-      const response = await fetch(`http://localhost:3000/api/auth/guest/magic-link/verify?token=${token.token}`, {
+      const response = await fetch(`http://localhost:3000/api/guest-auth/magic-link/verify?token=${token.token}`, {
         method: 'GET',
       });
 
@@ -331,7 +331,7 @@ describe('Magic Link Authentication API - Integration Tests', () => {
       });
 
       // Act - Try to verify used token
-      const response = await fetch(`http://localhost:3000/api/auth/guest/magic-link/verify?token=${token.token}`, {
+      const response = await fetch(`http://localhost:3000/api/guest-auth/magic-link/verify?token=${token.token}`, {
         method: 'GET',
       });
 
@@ -348,7 +348,7 @@ describe('Magic Link Authentication API - Integration Tests', () => {
 
     it('should reject invalid token format', async () => {
       // Act - Try to verify invalid token
-      const response = await fetch('http://localhost:3000/api/auth/guest/magic-link/verify?token=invalid', {
+      const response = await fetch('http://localhost:3000/api/guest-auth/magic-link/verify?token=invalid', {
         method: 'GET',
       });
 
@@ -362,7 +362,7 @@ describe('Magic Link Authentication API - Integration Tests', () => {
     it('should reject non-existent token', async () => {
       // Act - Try to verify non-existent token
       const fakeToken = 'a'.repeat(64);
-      const response = await fetch(`http://localhost:3000/api/auth/guest/magic-link/verify?token=${fakeToken}`, {
+      const response = await fetch(`http://localhost:3000/api/guest-auth/magic-link/verify?token=${fakeToken}`, {
         method: 'GET',
       });
 
@@ -388,7 +388,7 @@ describe('Magic Link Authentication API - Integration Tests', () => {
       });
 
       // Act
-      const response = await fetch(`http://localhost:3000/api/auth/guest/magic-link/verify?token=${token.token}`, {
+      const response = await fetch(`http://localhost:3000/api/guest-auth/magic-link/verify?token=${token.token}`, {
         method: 'GET',
       });
 
@@ -421,7 +421,7 @@ describe('Magic Link Authentication API - Integration Tests', () => {
       });
 
       // Act
-      const response = await fetch(`http://localhost:3000/api/auth/guest/magic-link/verify?token=${token.token}`, {
+      const response = await fetch(`http://localhost:3000/api/guest-auth/magic-link/verify?token=${token.token}`, {
         method: 'GET',
         headers: {
           'x-forwarded-for': '192.168.1.300',
@@ -456,7 +456,7 @@ describe('Magic Link Authentication API - Integration Tests', () => {
       const beforeVerify = Date.now();
 
       // Act
-      const response = await fetch(`http://localhost:3000/api/auth/guest/magic-link/verify?token=${token.token}`, {
+      const response = await fetch(`http://localhost:3000/api/guest-auth/magic-link/verify?token=${token.token}`, {
         method: 'GET',
       });
 
@@ -494,14 +494,14 @@ describe('Magic Link Authentication API - Integration Tests', () => {
       });
 
       // Act - Verify token first time
-      const firstResponse = await fetch(`http://localhost:3000/api/auth/guest/magic-link/verify?token=${token.token}`, {
+      const firstResponse = await fetch(`http://localhost:3000/api/guest-auth/magic-link/verify?token=${token.token}`, {
         method: 'GET',
       });
 
       expect(firstResponse.status).toBe(200);
 
       // Act - Try to verify same token again
-      const secondResponse = await fetch(`http://localhost:3000/api/auth/guest/magic-link/verify?token=${token.token}`, {
+      const secondResponse = await fetch(`http://localhost:3000/api/guest-auth/magic-link/verify?token=${token.token}`, {
         method: 'GET',
       });
 
@@ -518,7 +518,7 @@ describe('Magic Link Authentication API - Integration Tests', () => {
 
     it('should sanitize malicious email input in request', async () => {
       // Act - Send email with script tags
-      const response = await fetch('http://localhost:3000/api/auth/guest/magic-link', {
+      const response = await fetch('http://localhost:3000/api/guest-auth/magic-link', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: '<script>alert("xss")</script>test@example.com' }),
@@ -532,7 +532,7 @@ describe('Magic Link Authentication API - Integration Tests', () => {
 
     it('should prevent SQL injection in email parameter', async () => {
       // Act - Try SQL injection
-      const response = await fetch('http://localhost:3000/api/auth/guest/magic-link', {
+      const response = await fetch('http://localhost:3000/api/guest-auth/magic-link', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: "'; DROP TABLE guests; --" }),
@@ -564,7 +564,7 @@ describe('Magic Link Authentication API - Integration Tests', () => {
       });
 
       // Act
-      const response = await fetch(`http://localhost:3000/api/auth/guest/magic-link/verify?token=${token.token}`, {
+      const response = await fetch(`http://localhost:3000/api/guest-auth/magic-link/verify?token=${token.token}`, {
         method: 'GET',
       });
 

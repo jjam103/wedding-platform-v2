@@ -29,7 +29,7 @@ export default function AdminRootLayout({ children }: AdminRootLayoutProps) {
       <KeyboardNavigationProvider>
         <SkipNavigation />
         <ToastProvider>
-          <div className="min-h-screen bg-cloud-100">
+          <div className="min-h-screen bg-cloud-100 overflow-x-hidden">
             {/* Top Navigation - Sticky with glassmorphism */}
             <TopNavigation />
 
@@ -43,7 +43,7 @@ export default function AdminRootLayout({ children }: AdminRootLayoutProps) {
               tabIndex={-1} 
               className="p-4 sm:p-6 lg:p-8 focus:outline-none"
             >
-              <div className="max-w-7xl mx-auto">
+              <div className="max-w-7xl mx-auto w-full">
                 {children}
               </div>
             </main>

@@ -1,0 +1,90 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - link "Skip to main content" [ref=e2] [cursor=pointer]:
+    - /url: "#main-content"
+  - link "Skip to main content" [ref=e3] [cursor=pointer]:
+    - /url: "#main-content"
+  - generic [ref=e4]:
+    - navigation "Main navigation" [ref=e5]:
+      - generic [ref=e7]:
+        - link "Admin" [ref=e8] [cursor=pointer]:
+          - /url: /admin
+          - generic [ref=e9]: 🌴
+          - generic [ref=e10]: Admin
+        - button "Content" [ref=e11]:
+          - generic [ref=e12]: 📝
+          - generic [ref=e13]: Content
+        - button "Guests" [ref=e14]:
+          - generic [ref=e15]: 👥
+          - generic [ref=e16]: Guests
+        - button "RSVPs" [ref=e17]:
+          - generic [ref=e18]: ✓
+          - generic [ref=e19]: RSVPs
+        - button "Logistics" [ref=e20]:
+          - generic [ref=e21]: 🚗
+          - generic [ref=e22]: Logistics
+        - button "Admin" [ref=e23]:
+          - generic [ref=e24]: ⚙️
+          - generic [ref=e25]: Admin
+    - banner [ref=e26]:
+      - generic [ref=e27]:
+        - heading "Wedding Admin" [level=1] [ref=e29]
+        - toolbar "User actions" [ref=e30]:
+          - link "Preview guest portal in new tab" [ref=e31] [cursor=pointer]:
+            - /url: /
+            - generic [ref=e32]: 👁️
+            - generic [ref=e33]: Preview Guest Portal
+          - button "Notifications (coming soon)" [ref=e34]: 🔔
+          - button "User menu" [ref=e36]:
+            - generic [ref=e37]: A
+            - generic [ref=e38]: Admin
+            - generic [ref=e39]: ▼
+    - main [ref=e40]:
+      - generic [ref=e42]:
+        - generic [ref=e43]:
+          - generic [ref=e44]:
+            - heading "Email Management" [level=1] [ref=e45]
+            - paragraph [ref=e46]: View sent emails and compose new messages
+          - button "Compose new email" [ref=e47] [cursor=pointer]: Compose Email
+        - generic [ref=e48]:
+          - generic [ref=e49]:
+            - generic [ref=e50]:
+              - generic [ref=e51]: Search items
+              - searchbox "Search items" [ref=e52]
+            - generic [ref=e53]:
+              - group "Filter controls" [ref=e54]:
+                - generic [ref=e55]:
+                  - generic [ref=e56]: Filter by Delivery Status
+                  - combobox "Filter by Delivery Status" [ref=e57]:
+                    - option "All Delivery Status" [selected]
+                    - option "Queued"
+                    - option "Sent"
+                    - option "Delivered"
+                    - option "Failed"
+                    - option "Bounced"
+              - button "Export items to CSV" [ref=e59] [cursor=pointer]: Export
+          - table "items data table" [ref=e62]:
+            - rowgroup [ref=e63]:
+              - row "Subject Recipient Sent Date Delivery Status" [ref=e64]:
+                - columnheader "Subject" [ref=e65] [cursor=pointer]:
+                  - generic [ref=e67]: Subject
+                - columnheader "Recipient" [ref=e68] [cursor=pointer]:
+                  - generic [ref=e70]: Recipient
+                - columnheader "Sent Date" [ref=e71] [cursor=pointer]:
+                  - generic [ref=e73]: Sent Date
+                - columnheader "Delivery Status" [ref=e74] [cursor=pointer]:
+                  - generic [ref=e76]: Delivery Status
+            - rowgroup [ref=e77]:
+              - row "No items found" [ref=e78]:
+                - cell "No items found" [ref=e79]
+  - button "Open Next.js Dev Tools" [ref=e85] [cursor=pointer]:
+    - generic [ref=e88]:
+      - text: Compiling
+      - generic [ref=e89]:
+        - generic [ref=e90]: .
+        - generic [ref=e91]: .
+        - generic [ref=e92]: .
+  - alert [ref=e93]
+```

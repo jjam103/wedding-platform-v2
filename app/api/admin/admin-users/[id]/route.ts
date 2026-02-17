@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
-import { cookies } from 'next/headers';
+import { createAuthenticatedClient } from '@/lib/supabaseServer';
 import * as adminUserService from '@/services/adminUserService';
 
 /**
@@ -18,7 +17,7 @@ export async function PUT(
     const { id } = await params;
     
     // 1. Check authentication
-    const supabase = createRouteHandlerClient({ cookies });
+    const supabase = await createAuthenticatedClient();
     const {
       data: { session },
       error: authError,
@@ -108,7 +107,7 @@ export async function DELETE(
     const { id } = await params;
     
     // 1. Check authentication
-    const supabase = createRouteHandlerClient({ cookies });
+    const supabase = await createAuthenticatedClient();
     const {
       data: { session },
       error: authError,

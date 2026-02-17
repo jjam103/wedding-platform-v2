@@ -1,0 +1,109 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e1]:
+  - generic [ref=e2]:
+    - navigation [ref=e3]:
+      - generic [ref=e5]:
+        - link "Wedding Portal" [ref=e7] [cursor=pointer]:
+          - /url: /guest/dashboard
+        - generic [ref=e8]:
+          - link "Home" [ref=e9] [cursor=pointer]:
+            - /url: /guest/dashboard
+            - img [ref=e10]
+            - generic [ref=e13]: Home
+          - link "Events" [ref=e14] [cursor=pointer]:
+            - /url: /guest/events
+            - img [ref=e15]
+            - generic [ref=e17]: Events
+          - link "Activities" [ref=e18] [cursor=pointer]:
+            - /url: /guest/activities
+            - img [ref=e19]
+            - generic [ref=e21]: Activities
+          - link "Itinerary" [ref=e22] [cursor=pointer]:
+            - /url: /guest/itinerary
+            - img [ref=e23]
+            - generic [ref=e26]: Itinerary
+          - link "Photos" [ref=e27] [cursor=pointer]:
+            - /url: /guest/photos
+            - img [ref=e28]
+            - generic [ref=e31]: Photos
+          - button "Info" [ref=e33]:
+            - img [ref=e34]
+            - generic [ref=e36]: Info
+            - img [ref=e37]
+        - button "Log Out" [active] [ref=e40]
+    - main [ref=e41]:
+      - generic [ref=e43]:
+        - generic [ref=e46]:
+          - generic [ref=e47]:
+            - heading "¡Pura Vida, Test!" [level=1] [ref=e48]
+            - paragraph [ref=e49]: Welcome to your wedding dashboard
+          - generic [ref=e50]:
+            - link "My Profile" [ref=e51] [cursor=pointer]:
+              - /url: /guest/profile
+            - button "Log Out" [ref=e52]
+        - main [ref=e53]:
+          - generic [ref=e55]:
+            - heading "🌴 Costa Rica Wedding 🌴" [level=2] [ref=e56]
+            - generic [ref=e57]:
+              - generic [ref=e58]:
+                - generic [ref=e59]: 📅
+                - generic [ref=e60]: Wednesday, December 31, 1969
+              - generic [ref=e61]: •
+              - generic [ref=e62]:
+                - generic [ref=e63]: 📍
+                - generic [ref=e64]: Costa Rica
+              - generic [ref=e65]: •
+              - generic [ref=e66]:
+                - generic [ref=e67]: 🏨
+                - generic [ref=e68]: TBD
+          - generic [ref=e69]:
+            - generic [ref=e70]:
+              - generic [ref=e71]:
+                - heading "RSVP Summary" [level=2] [ref=e72]
+                - generic [ref=e73]:
+                  - generic [ref=e74]:
+                    - generic [ref=e75]: "Total Events:"
+                    - generic [ref=e76]: "0"
+                  - generic [ref=e77]:
+                    - generic [ref=e78]: "Attending:"
+                    - generic [ref=e79]: "0"
+                  - generic [ref=e80]:
+                    - generic [ref=e81]: "Pending:"
+                    - generic [ref=e82]: "0"
+                  - generic [ref=e83]:
+                    - generic [ref=e84]: "Maybe:"
+                    - generic [ref=e85]: "0"
+                  - generic [ref=e86]:
+                    - generic [ref=e87]: "Declined:"
+                    - generic [ref=e88]: "0"
+                - link "Manage RSVPs" [ref=e90] [cursor=pointer]:
+                  - /url: /guest/rsvp
+              - generic [ref=e91]:
+                - heading "Quick Actions" [level=2] [ref=e92]
+                - generic [ref=e93]:
+                  - link "👨‍👩‍👧‍👦 Family Information" [ref=e94] [cursor=pointer]:
+                    - /url: /guest/family
+                  - link "✈️ Transportation Details" [ref=e95] [cursor=pointer]:
+                    - /url: /guest/transportation
+                  - link "🏨 Accommodation Info" [ref=e96] [cursor=pointer]:
+                    - /url: /guest/accommodation
+                  - link "📸 Upload Photos" [ref=e97] [cursor=pointer]:
+                    - /url: /guest/photos
+                  - link "📅 View Itinerary" [ref=e98] [cursor=pointer]:
+                    - /url: /guest/itinerary
+            - generic [ref=e100]:
+              - heading "Upcoming Events" [level=2] [ref=e101]
+              - generic [ref=e102]:
+                - paragraph [ref=e103]: No upcoming events at this time.
+                - paragraph [ref=e104]: Check back later for event updates!
+  - button "Open Next.js Dev Tools" [ref=e110] [cursor=pointer]:
+    - generic [ref=e113]:
+      - text: Compiling
+      - generic [ref=e114]:
+        - generic [ref=e115]: .
+        - generic [ref=e116]: .
+        - generic [ref=e117]: .
+  - alert [ref=e118]
+```

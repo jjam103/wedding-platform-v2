@@ -13,16 +13,12 @@ CREATE TABLE IF NOT EXISTS transportation_manifests (
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
-
 -- Create index for efficient querying by date and type
 CREATE INDEX idx_transportation_manifests_date_type ON transportation_manifests(date, manifest_type);
-
 -- Create index for guest_ids array
 CREATE INDEX idx_transportation_manifests_guest_ids ON transportation_manifests USING GIN(guest_ids);
-
 -- RLS Policies for transportation_manifests
 ALTER TABLE transportation_manifests ENABLE ROW LEVEL SECURITY;
-
 -- Only hosts can manage transportation manifests
 CREATE POLICY "hosts_manage_transportation_manifests"
 ON transportation_manifests FOR ALL
@@ -33,7 +29,6 @@ USING (
     AND role IN ('super_admin', 'host')
   )
 );
-
 -- Guests can view manifests they are assigned to
 CREATE POLICY "guests_view_assigned_manifests"
 ON transportation_manifests FOR SELECT

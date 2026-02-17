@@ -1,0 +1,447 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - link "Skip to main content" [ref=e2] [cursor=pointer]:
+    - /url: "#main-content"
+  - link "Skip to main content" [ref=e3] [cursor=pointer]:
+    - /url: "#main-content"
+  - generic [ref=e4]:
+    - navigation "Main navigation" [ref=e5]:
+      - generic [ref=e6]:
+        - generic [ref=e7]:
+          - link "Admin" [ref=e8] [cursor=pointer]:
+            - /url: /admin
+            - generic [ref=e9]: 🌴
+            - generic [ref=e10]: Admin
+          - button "Content" [ref=e11]:
+            - generic [ref=e12]: 📝
+            - generic [ref=e13]: Content
+          - button "Guests" [expanded] [ref=e14]:
+            - generic [ref=e15]: 👥
+            - generic [ref=e16]: Guests
+          - button "RSVPs" [ref=e17]:
+            - generic [ref=e18]: ✓
+            - generic [ref=e19]: RSVPs
+          - button "Logistics" [ref=e20]:
+            - generic [ref=e21]: 🚗
+            - generic [ref=e22]: Logistics
+          - button "Admin" [ref=e23]:
+            - generic [ref=e24]: ⚙️
+            - generic [ref=e25]: Admin
+        - tabpanel [ref=e26]:
+          - link "Guest List" [ref=e27] [cursor=pointer]:
+            - /url: /admin/guests
+          - link "Guest Groups" [ref=e28] [cursor=pointer]:
+            - /url: /admin/guest-groups
+          - link "Import/Export" [ref=e29] [cursor=pointer]:
+            - /url: /admin/guests/import-export
+    - banner [ref=e30]:
+      - generic [ref=e31]:
+        - heading "Wedding Admin" [level=1] [ref=e33]
+        - toolbar "User actions" [ref=e34]:
+          - link "Preview guest portal in new tab" [ref=e35] [cursor=pointer]:
+            - /url: /
+            - generic [ref=e36]: 👁️
+            - generic [ref=e37]: Preview Guest Portal
+          - button "Notifications (coming soon)" [ref=e38]: 🔔
+          - button "User menu" [ref=e40]:
+            - generic [ref=e41]: A
+            - generic [ref=e42]: Admin
+            - generic [ref=e43]: ▼
+    - main [ref=e44]:
+      - generic [ref=e46]:
+        - generic [ref=e47]:
+          - generic [ref=e48]:
+            - heading "Guest Management" [level=1] [ref=e49]
+            - paragraph [ref=e50]: Manage your wedding guest list and groups
+          - generic [ref=e51]:
+            - button "Import guests from CSV" [ref=e53] [cursor=pointer]: Import CSV
+            - button "Export guests to CSV" [ref=e54] [cursor=pointer]: Export CSV
+        - button "Manage Groups 208 groups • Click to expand" [ref=e56]:
+          - generic [ref=e57]:
+            - heading "Manage Groups" [level=2] [ref=e58]
+            - paragraph [ref=e59]: 208 groups • Click to expand
+          - generic [ref=e60]: ▼
+        - generic [ref=e61]:
+          - button "Add Guest" [ref=e62]:
+            - generic [ref=e63]: Add Guest
+            - generic [ref=e64]: ▼
+          - generic:
+            - generic:
+              - generic:
+                - generic: Group*
+                - combobox
+              - generic:
+                - generic: First Name*
+                - textbox:
+                  - /placeholder: Enter first name
+              - generic:
+                - generic: Last Name*
+                - textbox:
+                  - /placeholder: Enter last name
+              - generic:
+                - generic: Email
+                - textbox:
+                  - /placeholder: Enter email address
+              - generic:
+                - generic: Phone
+                - textbox:
+                  - /placeholder: Enter phone number
+              - generic:
+                - generic: Age Type*
+                - combobox
+              - generic:
+                - generic: Guest Type*
+                - combobox
+              - generic:
+                - generic:
+                  - generic: Dietary Restrictions
+                  - textbox:
+                    - /placeholder: Enter any dietary restrictions
+              - generic:
+                - generic: Arrival Date
+                - textbox
+              - generic:
+                - generic: Departure Date
+                - textbox
+              - generic:
+                - generic: Airport
+                - combobox
+              - generic:
+                - generic: Flight Number
+                - textbox:
+                  - /placeholder: Enter flight number
+              - generic:
+                - generic: Plus-One Name
+                - textbox:
+                  - /placeholder: Enter plus-one name
+              - generic:
+                - generic:
+                  - generic: Notes
+                  - textbox:
+                    - /placeholder: Enter any additional notes
+            - generic:
+              - button: Create
+              - button: Cancel
+        - generic [ref=e65]:
+          - heading "Search & Filters" [level=2] [ref=e66]
+          - generic [ref=e67]:
+            - generic [ref=e68]: Search Guests
+            - textbox "Search Guests" [ref=e69]:
+              - /placeholder: Search by name, email, or phone...
+          - generic [ref=e70]:
+            - generic [ref=e71]:
+              - generic [ref=e72]: RSVP Status
+              - combobox "RSVP Status" [ref=e73]:
+                - option "All" [selected]
+                - option "Pending"
+                - option "Attending"
+                - option "Declined"
+                - option "Maybe"
+            - generic [ref=e74]:
+              - generic [ref=e75]: Activity
+              - combobox "Activity" [ref=e76]:
+                - option "All" [selected]
+                - option "Test Beach Volleyball"
+                - option "Duplicate Activity Name"
+                - option "Duplicate Activity Name"
+                - option "Duplicate Activity Name"
+                - option "Duplicate Activity Name"
+            - generic [ref=e77]:
+              - generic [ref=e78]: Transportation
+              - combobox "Transportation" [ref=e79]:
+                - option "All" [selected]
+                - option "Has Transportation"
+                - option "No Transportation"
+            - generic [ref=e80]:
+              - generic [ref=e81]: Age Group
+              - combobox "Age Group" [ref=e82]:
+                - option "All" [selected]
+                - option "Adult"
+                - option "Child"
+                - option "Senior"
+            - generic [ref=e83]:
+              - generic [ref=e84]: Airport
+              - combobox "Airport" [ref=e85]:
+                - option "All" [selected]
+                - option "SJO (San José)"
+                - option "LIR (Liberia)"
+                - option "Other"
+          - generic [ref=e86]:
+            - generic [ref=e87]: Group By
+            - combobox "Group By" [ref=e88]:
+              - option "None" [selected]
+              - option "Group"
+              - option "Guest Type"
+              - option "Age Type"
+              - option "Airport"
+          - button "Clear All Filters" [ref=e90] [cursor=pointer]
+        - generic [ref=e91]:
+          - generic [ref=e93]:
+            - group "Filter controls" [ref=e94]:
+              - generic [ref=e95]:
+                - generic [ref=e96]: Filter by Group
+                - combobox "Filter by Group" [ref=e97]:
+                  - option "All Group" [selected]
+                  - option "Debug Group 1770846562832"
+                  - option "Debug Group 1770846588978"
+                  - option "Debug Group 1770850594795"
+                  - option "Debug Group 1770850618768"
+                  - option "Debug Group 1770850982849"
+                  - option "Debug Group 1770876627939"
+                  - option "Debug Group 1770912792028"
+                  - option "Debug Group 1770914703346"
+                  - option "Debug Group 1770917823025"
+                  - option "Debug Group 1770917871671"
+                  - option "Debug Group 1770922330286"
+                  - option "Debug Group 1770927151498"
+                  - option "Debug Group 1770946546204"
+                  - option "Debug Group 1771188128478"
+                  - option "Debug Group 1771188315456"
+                  - option "Debug Group 1771188534923"
+                  - option "Debug Group 1771214137503"
+                  - option "Debug Group 1771221213181"
+                  - option "Debug Group 1771221660248"
+                  - option "Debug Group 1771277590780"
+                  - option "Debug Group 1771286592692"
+                  - option "Group A 1770844606666"
+                  - option "Group A 1770844628441"
+                  - option "Group A 1770844710267"
+                  - option "Group A 1770844732489"
+                  - option "Group A 1770845052883"
+                  - option "Group A 1770845074952"
+                  - option "Group A 1770845700613"
+                  - option "Group A 1770845707831"
+                  - option "Group A 1770845858141"
+                  - option "Group A 1770845886595"
+                  - option "Group A 1770845893524"
+                  - option "Group A 1770846128235"
+                  - option "Group A 1770846135913"
+                  - option "Group A 1770851018567"
+                  - option "Group A 1770851026275"
+                  - option "Group A 1770851490252"
+                  - option "Group A 1770851490300"
+                  - option "Group A 1770851521120"
+                  - option "Group A 1770851521172"
+                  - option "Group A 1770851926434"
+                  - option "Group A 1770851943610"
+                  - option "Group A 1770852634235"
+                  - option "Group A 1770852655551"
+                  - option "Group A 1770876670174"
+                  - option "Group A 1770912809781"
+                  - option "Group A 1770912819341"
+                  - option "Group A 1770914723414"
+                  - option "Group A 1770917892223"
+                  - option "Group A 1770922342920"
+                  - option "Group A 1770922367413"
+                  - option "Group A 1770927171084"
+                  - option "Group A 1770927179743"
+                  - option "Group A 1770946572112"
+                  - option "Group A 1770946577200"
+                  - option "Group A 1771188219543"
+                  - option "Group A 1771188251627"
+                  - option "Group A 1771188407215"
+                  - option "Group A 1771188439111"
+                  - option "Group A 1771188628346"
+                  - option "Group A 1771188660375"
+                  - option "Group A 1771214235362"
+                  - option "Group A 1771214267687"
+                  - option "Group A 1771221306645"
+                  - option "Group A 1771221339753"
+                  - option "Group A 1771221752697"
+                  - option "Group A 1771221785098"
+                  - option "Group A 1771259921407"
+                  - option "Group A 1771259954151"
+                  - option "Group A 1771273740262"
+                  - option "Group A 1771274043272"
+                  - option "Group A 1771274640698"
+                  - option "Group A 1771274758765"
+                  - option "Group A 1771274844073"
+                  - option "Group A 1771275678021"
+                  - option "Group A 1771275951255"
+                  - option "Group A 1771277619495"
+                  - option "Group A 1771286601859"
+                  - option "Group A 1771288760697"
+                  - option "Group B 1770844606666"
+                  - option "Group B 1770844628441"
+                  - option "Group B 1770844710267"
+                  - option "Group B 1770844732489"
+                  - option "Group B 1770845052883"
+                  - option "Group B 1770845074952"
+                  - option "Group B 1770845700613"
+                  - option "Group B 1770845707831"
+                  - option "Group B 1770845858141"
+                  - option "Group B 1770845886595"
+                  - option "Group B 1770846128235"
+                  - option "Group B 1770846135913"
+                  - option "Group B 1770851018567"
+                  - option "Group B 1770851490252"
+                  - option "Group B 1770851490300"
+                  - option "Group B 1770851521120"
+                  - option "Group B 1770851521172"
+                  - option "Group B 1770851926434"
+                  - option "Group B 1770851943610"
+                  - option "Group B 1770852634235"
+                  - option "Group B 1770852655551"
+                  - option "Group B 1770876670174"
+                  - option "Group B 1770912809781"
+                  - option "Group B 1770912819341"
+                  - option "Group B 1770914723414"
+                  - option "Group B 1770922342920"
+                  - option "Group B 1770922367413"
+                  - option "Group B 1770927171084"
+                  - option "Group B 1770927179743"
+                  - option "Group B 1770946572112"
+                  - option "Group B 1770946577200"
+                  - option "Group B 1771273740262"
+                  - option "Group B 1771274043272"
+                  - option "Group B 1771274640698"
+                  - option "Group B 1771274758765"
+                  - option "Group B 1771274844073"
+                  - option "Group B 1771275678021"
+                  - option "Group B 1771275951255"
+                  - option "Group B 1771277619495"
+                  - option "Group B 1771286601859"
+                  - option "Group B 1771288760697"
+                  - option "Group C 1770844606666"
+                  - option "Group C 1770844710267"
+                  - option "Group C 1770844732489"
+                  - option "Group C 1770845052883"
+                  - option "Group C 1770845074952"
+                  - option "Group C 1770845707831"
+                  - option "Group C 1770845858141"
+                  - option "Group C 1770845893524"
+                  - option "Group C 1770846128235"
+                  - option "Group C 1770846135913"
+                  - option "Group C 1770851026275"
+                  - option "Group C 1770851521172"
+                  - option "Group C 1770851943610"
+                  - option "Group C 1770852655551"
+                  - option "Group C 1770912809781"
+                  - option "Group C 1770912819341"
+                  - option "Group C 1770914723414"
+                  - option "Group C 1770922342920"
+                  - option "Group C 1770922367413"
+                  - option "Group C 1770927171084"
+                  - option "Group C 1770927179743"
+                  - option "Group C 1770946572112"
+                  - option "Group C 1770946577200"
+                  - option "Group C 1771273740262"
+                  - option "Group C 1771274043272"
+                  - option "Group C 1771274640698"
+                  - option "Group C 1771274758765"
+                  - option "Group C 1771274844073"
+                  - option "Group C 1771275678021"
+                  - option "Group C 1771275951255"
+                  - option "Group C 1771277619495"
+                  - option "Group C 1771286601859"
+                  - option "Group C 1771288760697"
+                  - option "Original Group 1770845903080"
+                  - option "Original Group 1770846145569"
+                  - option "Original Group 1770851036696"
+                  - option "Original Group 1770851926397"
+                  - option "Original Group 1770852634218"
+                  - option "Original Group 1770852649921"
+                  - option "Original Group 1770876644791"
+                  - option "Original Group 1770876675827"
+                  - option "Original Group 1770912808057"
+                  - option "Original Group 1770912826567"
+                  - option "Original Group 1770914716322"
+                  - option "Original Group 1770914734847"
+                  - option "Original Group 1770917824684"
+                  - option "Original Group 1770917867162"
+                  - option "Original Group 1770922340599"
+                  - option "Original Group 1770922358541"
+                  - option "Original Group 1770927169402"
+                  - option "Original Group 1770927198662"
+                  - option "Original Group 1770946565889"
+                  - option "Original Group 1770946585012"
+                  - option "Updated Group 1770844606657"
+                  - option "Updated Group 1770844619723"
+                  - option "Updated Group 1770844710253"
+                  - option "Updated Group 1770844722704"
+                  - option "Updated Group 1770845052928"
+                  - option "Updated Group 1770845068979"
+                  - option "Updated Group 1770845700652"
+                  - option "Updated Group 1770845719339"
+                  - option "Updated Group 1770845858107"
+                  - option "Updated Group 1770845886628"
+                  - option "Updated Group 1770846128151"
+                  - option "Updated Group 1770851018581"
+                  - option "Updated Group 1770851490218"
+                  - option "Updated Group 1770851490402"
+                  - option "Updated Group 1770851514585"
+                  - option "Updated Group 1770851514960"
+                  - option "Updated Group 1770851954010"
+                  - option "Updated Group 1771188176927"
+                  - option "Updated Group 1771188198100"
+                  - option "Updated Group 1771188364672"
+                  - option "Updated Group 1771188385794"
+                  - option "Updated Group 1771188585584"
+                  - option "Updated Group 1771188606923"
+                  - option "Updated Group 1771214191413"
+                  - option "Updated Group 1771214213718"
+                  - option "Updated Group 1771221263517"
+                  - option "Updated Group 1771221284734"
+                  - option "Updated Group 1771221709714"
+                  - option "Updated Group 1771221730949"
+                  - option "Updated Group 1771259878122"
+                  - option "Updated Group 1771259899561"
+                  - option "Updated Group 1771273697500"
+                  - option "Updated Group 1771273718635"
+                  - option "Updated Group 1771273999743"
+                  - option "Updated Group 1771274021167"
+              - generic [ref=e98]:
+                - generic [ref=e99]: Filter by Guest Type
+                - combobox "Filter by Guest Type" [ref=e100]:
+                  - option "All Guest Type" [selected]
+                  - option "Wedding Party"
+                  - option "Wedding Guest"
+                  - option "Pre-wedding Only"
+                  - option "Post-wedding Only"
+              - generic [ref=e101]:
+                - generic [ref=e102]: Filter by Age Type
+                - combobox "Filter by Age Type" [ref=e103]:
+                  - option "All Age Type" [selected]
+                  - option "Adult"
+                  - option "Child"
+                  - option "Senior"
+            - button "Export guests to CSV" [ref=e105] [cursor=pointer]: Export
+          - table "guests data table" [ref=e108]:
+            - rowgroup [ref=e109]:
+              - row "Select all rows First Name Last Name Email Group Guest Type Age Type Airport Actions" [ref=e110]:
+                - columnheader "Select all rows" [ref=e111]:
+                  - checkbox "Select all rows" [ref=e112]
+                - columnheader [ref=e113]
+                - columnheader "First Name" [ref=e114] [cursor=pointer]:
+                  - generic [ref=e116]: First Name
+                - columnheader "Last Name" [ref=e117] [cursor=pointer]:
+                  - generic [ref=e119]: Last Name
+                - columnheader "Email" [ref=e120] [cursor=pointer]:
+                  - generic [ref=e122]: Email
+                - columnheader "Group" [ref=e123] [cursor=pointer]:
+                  - generic [ref=e125]: Group
+                - columnheader "Guest Type" [ref=e126] [cursor=pointer]:
+                  - generic [ref=e128]: Guest Type
+                - columnheader "Age Type" [ref=e129] [cursor=pointer]:
+                  - generic [ref=e131]: Age Type
+                - columnheader "Airport" [ref=e132] [cursor=pointer]:
+                  - generic [ref=e134]: Airport
+                - columnheader "Actions" [ref=e135]
+            - rowgroup [ref=e136]:
+              - row "No guests found" [ref=e137]:
+                - cell "No guests found" [ref=e138]
+  - generic [ref=e143] [cursor=pointer]:
+    - button "Open Next.js Dev Tools" [ref=e144]:
+      - img [ref=e145]
+    - generic [ref=e148]:
+      - button "Open issues overlay" [ref=e149]:
+        - generic [ref=e150]:
+          - generic [ref=e151]: "0"
+          - generic [ref=e152]: "1"
+        - generic [ref=e153]: Issue
+      - button "Collapse issues badge" [ref=e154]:
+        - img [ref=e155]
+  - alert [ref=e157]
+```

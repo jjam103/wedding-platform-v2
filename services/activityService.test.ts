@@ -17,7 +17,7 @@ import type { MockSupabaseClient } from '../__tests__/helpers/mockSupabase';
 
 // Mock Supabase
 jest.mock('@supabase/supabase-js', () => ({
-  createClient: jest.fn(),
+  createClient: (jest.fn() as any),
 }));
 
 describe('activityService', () => {

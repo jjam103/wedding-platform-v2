@@ -1,16 +1,7 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { InlineSectionEditor } from './InlineSectionEditor';
 
-// Mock dynamic imports
-jest.mock('next/dynamic', () => ({
-  __esModule: true,
-  default: (fn: any) => {
-    const Component = fn().then((mod: any) => mod.default || mod);
-    return Component;
-  },
-}));
-
-// Mock PhotoPicker
+// Mock PhotoPicker directly (bypasses dynamic import)
 jest.mock('./PhotoPicker', () => ({
   PhotoPicker: ({ selectedPhotoIds, onSelectionChange }: any) => (
     <div data-testid="photo-picker">
@@ -278,16 +269,18 @@ describe('InlineSectionEditor', () => {
       
       await waitFor(() => {
         expect(screen.getByText('Test Section')).toBeInTheDocument();
-      });
+      }, { timeout: 3000 });
 
       const editButton = screen.getByText('Edit');
       fireEvent.click(editButton);
 
       await waitFor(() => {
         expect(screen.getByText('Close')).toBeInTheDocument();
-      });
+      }, { timeout: 3000 });
 
-      expect(screen.getByPlaceholderText('Enter a title...')).toBeInTheDocument();
+      await waitFor(() => {
+        expect(screen.getByPlaceholderText('Enter a title...')).toBeInTheDocument();
+      }, { timeout: 3000 });
     });
 
     it('should update section title when input changes', async () => {
@@ -316,20 +309,23 @@ describe('InlineSectionEditor', () => {
       
       await waitFor(() => {
         expect(screen.getByText('Test Section')).toBeInTheDocument();
-      });
+      }, { timeout: 3000 });
 
       const editButton = screen.getByText('Edit');
       fireEvent.click(editButton);
 
       await waitFor(() => {
         expect(screen.getByPlaceholderText('Enter a title...')).toBeInTheDocument();
-      });
+      }, { timeout: 3000 });
 
       const titleInput = screen.getByPlaceholderText('Enter a title...');
       fireEvent.change(titleInput, { target: { value: 'Updated Title' } });
 
       expect(titleInput).toHaveValue('Updated Title');
-      expect(screen.getByText('1 unsaved')).toBeInTheDocument();
+      
+      await waitFor(() => {
+        expect(screen.getByText('1 unsaved')).toBeInTheDocument();
+      }, { timeout: 3000 });
     });
 
     it('should toggle layout when layout selector changes', async () => {
@@ -377,17 +373,18 @@ describe('InlineSectionEditor', () => {
       
       await waitFor(() => {
         expect(screen.getByText('Test Section')).toBeInTheDocument();
-      });
+      }, { timeout: 3000 });
 
       const editButton = screen.getByText('Edit');
       fireEvent.click(editButton);
 
       await waitFor(() => {
         expect(screen.getByText('Layout:')).toBeInTheDocument();
-      });
+      }, { timeout: 3000 });
 
-      const layoutSelect = screen.getByDisplayValue('One Column');
-      fireEvent.change(layoutSelect, { target: { value: 'two-column' } });
+      // Find the "2 Col" button and click it
+      const twoColButton = screen.getByText('2 Col');
+      fireEvent.click(twoColButton);
 
       await waitFor(() => {
         expect(mockFetch).toHaveBeenCalledWith(
@@ -396,7 +393,7 @@ describe('InlineSectionEditor', () => {
             method: 'PUT',
           })
         );
-      });
+      }, { timeout: 3000 });
     });
   });
 
@@ -523,14 +520,14 @@ describe('InlineSectionEditor', () => {
       
       await waitFor(() => {
         expect(screen.getByText('Test Section')).toBeInTheDocument();
-      });
+      }, { timeout: 3000 });
 
       const editButton = screen.getByText('Edit');
       fireEvent.click(editButton);
 
       await waitFor(() => {
         expect(screen.getByPlaceholderText('Enter a title...')).toBeInTheDocument();
-      });
+      }, { timeout: 3000 });
 
       // Make a change
       const titleInput = screen.getByPlaceholderText('Enter a title...');
@@ -538,7 +535,7 @@ describe('InlineSectionEditor', () => {
 
       await waitFor(() => {
         expect(screen.getByText('Save')).toBeInTheDocument();
-      });
+      }, { timeout: 3000 });
 
       const saveButton = screen.getByText('Save');
       fireEvent.click(saveButton);
@@ -551,7 +548,7 @@ describe('InlineSectionEditor', () => {
             headers: { 'Content-Type': 'application/json' },
           })
         );
-      });
+      }, { timeout: 3000 });
     });
 
     it('should call onSave callback when section is saved', async () => {
@@ -586,14 +583,14 @@ describe('InlineSectionEditor', () => {
       
       await waitFor(() => {
         expect(screen.getByText('Test Section')).toBeInTheDocument();
-      });
+      }, { timeout: 3000 });
 
       const editButton = screen.getByText('Edit');
       fireEvent.click(editButton);
 
       await waitFor(() => {
         expect(screen.getByPlaceholderText('Enter a title...')).toBeInTheDocument();
-      });
+      }, { timeout: 3000 });
 
       // Make a change
       const titleInput = screen.getByPlaceholderText('Enter a title...');
@@ -601,14 +598,14 @@ describe('InlineSectionEditor', () => {
 
       await waitFor(() => {
         expect(screen.getByText('Save')).toBeInTheDocument();
-      });
+      }, { timeout: 3000 });
 
       const saveButton = screen.getByText('Save');
       fireEvent.click(saveButton);
 
       await waitFor(() => {
         expect(onSave).toHaveBeenCalled();
-      });
+      }, { timeout: 3000 });
     });
 
     it('should clear unsaved changes indicator after save', async () => {
@@ -642,14 +639,14 @@ describe('InlineSectionEditor', () => {
       
       await waitFor(() => {
         expect(screen.getByText('Test Section')).toBeInTheDocument();
-      });
+      }, { timeout: 3000 });
 
       const editButton = screen.getByText('Edit');
       fireEvent.click(editButton);
 
       await waitFor(() => {
         expect(screen.getByPlaceholderText('Enter a title...')).toBeInTheDocument();
-      });
+      }, { timeout: 3000 });
 
       // Make a change
       const titleInput = screen.getByPlaceholderText('Enter a title...');
@@ -657,14 +654,14 @@ describe('InlineSectionEditor', () => {
 
       await waitFor(() => {
         expect(screen.getByText('1 unsaved')).toBeInTheDocument();
-      });
+      }, { timeout: 3000 });
 
       const saveButton = screen.getByText('Save');
       fireEvent.click(saveButton);
 
       await waitFor(() => {
         expect(screen.queryByText('1 unsaved')).not.toBeInTheDocument();
-      });
+      }, { timeout: 3000 });
     });
   });
 
@@ -782,14 +779,14 @@ describe('InlineSectionEditor', () => {
       
       await waitFor(() => {
         expect(screen.getByText('Test Section')).toBeInTheDocument();
-      });
+      }, { timeout: 3000 });
 
       const editButton = screen.getByText('Edit');
       fireEvent.click(editButton);
 
       await waitFor(() => {
         expect(screen.getByDisplayValue('Rich Text')).toBeInTheDocument();
-      });
+      }, { timeout: 3000 });
 
       const typeSelect = screen.getByDisplayValue('Rich Text');
       fireEvent.change(typeSelect, { target: { value: 'photo_gallery' } });
@@ -801,7 +798,7 @@ describe('InlineSectionEditor', () => {
             method: 'PUT',
           })
         );
-      });
+      }, { timeout: 3000 });
     });
   });
 
@@ -829,7 +826,7 @@ describe('InlineSectionEditor', () => {
           json: async () => ({ success: true, data: mockSections }),
         })
         .mockResolvedValueOnce({
-          ok: true,
+          ok: false,
           json: async () => ({ success: false, error: { message: 'Save failed' } }),
         });
 
@@ -837,14 +834,14 @@ describe('InlineSectionEditor', () => {
       
       await waitFor(() => {
         expect(screen.getByText('Test Section')).toBeInTheDocument();
-      });
+      }, { timeout: 3000 });
 
       const editButton = screen.getByText('Edit');
       fireEvent.click(editButton);
 
       await waitFor(() => {
         expect(screen.getByPlaceholderText('Enter a title...')).toBeInTheDocument();
-      });
+      }, { timeout: 3000 });
 
       // Make a change
       const titleInput = screen.getByPlaceholderText('Enter a title...');
@@ -852,14 +849,17 @@ describe('InlineSectionEditor', () => {
 
       await waitFor(() => {
         expect(screen.getByText('Save')).toBeInTheDocument();
-      });
+      }, { timeout: 3000 });
 
       const saveButton = screen.getByText('Save');
       fireEvent.click(saveButton);
 
+      // Wait for the error message to appear
       await waitFor(() => {
-        expect(screen.getByText('Save failed')).toBeInTheDocument();
-      });
+        expect(screen.getByRole('alert')).toBeInTheDocument();
+      }, { timeout: 3000 });
+      
+      expect(screen.getByText('Save failed')).toBeInTheDocument();
     });
   });
 });

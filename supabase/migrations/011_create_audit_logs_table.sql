@@ -12,17 +12,14 @@ CREATE TABLE IF NOT EXISTS audit_logs (
   user_agent TEXT,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
-
 -- Create indexes for efficient querying
 CREATE INDEX idx_audit_logs_user_id ON audit_logs(user_id);
 CREATE INDEX idx_audit_logs_entity_type ON audit_logs(entity_type);
 CREATE INDEX idx_audit_logs_entity_id ON audit_logs(entity_id);
 CREATE INDEX idx_audit_logs_operation_type ON audit_logs(operation_type);
 CREATE INDEX idx_audit_logs_created_at ON audit_logs(created_at DESC);
-
 -- RLS Policies for audit_logs
 ALTER TABLE audit_logs ENABLE ROW LEVEL SECURITY;
-
 -- Only super admins can view audit logs
 CREATE POLICY "super_admins_view_audit_logs"
 ON audit_logs FOR SELECT
@@ -33,21 +30,17 @@ USING (
     AND role = 'super_admin'
   )
 );
-
 -- System can insert audit logs (no user restriction)
 CREATE POLICY "system_insert_audit_logs"
 ON audit_logs FOR INSERT
 WITH CHECK (true);
-
 -- No updates or deletes allowed on audit logs (immutable)
 CREATE POLICY "no_updates_on_audit_logs"
 ON audit_logs FOR UPDATE
 USING (false);
-
 CREATE POLICY "no_deletes_on_audit_logs"
 ON audit_logs FOR DELETE
 USING (false);
-
 -- Grant necessary permissions
 GRANT SELECT, INSERT ON audit_logs TO authenticated;
 GRANT SELECT, INSERT ON audit_logs TO service_role;

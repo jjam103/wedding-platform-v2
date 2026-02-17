@@ -9,7 +9,7 @@
  */
 
 import { Page, expect, Locator } from '@playwright/test';
-import { createTestClient } from './testDb';
+import { createTestClient, createServiceClient } from './testDb';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import fs from 'fs';
 import path from 'path';
@@ -364,7 +364,7 @@ export async function createTestGroup(data: {
   const supabase = createTestClient();
   
   const { data: group, error } = await supabase
-    .from('guest_groups')
+    .from('groups')
     .insert({
       name: data.name,
       group_owner_id: data.groupOwnerId || null,
@@ -763,6 +763,60 @@ export async function loginAsAdmin(
 }
 
 /**
+ * Create guest session in database and set cookie
+ * 
+ * @deprecated Use createGuestSessionForTest from guestAuthHelpers.ts instead
+ * @example
+ * await createGuestSession(page, 'guest-123');
+ */
+export async function createGuestSession(
+  page: Page,
+  guestId: string
+): Promise<string> {
+  // Use test client helper to properly access environment variables
+  const supabase = createTestClient();
+  
+  // Generate random session token (32 bytes = 64 hex characters)
+  const token = Array.from({ length: 64 }, () => 
+    Math.floor(Math.random() * 16).toString(16)
+  ).join('');
+  
+  // Set expiration to 24 hours from now
+  const expiresAt = new Date();
+  expiresAt.setHours(expiresAt.getHours() + 24);
+  
+  // Insert session into database
+  const { data: session, error } = await supabase
+    .from('guest_sessions')
+    .insert({
+      guest_id: guestId,
+      token: token,
+      expires_at: expiresAt.toISOString(),
+      used: false,
+    })
+    .select()
+    .single();
+  
+  if (error) {
+    throw new Error(`Failed to create guest session: ${error.message}`);
+  }
+  
+  // Set guest_session cookie in browser
+  await page.context().addCookies([{
+    name: 'guest_session',
+    value: token,
+    domain: 'localhost',
+    path: '/',
+    httpOnly: true,
+    secure: false,
+    sameSite: 'Lax',
+    expires: Math.floor(expiresAt.getTime() / 1000),
+  }]);
+  
+  return token;
+}
+
+/**
  * Login as guest user
  * 
  * @example
@@ -809,7 +863,7 @@ export async function cleanupTestData(prefix: string = 'test-'): Promise<void> {
     'activities',
     'events',
     'guests',
-    'guest_groups',
+    'groups',
     'content_pages',
     'sections',
     'photos',
@@ -1001,3 +1055,302 @@ export default {
   logNetworkRequests,
   debugPause,
 };
+
+
+// ============================================================================
+// Guest View Test Data Management
+// ============================================================================
+
+/**
+ * Test data IDs returned by createGuestViewTestData
+ */
+export interface GuestViewTestData {
+  locationId: string;
+  eventId: string;
+  eventSlug: string;
+  activityId: string;
+  activitySlug: string;
+  accommodationId: string;
+  accommodationSlug: string;
+  roomTypeId: string;
+  roomTypeSlug: string;
+  contentPageId: string;
+  contentSlug: string;
+  sectionId: string;
+}
+
+/**
+ * Create comprehensive test data for guest view tests
+ * Creates entities with proper relationships and published status
+ * 
+ * @returns Object containing IDs and slugs of created entities
+ * 
+ * @example
+ * const testData = await createGuestViewTestData();
+ * // Use testData.eventSlug in tests
+ * await page.goto(`/event/${testData.eventSlug}`);
+ */
+export async function createGuestViewTestData(): Promise<GuestViewTestData> {
+  const supabase = createServiceClient();
+  
+  console.log('[E2E] Creating guest view test data...');
+  
+  try {
+    // Create test location
+    const { data: location, error: locationError } = await supabase
+      .from('locations')
+      .insert({
+        name: 'E2E Test Location',
+        type: 'venue',
+        address: '123 Test Street, Test City',
+        description: 'Test location for E2E guest view tests',
+      })
+      .select()
+      .single();
+    
+    if (locationError || !location) {
+      throw new Error(`Failed to create location: ${locationError?.message}`);
+    }
+    
+    console.log('[E2E] Created location:', location.id);
+    
+    // Generate unique identifiers using crypto.randomUUID() to avoid conflicts on retry
+    const uniqueId = crypto.randomUUID().substring(0, 8);
+    
+    // Create test event with slug
+    const eventSlug = `e2e-test-event-${uniqueId}`;
+    const { data: event, error: eventError } = await supabase
+      .from('events')
+      .insert({
+        name: 'E2E Test Event',
+        slug: eventSlug,
+        event_type: 'ceremony',
+        start_date: '2026-06-01T10:00:00Z',
+        end_date: '2026-06-01T12:00:00Z',
+        location_id: location.id,
+        status: 'published',
+        description: '<p>This is a test event for E2E testing.</p>',
+      })
+      .select()
+      .single();
+    
+    if (eventError || !event) {
+      throw new Error(`Failed to create event: ${eventError?.message}`);
+    }
+    
+    console.log('[E2E] Created event:', event.id, 'slug:', eventSlug);
+    
+    // Create test activity with slug
+    const activitySlug = `e2e-test-activity-${uniqueId}`;
+    const { data: activity, error: activityError } = await supabase
+      .from('activities')
+      .insert({
+        name: 'E2E Test Activity',
+        slug: activitySlug,
+        activity_type: 'meal',
+        event_id: event.id,
+        location_id: location.id,
+        capacity: 50,
+        status: 'published',
+        description: '<p>This is a test activity for E2E testing.</p>',
+        start_time: '2026-06-01T18:00:00Z',
+      })
+      .select()
+      .single();
+    
+    if (activityError || !activity) {
+      throw new Error(`Failed to create activity: ${activityError?.message}`);
+    }
+    
+    console.log('[E2E] Created activity:', activity.id, 'slug:', activitySlug);
+    
+    // Create test accommodation with slug
+    const accommodationSlug = `e2e-test-accommodation-${uniqueId}`;
+    const { data: accommodation, error: accommodationError } = await supabase
+      .from('accommodations')
+      .insert({
+        name: 'E2E Test Accommodation',
+        slug: accommodationSlug,
+        location_id: location.id,
+        status: 'published',
+        description: '<p>This is a test accommodation for E2E testing.</p>',
+      })
+      .select()
+      .single();
+    
+    if (accommodationError || !accommodation) {
+      throw new Error(`Failed to create accommodation: ${accommodationError?.message}`);
+    }
+    
+    console.log('[E2E] Created accommodation:', accommodation.id, 'slug:', accommodationSlug);
+    
+    // Create test room type with slug (including total_rooms field)
+    const roomTypeSlug = `e2e-test-room-type-${uniqueId}`;
+    const { data: roomType, error: roomTypeError } = await supabase
+      .from('room_types')
+      .insert({
+        name: 'E2E Test Room Type',
+        slug: roomTypeSlug,
+        accommodation_id: accommodation.id,
+        capacity: 2,
+        total_rooms: 10,
+        price_per_night: 150.00,
+        description: '<p>This is a test room type for E2E testing.</p>',
+      })
+      .select()
+      .single();
+    
+    if (roomTypeError || !roomType) {
+      throw new Error(`Failed to create room type: ${roomTypeError?.message}`);
+    }
+    
+    console.log('[E2E] Created room type:', roomType.id, 'slug:', roomTypeSlug);
+    
+    // Create test content page with slug
+    const contentSlug = `e2e-test-content-${uniqueId}`;
+    const { data: contentPage, error: contentPageError } = await supabase
+      .from('content_pages')
+      .insert({
+        title: 'E2E Test Content Page',
+        slug: contentSlug,
+        status: 'published',
+      })
+      .select()
+      .single();
+    
+    if (contentPageError || !contentPage) {
+      throw new Error(`Failed to create content page: ${contentPageError?.message}`);
+    }
+    
+    console.log('[E2E] Created content page:', contentPage.id, 'slug:', contentSlug);
+    
+    // Create test section with rich text content
+    const { data: section, error: sectionError } = await supabase
+      .from('sections')
+      .insert({
+        page_type: 'event',
+        page_id: event.id,
+        display_order: 0,
+      })
+      .select()
+      .single();
+    
+    if (sectionError || !section) {
+      throw new Error(`Failed to create section: ${sectionError?.message}`);
+    }
+    
+    console.log('[E2E] Created section:', section.id);
+    
+    // Create section column with rich text
+    const { error: columnError } = await supabase
+      .from('columns')
+      .insert({
+        section_id: section.id,
+        column_number: 1,
+        content_type: 'rich_text',
+        content_data: {
+          html: '<p>This is test content for the event section. It includes <strong>bold text</strong> and <em>italic text</em>.</p>',
+        },
+      });
+    
+    if (columnError) {
+      throw new Error(`Failed to create section column: ${columnError.message}`);
+    }
+    
+    console.log('[E2E] Created section column');
+    
+    const testData: GuestViewTestData = {
+      locationId: location.id,
+      eventId: event.id,
+      eventSlug,
+      activityId: activity.id,
+      activitySlug,
+      accommodationId: accommodation.id,
+      accommodationSlug,
+      roomTypeId: roomType.id,
+      roomTypeSlug,
+      contentPageId: contentPage.id,
+      contentSlug,
+      sectionId: section.id,
+    };
+    
+    console.log('[E2E] Guest view test data created successfully:', testData);
+    
+    return testData;
+  } catch (error) {
+    console.error('[E2E] Failed to create guest view test data:', error);
+    throw error;
+  }
+}
+
+/**
+ * Clean up test data created for guest view tests
+ * Deletes entities in reverse order to respect foreign key constraints
+ * 
+ * @param testData - Test data object returned by createGuestViewTestData
+ * 
+ * @example
+ * await cleanupGuestViewTestData(testData);
+ */
+export async function cleanupGuestViewTestData(testData: GuestViewTestData): Promise<void> {
+  const supabase = createServiceClient();
+  
+  console.log('[E2E] Cleaning up guest view test data...');
+  
+  try {
+    // Delete in reverse order of creation (respecting foreign keys)
+    
+    // Delete section columns
+    await supabase
+      .from('section_columns')
+      .delete()
+      .eq('section_id', testData.sectionId);
+    
+    // Delete sections
+    await supabase
+      .from('sections')
+      .delete()
+      .eq('id', testData.sectionId);
+    
+    // Delete content page
+    await supabase
+      .from('content_pages')
+      .delete()
+      .eq('id', testData.contentPageId);
+    
+    // Delete room type
+    await supabase
+      .from('room_types')
+      .delete()
+      .eq('id', testData.roomTypeId);
+    
+    // Delete accommodation
+    await supabase
+      .from('accommodations')
+      .delete()
+      .eq('id', testData.accommodationId);
+    
+    // Delete activity
+    await supabase
+      .from('activities')
+      .delete()
+      .eq('id', testData.activityId);
+    
+    // Delete event
+    await supabase
+      .from('events')
+      .delete()
+      .eq('id', testData.eventId);
+    
+    // Delete location
+    await supabase
+      .from('locations')
+      .delete()
+      .eq('id', testData.locationId);
+    
+    console.log('[E2E] Guest view test data cleaned up successfully');
+  } catch (error) {
+    console.error('[E2E] Failed to cleanup guest view test data:', error);
+    // Don't throw - cleanup failures shouldn't fail tests
+  }
+}

@@ -63,6 +63,9 @@ describe('vendorBookingService.create', () => {
       activityId: '123e4567-e89b-12d3-a456-426614174001',
       eventId: null,
       bookingDate: '2025-06-15',
+      pricingModel: 'flat_rate' as const,
+      baseCost: 1000,
+      hostSubsidy: 0,
     };
 
     const mockBooking = {
@@ -111,6 +114,9 @@ describe('vendorBookingService.create', () => {
       activityId: '123e4567-e89b-12d3-a456-426614174001',
       eventId: null,
       bookingDate: '2025-06-15',
+      pricingModel: 'flat_rate' as const,
+      baseCost: 1000,
+      hostSubsidy: 0,
     };
 
     mockSingle.mockResolvedValue({
@@ -133,6 +139,9 @@ describe('vendorBookingService.create', () => {
       eventId: null,
       bookingDate: '2025-06-15',
       notes: '<script>alert("xss")</script>Important notes',
+      pricingModel: 'flat_rate' as const,
+      baseCost: 1000,
+      hostSubsidy: 0,
     };
 
     const mockBooking = {

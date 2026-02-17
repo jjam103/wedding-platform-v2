@@ -6,8 +6,7 @@
  * Requirements: 3.6, 3.8, 3.9, 3.10
  */
 
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
-import { cookies } from 'next/headers';
+import { createAuthenticatedClient } from '@/lib/supabaseServer';
 import { NextResponse } from 'next/server';
 import { adminUserService } from '@/services/adminUserService';
 
@@ -23,7 +22,7 @@ export async function POST(
     const { id } = await params;
 
     // 1. Auth check
-    const supabase = createRouteHandlerClient({ cookies });
+    const supabase = await createAuthenticatedClient();
     const { data: { session }, error: authError } = await supabase.auth.getSession();
     
     if (authError || !session) {

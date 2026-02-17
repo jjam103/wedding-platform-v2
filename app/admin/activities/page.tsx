@@ -3,7 +3,6 @@
 export const dynamic = 'force-dynamic';
 
 import { useState, useEffect, useCallback } from 'react';
-import { DataTableWithSuspense as DataTable, type ColumnDef } from '@/components/ui/DataTableWithSuspense';
 import { CollapsibleForm } from '@/components/admin/CollapsibleForm';
 import { SectionEditor } from '@/components/admin/SectionEditor';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
@@ -13,7 +12,7 @@ import { useToast } from '@/components/ui/ToastContext';
 import type { Activity } from '@/schemas/activitySchemas';
 import { createActivitySchema, updateActivitySchema } from '@/schemas/activitySchemas';
 import type { FormField } from '@/components/ui/DynamicForm';
-import { useRouter } from 'next/navigation';
+import type { ColumnDef } from '@/components/ui/DataTable';
 
 interface Event {
   id: string;
@@ -47,7 +46,6 @@ interface ActivityWithCapacity extends Activity {
  */
 export default function ActivitiesPage() {
   const { addToast } = useToast();
-  const router = useRouter();
   
   // State management
   const [activities, setActivities] = useState<ActivityWithCapacity[]>([]);
@@ -164,7 +162,7 @@ export default function ActivitiesPage() {
     fetchActivities();
     fetchEvents();
     fetchLocations();
-  }, [fetchActivities, fetchLocations]); // Removed fetchEvents from dependencies
+  }, [fetchActivities, fetchEvents, fetchLocations]);
 
   /**
    * Handle toggle sections
@@ -220,7 +218,8 @@ export default function ActivitiesPage() {
           message: isEdit ? 'Activity updated successfully' : 'Activity created successfully',
         });
         
-        // Refresh activity list
+        // Refresh activity list with a small delay to ensure database commit
+        await new Promise(resolve => setTimeout(resolve, 100));
         await fetchActivities();
         
         // Close form
@@ -458,6 +457,7 @@ export default function ActivitiesPage() {
                 window.open(`/activity/${slug}`, '_blank');
               }}
               title="View activity detail page"
+              aria-label={`View ${activity.name} detail page`}
             >
               View
             </Button>
@@ -468,8 +468,10 @@ export default function ActivitiesPage() {
                 e.stopPropagation();
                 handleToggleSections(activity.id);
               }}
+              title="Manage sections for this activity"
+              aria-label={`Manage sections for ${activity.name}`}
             >
-              {expandedActivityId === activity.id ? 'Hide Sections' : 'Sections'}
+              {expandedActivityId === activity.id ? 'Hide Sections' : 'Manage Sections'}
             </Button>
           </div>
         );
@@ -616,31 +618,6 @@ export default function ActivitiesPage() {
         }}
         submitLabel={selectedActivity ? 'Update Activity' : 'Create Activity'}
       />
-
-      {/* Bulk Actions */}
-      {selectedIds.length > 0 && (
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 flex items-center justify-between">
-          <div className="text-sm text-blue-800">
-            {selectedIds.length} activity/activities selected
-          </div>
-          <div className="flex gap-2">
-            <Button
-              size="sm"
-              variant="secondary"
-              onClick={() => setSelectedIds([])}
-            >
-              Clear Selection
-            </Button>
-            <Button
-              size="sm"
-              variant="danger"
-              onClick={() => setIsBulkDeleteDialogOpen(true)}
-            >
-              Delete Selected
-            </Button>
-          </div>
-        </div>
-      )}
 
       {/* Bulk Actions */}
       {selectedIds.length > 0 && (

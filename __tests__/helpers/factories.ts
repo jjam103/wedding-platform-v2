@@ -15,14 +15,8 @@
 
 import type { 
   Guest, 
-  GuestGroup, 
   Event, 
   Activity, 
-  Accommodation,
-  RoomType,
-  Location,
-  Section,
-  ContentPage,
   RSVP
 } from '@/types';
 import { createTestClient } from './testDb';
@@ -99,18 +93,15 @@ export function createTestGuest(overrides: Partial<Guest> = {}): Guest {
   const timestamp = Date.now();
   return {
     id: `test-guest-${timestamp}`,
-    firstName: 'Test',
-    lastName: 'User',
+    first_name: 'Test',
+    last_name: 'User',
     email: `test.user.${timestamp}@example.com`,
-    groupId: 'test-group-id',
-    ageType: 'adult',
-    guestType: 'wedding_guest',
-    dietaryRestrictions: null,
-    notes: null,
-    plusOneAllowed: false,
-    plusOneName: null,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
+    group_id: 'test-group-id',
+    age_type: 'adult',
+    guest_type: 'wedding_guest',
+    invitation_sent: false,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
     ...overrides,
   };
 }
@@ -118,14 +109,14 @@ export function createTestGuest(overrides: Partial<Guest> = {}): Guest {
 /**
  * Create a test guest group with optional overrides
  */
-export function createTestGuestGroup(overrides: Partial<GuestGroup> = {}): GuestGroup {
+export function createTestGuestGroup(overrides: Partial<any> = {}): any {
   const timestamp = Date.now();
   return {
     id: `test-group-${timestamp}`,
     name: `Test Family ${timestamp}`,
     description: 'Test family group for automated testing',
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
     ...overrides,
   };
 }
@@ -139,11 +130,14 @@ export function createTestEvent(overrides: Partial<Event> = {}): Event {
     id: `test-event-${timestamp}`,
     name: `Test Event ${timestamp}`,
     description: 'Test event for automated testing',
-    startDate: new Date(Date.now() + 86400000).toISOString(), // Tomorrow
-    endDate: new Date(Date.now() + 172800000).toISOString(), // Day after tomorrow
-    locationId: null,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
+    event_type: 'ceremony',
+    start_date: new Date(Date.now() + 86400000).toISOString(), // Tomorrow
+    end_date: new Date(Date.now() + 172800000).toISOString(), // Day after tomorrow
+    rsvp_required: false,
+    visibility: [],
+    status: 'draft',
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
     ...overrides,
   };
 }
@@ -157,18 +151,20 @@ export function createTestActivity(overrides: Partial<Activity> = {}): Activity 
     id: `test-activity-${timestamp}`,
     name: `Test Activity ${timestamp}`,
     description: 'Test activity for automated testing',
-    eventId: 'test-event-id',
-    activityType: 'activity',
-    startTime: new Date(Date.now() + 86400000).toISOString(),
-    endTime: new Date(Date.now() + 90000000).toISOString(),
-    locationId: null,
+    event_id: 'test-event-id',
+    activity_type: 'activity',
+    start_time: new Date(Date.now() + 86400000).toISOString(),
+    end_time: new Date(Date.now() + 90000000).toISOString(),
     capacity: 50,
-    adultsOnly: false,
-    plusOnesAllowed: true,
-    costPerGuest: 0,
-    hostSubsidy: 0,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
+    adults_only: false,
+    plus_one_allowed: true,
+    cost_per_person: 0,
+    host_subsidy: 0,
+    visibility: [],
+    status: 'draft',
+    display_order: 0,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
     ...overrides,
   };
 }
@@ -197,18 +193,18 @@ export function createMockActivity(overrides: Partial<Activity & {
 /**
  * Create a test accommodation with optional overrides
  */
-export function createTestAccommodation(overrides: Partial<Accommodation> = {}): Accommodation {
+export function createTestAccommodation(overrides: Partial<any> = {}): any {
   const timestamp = Date.now();
   return {
     id: `test-accommodation-${timestamp}`,
     name: `Test Hotel ${timestamp}`,
     description: 'Test accommodation for automated testing',
-    locationId: null,
+    location_id: null,
     address: '123 Test Street',
-    checkInDate: new Date(Date.now() + 86400000).toISOString(),
-    checkOutDate: new Date(Date.now() + 259200000).toISOString(), // 3 days later
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
+    check_in_date: new Date(Date.now() + 86400000).toISOString(),
+    check_out_date: new Date(Date.now() + 259200000).toISOString(), // 3 days later
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
     ...overrides,
   };
 }
@@ -216,19 +212,19 @@ export function createTestAccommodation(overrides: Partial<Accommodation> = {}):
 /**
  * Create a test room type with optional overrides
  */
-export function createTestRoomType(overrides: Partial<RoomType> = {}): RoomType {
+export function createTestRoomType(overrides: Partial<any> = {}): any {
   const timestamp = Date.now();
   return {
     id: `test-room-type-${timestamp}`,
-    accommodationId: 'test-accommodation-id',
+    accommodation_id: 'test-accommodation-id',
     name: `Test Room ${timestamp}`,
     description: 'Test room type for automated testing',
     capacity: 2,
-    totalRooms: 10,
-    pricePerNight: 100,
-    hostSubsidy: 0,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
+    total_rooms: 10,
+    price_per_night: 100,
+    host_subsidy: 0,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
     ...overrides,
   };
 }
@@ -236,17 +232,17 @@ export function createTestRoomType(overrides: Partial<RoomType> = {}): RoomType 
 /**
  * Create a test location with optional overrides
  */
-export function createTestLocation(overrides: Partial<Location> = {}): Location {
+export function createTestLocation(overrides: Partial<any> = {}): any {
   const timestamp = Date.now();
   return {
     id: `test-location-${timestamp}`,
     name: `Test Location ${timestamp}`,
     type: 'venue',
-    parentId: null,
+    parent_id: null,
     description: 'Test location for automated testing',
     address: '123 Test Street',
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
     ...overrides,
   };
 }
@@ -254,15 +250,15 @@ export function createTestLocation(overrides: Partial<Location> = {}): Location 
 /**
  * Create a test section with optional overrides
  */
-export function createTestSection(overrides: Partial<Section> = {}): Section {
+export function createTestSection(overrides: Partial<any> = {}): any {
   const timestamp = Date.now();
   return {
     id: `test-section-${timestamp}`,
-    entityType: 'event',
-    entityId: 'test-entity-id',
+    entity_type: 'event',
+    entity_id: 'test-entity-id',
     position: 0,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
     ...overrides,
   };
 }
@@ -270,7 +266,7 @@ export function createTestSection(overrides: Partial<Section> = {}): Section {
 /**
  * Create a test content page with optional overrides
  */
-export function createTestContentPage(overrides: Partial<ContentPage> = {}): ContentPage {
+export function createTestContentPage(overrides: Partial<any> = {}): any {
   const timestamp = Date.now();
   return {
     id: `test-page-${timestamp}`,
@@ -278,8 +274,8 @@ export function createTestContentPage(overrides: Partial<ContentPage> = {}): Con
     slug: `test-page-${timestamp}`,
     type: 'custom',
     published: false,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
     ...overrides,
   };
 }
@@ -291,15 +287,13 @@ export function createTestRSVP(overrides: Partial<RSVP> = {}): RSVP {
   const timestamp = Date.now();
   return {
     id: `test-rsvp-${timestamp}`,
-    guestId: 'test-guest-id',
-    eventId: 'test-event-id',
-    activityId: null,
+    guest_id: 'test-guest-id',
+    event_id: 'test-event-id',
+    activity_id: undefined,
     status: 'pending',
-    guestCount: 1,
-    dietaryRestrictions: null,
-    notes: null,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
+    guest_count: 1,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
     ...overrides,
   };
 }
@@ -310,8 +304,8 @@ export function createTestRSVP(overrides: Partial<RSVP> = {}): RSVP {
 export function createTestGuests(count: number, overrides: Partial<Guest> = {}): Guest[] {
   return Array.from({ length: count }, (_, i) => 
     createTestGuest({ 
-      firstName: `Test${i}`,
-      lastName: `User${i}`,
+      first_name: `Test${i}`,
+      last_name: `User${i}`,
       email: `test.user${i}.${Date.now()}@example.com`,
       ...overrides 
     })
@@ -321,7 +315,7 @@ export function createTestGuests(count: number, overrides: Partial<Guest> = {}):
 /**
  * Create multiple test guest groups at once
  */
-export function createTestGuestGroups(count: number, overrides: Partial<GuestGroup> = {}): GuestGroup[] {
+export function createTestGuestGroups(count: number, overrides: Partial<any> = {}): any[] {
   return Array.from({ length: count }, (_, i) => 
     createTestGuestGroup({ 
       name: `Test Family ${i} ${Date.now()}`,
@@ -334,7 +328,7 @@ export function createTestGuestGroups(count: number, overrides: Partial<GuestGro
  * Create a complete test scenario with related entities
  */
 export interface TestScenario {
-  group: GuestGroup;
+  group: any;
   guests: Guest[];
   event: Event;
   activities: Activity[];
@@ -350,10 +344,10 @@ export function createTestScenario(options: {
   const group = createTestGuestGroup();
   const event = createTestEvent();
   
-  const guests = createTestGuests(guestCount, { groupId: group.id });
+  const guests = createTestGuests(guestCount, { group_id: group.id });
   const activities = Array.from({ length: activityCount }, (_, i) => 
     createTestActivity({ 
-      eventId: event.id,
+      event_id: event.id,
       name: `Test Activity ${i}`,
     })
   );
@@ -361,9 +355,9 @@ export function createTestScenario(options: {
   const rsvps = guests.flatMap(guest => 
     activities.map(activity => 
       createTestRSVP({
-        guestId: guest.id,
-        eventId: event.id,
-        activityId: activity.id,
+        guest_id: guest.id,
+        event_id: event.id,
+        activity_id: activity.id,
       })
     )
   );
@@ -472,7 +466,7 @@ export async function createE2EGroup(data: {
   const supabase = createTestClient();
   
   const { data: group, error } = await supabase
-    .from('guest_groups')
+    .from('groups')
     .insert({
       name: data.name,
       description: data.description || null,
@@ -948,7 +942,7 @@ export async function cleanupE2EData(): Promise<void> {
     { table: 'room_types', ids: registry.roomTypes },
     { table: 'accommodations', ids: registry.accommodations },
     { table: 'guests', ids: registry.guests },
-    { table: 'guest_groups', ids: registry.groups },
+    { table: 'groups', ids: registry.groups },
     { table: 'content_pages', ids: registry.contentPages },
     { table: 'locations', ids: registry.locations },
   ];

@@ -1,0 +1,153 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - link "Skip to main content" [ref=e2] [cursor=pointer]:
+    - /url: "#main-content"
+  - link "Skip to main content" [ref=e3] [cursor=pointer]:
+    - /url: "#main-content"
+  - generic [ref=e4]:
+    - navigation "Main navigation" [ref=e5]:
+      - generic [ref=e6]:
+        - generic [ref=e7]:
+          - link "Admin" [ref=e8] [cursor=pointer]:
+            - /url: /admin
+            - generic [ref=e9]: 🌴
+            - generic [ref=e10]: Admin
+          - button "Content" [expanded] [ref=e11]:
+            - generic [ref=e12]: 📝
+            - generic [ref=e13]: Content
+          - button "Guests" [ref=e14]:
+            - generic [ref=e15]: 👥
+            - generic [ref=e16]: Guests
+          - button "RSVPs" [ref=e17]:
+            - generic [ref=e18]: ✓
+            - generic [ref=e19]: RSVPs
+          - button "Logistics" [ref=e20]:
+            - generic [ref=e21]: 🚗
+            - generic [ref=e22]: Logistics
+          - button "Admin" [ref=e23]:
+            - generic [ref=e24]: ⚙️
+            - generic [ref=e25]: Admin
+        - tabpanel [ref=e26]:
+          - link "Home Page" [ref=e27] [cursor=pointer]:
+            - /url: /admin/home-page
+          - link "Activities" [ref=e28] [cursor=pointer]:
+            - /url: /admin/activities
+          - link "Events" [ref=e29] [cursor=pointer]:
+            - /url: /admin/events
+          - link "Content Pages" [ref=e30] [cursor=pointer]:
+            - /url: /admin/content-pages
+          - link "Locations" [ref=e31] [cursor=pointer]:
+            - /url: /admin/locations
+          - link "Photos" [ref=e32] [cursor=pointer]:
+            - /url: /admin/photos
+    - banner [ref=e33]:
+      - generic [ref=e34]:
+        - heading "Wedding Admin" [level=1] [ref=e36]
+        - toolbar "User actions" [ref=e37]:
+          - button "Notifications (coming soon)" [ref=e38]: 🔔
+          - button "User menu" [ref=e40]:
+            - generic [ref=e41]: A
+            - generic [ref=e42]: Admin
+            - generic [ref=e43]: ▼
+    - main [ref=e44]:
+      - generic [ref=e46]:
+        - generic [ref=e47]:
+          - button "👥 0 Total Guests" [ref=e48]:
+            - generic [ref=e49]:
+              - generic [ref=e50]: 👥
+              - generic [ref=e51]: "0"
+            - heading "Total Guests" [level=3] [ref=e52]
+          - button "✉️ 0.0% RSVP Response Rate" [ref=e53]:
+            - generic [ref=e54]:
+              - generic [ref=e55]: ✉️
+              - generic [ref=e56]: 0.0%
+            - heading "RSVP Response Rate" [level=3] [ref=e57]
+          - button "💰 $0 Total Budget" [ref=e58]:
+            - generic [ref=e59]:
+              - generic [ref=e60]: 💰
+              - generic [ref=e61]: $0
+            - heading "Total Budget" [level=3] [ref=e62]
+          - button "📅 0 Upcoming Events" [ref=e63]:
+            - generic [ref=e64]:
+              - generic [ref=e65]: 📅
+              - generic [ref=e66]: "0"
+            - heading "Upcoming Events" [level=3] [ref=e67]
+          - button "📸 0 Pending Photos" [ref=e68]:
+            - generic [ref=e69]:
+              - generic [ref=e70]: 📸
+              - generic [ref=e71]: "0"
+            - heading "Pending Photos" [level=3] [ref=e72]
+          - button "⚠️ 0 Capacity Alerts" [ref=e73]:
+            - generic [ref=e74]:
+              - generic [ref=e75]: ⚠️
+              - generic [ref=e76]: "0"
+            - heading "Capacity Alerts" [level=3] [ref=e77]
+        - generic [ref=e78]:
+          - heading "Quick Actions" [level=2] [ref=e79]
+          - generic [ref=e80]:
+            - button "Add Guest" [ref=e81]:
+              - generic [ref=e82]: 👤
+              - generic [ref=e83]: Add Guest
+            - button "Create Event" [ref=e84]:
+              - generic [ref=e85]: 📅
+              - generic [ref=e86]: Create Event
+            - button "Add Activity" [ref=e87]:
+              - generic [ref=e88]: 🎯
+              - generic [ref=e89]: Add Activity
+            - button "Manage Vendors" [ref=e90]:
+              - generic [ref=e91]: 🤝
+              - generic [ref=e92]: Manage Vendors
+            - button "View RSVPs" [ref=e93]:
+              - generic [ref=e94]: ✉️
+              - generic [ref=e95]: View RSVPs
+            - button "Moderate Photos" [ref=e96]:
+              - generic [ref=e97]: 📸
+              - generic [ref=e98]: Moderate Photos
+        - generic [ref=e99]:
+          - generic [ref=e100]:
+            - heading "Recent Activity" [level=3] [ref=e101]
+            - generic [ref=e102]:
+              - generic [ref=e103]:
+                - generic [ref=e104]: 👤
+                - generic [ref=e105]:
+                  - paragraph [ref=e106]: "New guest added: John Doe"
+                  - paragraph [ref=e107]: 5 minutes ago
+              - generic [ref=e108]:
+                - generic [ref=e109]: ✉️
+                - generic [ref=e110]:
+                  - paragraph [ref=e111]: RSVP received from Jane Smith
+                  - paragraph [ref=e112]: 15 minutes ago
+              - generic [ref=e113]:
+                - generic [ref=e114]: 📸
+                - generic [ref=e115]:
+                  - paragraph [ref=e116]: 3 new photos pending moderation
+                  - paragraph [ref=e117]: 1 hour ago
+          - generic [ref=e118]:
+            - heading "Upcoming Deadlines" [level=3] [ref=e119]
+            - generic [ref=e120]:
+              - generic [ref=e121]:
+                - generic [ref=e122]:
+                  - paragraph [ref=e123]: RSVP Deadline
+                  - paragraph [ref=e124]: March 15, 2025
+                - generic [ref=e125]: 48 days
+              - generic [ref=e126]:
+                - generic [ref=e127]:
+                  - paragraph [ref=e128]: Final Payment Due
+                  - paragraph [ref=e129]: April 1, 2025
+                - generic [ref=e130]: 65 days
+              - generic [ref=e131]:
+                - generic [ref=e132]:
+                  - paragraph [ref=e133]: Menu Selection
+                  - paragraph [ref=e134]: March 20, 2025
+                - generic [ref=e135]: 53 days
+  - button "Open Next.js Dev Tools" [ref=e141] [cursor=pointer]:
+    - generic [ref=e144]:
+      - text: Compiling
+      - generic [ref=e145]:
+        - generic [ref=e146]: .
+        - generic [ref=e147]: .
+        - generic [ref=e148]: .
+  - alert [ref=e149]
+```

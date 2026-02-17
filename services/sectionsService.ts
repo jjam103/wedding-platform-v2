@@ -219,7 +219,59 @@ export async function updateSection(id: string, data: UpdateSectionDTO): Promise
       };
     }
 
-    // 2. Update section if there are section-level changes
+    // 2. Check for circular references if updating columns with references
+    if (validation.data.columns) {
+      // Get the section's page_id and page_type
+      const { data: section, error: sectionError } = await supabase
+        .from('sections')
+        .select('page_id, page_type')
+        .eq('id', id)
+        .single();
+      
+      if (sectionError || !section) {
+        return {
+          success: false,
+          error: {
+            code: 'NOT_FOUND',
+            message: 'Section not found',
+            details: sectionError,
+          },
+        };
+      }
+
+      // Check each column for references
+      for (const column of validation.data.columns) {
+        if (column.content_type === 'references' && column.content_data?.references) {
+          const circularCheck = await detectCircularReferences(
+            section.page_id,
+            column.content_data.references
+          );
+          
+          if (!circularCheck.success) {
+            return {
+              success: false,
+              error: {
+                code: 'VALIDATION_ERROR',
+                message: 'Failed to validate references',
+                details: circularCheck.error,
+              },
+            };
+          }
+          
+          if (circularCheck.data === true) {
+            return {
+              success: false,
+              error: {
+                code: 'CIRCULAR_REFERENCE',
+                message: 'This would create a circular reference. A page cannot reference itself directly or indirectly.',
+              },
+            };
+          }
+        }
+      }
+    }
+
+    // 3. Update section if there are section-level changes
     const sectionUpdates: any = {};
     if (validation.data.page_type) sectionUpdates.page_type = validation.data.page_type;
     if (validation.data.page_id) sectionUpdates.page_id = validation.data.page_id;
@@ -243,7 +295,7 @@ export async function updateSection(id: string, data: UpdateSectionDTO): Promise
       }
     }
 
-    // 3. Update columns if provided
+    // 4. Update columns if provided
     if (validation.data.columns) {
       // Delete existing columns
       const { error: deleteError } = await supabase
@@ -565,13 +617,22 @@ export async function detectCircularReferences(pageId: string, references: Refer
   try {
     const supabase = getSupabase();
     
+    // Map reference types to section page_types
+    // content_page references use page_type='custom' in sections table
+    function getPageTypeForSections(refType: string): string {
+      if (refType === 'content_page') {
+        return 'custom';
+      }
+      return refType;
+    }
+    
     // Build a graph of references
     const visited = new Set<string>();
     const recursionStack = new Set<string>();
     const startingPageId = pageId;
 
-    async function hasCircle(currentPageId: string, currentPageType: string): Promise<boolean> {
-      const nodeKey = `${currentPageType}:${currentPageId}`;
+    async function hasCircle(currentPageId: string, currentRefType: string): Promise<boolean> {
+      const nodeKey = `${currentRefType}:${currentPageId}`;
       
       if (recursionStack.has(nodeKey)) {
         return true; // Circular reference detected
@@ -589,11 +650,14 @@ export async function detectCircularReferences(pageId: string, references: Refer
         return true;
       }
 
+      // Map reference type to section page_type
+      const sectionPageType = getPageTypeForSections(currentRefType);
+      
       // Get all sections for this page
       const { data: sections } = await supabase
         .from('sections')
         .select('id')
-        .eq('page_type', currentPageType)
+        .eq('page_type', sectionPageType)
         .eq('page_id', currentPageId);
 
       if (sections && sections.length > 0) {
@@ -609,6 +673,7 @@ export async function detectCircularReferences(pageId: string, references: Refer
         if (columns) {
           for (const column of columns) {
             const refs = (column.content_data as any).references || [];
+            
             for (const ref of refs) {
               if (await hasCircle(ref.id, ref.type)) {
                 return true;

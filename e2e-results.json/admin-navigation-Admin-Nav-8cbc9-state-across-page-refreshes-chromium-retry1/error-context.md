@@ -1,0 +1,85 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - link "Skip to main content" [ref=e2] [cursor=pointer]:
+    - /url: "#main-content"
+  - link "Skip to main content" [ref=e3] [cursor=pointer]:
+    - /url: "#main-content"
+  - generic [ref=e4]:
+    - navigation "Main navigation" [ref=e5]:
+      - generic [ref=e6]:
+        - generic [ref=e7]:
+          - link "Admin" [ref=e8] [cursor=pointer]:
+            - /url: /admin
+            - generic [ref=e9]: 🌴
+            - generic [ref=e10]: Admin
+          - button "Content" [ref=e11]:
+            - generic [ref=e12]: 📝
+            - generic [ref=e13]: Content
+          - button "Guests" [ref=e14]:
+            - generic [ref=e15]: 👥
+            - generic [ref=e16]: Guests
+          - button "RSVPs" [ref=e17]:
+            - generic [ref=e18]: ✓
+            - generic [ref=e19]: RSVPs
+          - button "Logistics" [expanded] [ref=e20]:
+            - generic [ref=e21]: 🚗
+            - generic [ref=e22]: Logistics
+          - button "Admin" [ref=e23]:
+            - generic [ref=e24]: ⚙️
+            - generic [ref=e25]: Admin
+        - tabpanel [ref=e26]:
+          - link "Accommodations" [ref=e27] [cursor=pointer]:
+            - /url: /admin/accommodations
+          - link "Transportation" [ref=e28] [cursor=pointer]:
+            - /url: /admin/transportation
+          - link "Budget" [ref=e29] [cursor=pointer]:
+            - /url: /admin/budget
+          - link "Vendors" [ref=e30] [cursor=pointer]:
+            - /url: /admin/vendors
+    - banner [ref=e31]:
+      - generic [ref=e32]:
+        - heading "Wedding Admin" [level=1] [ref=e34]
+        - toolbar "User actions" [ref=e35]:
+          - button "Notifications (coming soon)" [ref=e36]: 🔔
+          - button "User menu" [ref=e38]:
+            - generic [ref=e39]: A
+            - generic [ref=e40]: Admin
+            - generic [ref=e41]: ▼
+    - main [ref=e42]:
+      - status "Loading dashboard" [ref=e44]:
+        - generic [ref=e45]:
+          - generic [ref=e46]:
+            - status "Loading content" [ref=e47]
+            - status "Loading content" [ref=e48]
+          - generic [ref=e49]:
+            - status "Loading content" [ref=e50]
+            - status "Loading content" [ref=e51]
+          - generic [ref=e52]:
+            - status "Loading content" [ref=e53]
+            - status "Loading content" [ref=e54]
+          - generic [ref=e55]:
+            - status "Loading content" [ref=e56]
+            - status "Loading content" [ref=e57]
+        - generic [ref=e58]:
+          - status "Loading card" [ref=e59]:
+            - status "Loading content" [ref=e60]
+            - generic [ref=e61]:
+              - status "Loading content" [ref=e62]
+              - status "Loading content" [ref=e63]
+              - status "Loading content" [ref=e64]
+              - status "Loading content" [ref=e65]
+              - status "Loading content" [ref=e66]
+          - status "Loading card" [ref=e67]:
+            - status "Loading content" [ref=e68]
+            - generic [ref=e69]:
+              - status "Loading content" [ref=e70]
+              - status "Loading content" [ref=e71]
+              - status "Loading content" [ref=e72]
+              - status "Loading content" [ref=e73]
+              - status "Loading content" [ref=e74]
+  - button "Open Next.js Dev Tools" [ref=e80] [cursor=pointer]:
+    - img [ref=e81]
+  - alert [ref=e84]
+```

@@ -1,4 +1,5 @@
 import type { Result } from '@/types';
+import { safeGetItem, safeSetItem, safeRemoveItem } from '@/utils/storage';
 
 // Lazy load supabase to avoid initialization issues in tests
 let _supabase: any = null;
@@ -244,11 +245,13 @@ export async function cacheItinerary(
 ): Promise<Result<void>> {
   try {
     // Store in localStorage for PWA offline access
-    if (typeof window !== 'undefined' && window.localStorage) {
+    if (typeof window !== 'undefined') {
       const cacheKey = `itinerary-${guestId}`;
-      window.localStorage.setItem(cacheKey, JSON.stringify(itinerary));
+      const success = safeSetItem(cacheKey, JSON.stringify(itinerary));
       
-      return { success: true, data: undefined };
+      if (success) {
+        return { success: true, data: undefined };
+      }
     }
     
     return {
@@ -282,9 +285,9 @@ export async function getCachedItinerary(
 ): Promise<Result<Itinerary | null>> {
   try {
     // Retrieve from localStorage
-    if (typeof window !== 'undefined' && window.localStorage) {
+    if (typeof window !== 'undefined') {
       const cacheKey = `itinerary-${guestId}`;
-      const cached = window.localStorage.getItem(cacheKey);
+      const cached = safeGetItem(cacheKey);
       
       if (cached) {
         const itinerary = JSON.parse(cached) as Itinerary;
@@ -320,11 +323,13 @@ export async function getCachedItinerary(
  */
 export async function invalidateCache(guestId: string): Promise<Result<void>> {
   try {
-    if (typeof window !== 'undefined' && window.localStorage) {
+    if (typeof window !== 'undefined') {
       const cacheKey = `itinerary-${guestId}`;
-      window.localStorage.removeItem(cacheKey);
+      const success = safeRemoveItem(cacheKey);
       
-      return { success: true, data: undefined };
+      if (success) {
+        return { success: true, data: undefined };
+      }
     }
     
     return {

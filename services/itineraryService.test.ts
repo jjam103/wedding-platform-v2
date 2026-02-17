@@ -15,9 +15,9 @@ jest.mock('../lib/supabase', () => ({
 
 // Mock localStorage for browser environment
 const mockLocalStorage = {
-  getItem: jest.fn(),
-  setItem: jest.fn(),
-  removeItem: jest.fn(),
+  getItem: (jest.fn() as any),
+  setItem: (jest.fn() as any),
+  removeItem: (jest.fn() as any),
 };
 
 // Mock window and localStorage
@@ -96,9 +96,9 @@ describe('itineraryService', () => {
       mockSupabase.from.mockImplementation((table: string) => {
         if (table === 'guests') {
           return {
-            select: jest.fn().mockReturnValue({
-              eq: jest.fn().mockReturnValue({
-                single: jest.fn().mockResolvedValue({
+            select: (jest.fn() as any).mockReturnValue({
+              eq: (jest.fn() as any).mockReturnValue({
+                single: (jest.fn() as any).mockResolvedValue({
                   data: mockGuest,
                   error: null,
                 }),
@@ -108,10 +108,10 @@ describe('itineraryService', () => {
         }
         if (table === 'events') {
           return {
-            select: jest.fn().mockReturnValue({
-              eq: jest.fn().mockReturnValue({
-                or: jest.fn().mockReturnValue({
-                  order: jest.fn().mockResolvedValue({
+            select: (jest.fn() as any).mockReturnValue({
+              eq: (jest.fn() as any).mockReturnValue({
+                or: (jest.fn() as any).mockReturnValue({
+                  order: (jest.fn() as any).mockResolvedValue({
                     data: mockEvents,
                     error: null,
                   }),
@@ -122,10 +122,10 @@ describe('itineraryService', () => {
         }
         if (table === 'activities') {
           return {
-            select: jest.fn().mockReturnValue({
-              eq: jest.fn().mockReturnValue({
-                or: jest.fn().mockReturnValue({
-                  order: jest.fn().mockResolvedValue({
+            select: (jest.fn() as any).mockReturnValue({
+              eq: (jest.fn() as any).mockReturnValue({
+                or: (jest.fn() as any).mockReturnValue({
+                  order: (jest.fn() as any).mockResolvedValue({
                     data: mockActivities,
                     error: null,
                   }),
@@ -136,8 +136,8 @@ describe('itineraryService', () => {
         }
         if (table === 'rsvps') {
           return {
-            select: jest.fn().mockReturnValue({
-              eq: jest.fn().mockResolvedValue({
+            select: (jest.fn() as any).mockReturnValue({
+              eq: (jest.fn() as any).mockResolvedValue({
                 data: mockRsvps,
                 error: null,
               }),
@@ -146,9 +146,9 @@ describe('itineraryService', () => {
         }
         if (table === 'room_assignments') {
           return {
-            select: jest.fn().mockReturnValue({
-              eq: jest.fn().mockReturnValue({
-                maybeSingle: jest.fn().mockResolvedValue({
+            select: (jest.fn() as any).mockReturnValue({
+              eq: (jest.fn() as any).mockReturnValue({
+                maybeSingle: (jest.fn() as any).mockResolvedValue({
                   data: mockRoomAssignment,
                   error: null,
                 }),
@@ -176,9 +176,9 @@ describe('itineraryService', () => {
 
     it('should return GUEST_NOT_FOUND when guest does not exist', async () => {
       mockSupabase.from.mockReturnValue({
-        select: jest.fn().mockReturnValue({
-          eq: jest.fn().mockReturnValue({
-            single: jest.fn().mockResolvedValue({
+        select: (jest.fn() as any).mockReturnValue({
+          eq: (jest.fn() as any).mockReturnValue({
+            single: (jest.fn() as any).mockResolvedValue({
               data: null,
               error: { code: 'PGRST116' },
             }),
@@ -205,9 +205,9 @@ describe('itineraryService', () => {
       mockSupabase.from.mockImplementation((table: string) => {
         if (table === 'guests') {
           return {
-            select: jest.fn().mockReturnValue({
-              eq: jest.fn().mockReturnValue({
-                single: jest.fn().mockResolvedValue({
+            select: (jest.fn() as any).mockReturnValue({
+              eq: (jest.fn() as any).mockReturnValue({
+                single: (jest.fn() as any).mockResolvedValue({
                   data: mockGuest,
                   error: null,
                 }),
@@ -217,10 +217,10 @@ describe('itineraryService', () => {
         }
         if (table === 'events') {
           return {
-            select: jest.fn().mockReturnValue({
-              eq: jest.fn().mockReturnValue({
-                or: jest.fn().mockReturnValue({
-                  order: jest.fn().mockResolvedValue({
+            select: (jest.fn() as any).mockReturnValue({
+              eq: (jest.fn() as any).mockReturnValue({
+                or: (jest.fn() as any).mockReturnValue({
+                  order: (jest.fn() as any).mockResolvedValue({
                     data: null,
                     error: { message: 'Connection failed' },
                   }),

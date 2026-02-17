@@ -61,7 +61,7 @@ describe('fileValidation', () => {
       });
 
       const result = await validateFile(file, {
-        allowedTypes: ALLOWED_FILE_TYPES.images,
+        allowedTypes: [...ALLOWED_FILE_TYPES.images],
         maxSize: MAX_FILE_SIZES.image,
       });
 
@@ -79,7 +79,7 @@ describe('fileValidation', () => {
       });
 
       const result = await validateFile(file, {
-        allowedTypes: ALLOWED_FILE_TYPES.images,
+        allowedTypes: [...ALLOWED_FILE_TYPES.images],
       });
 
       expect(result.success).toBe(false);
@@ -95,7 +95,7 @@ describe('fileValidation', () => {
       });
 
       const result = await validateFile(file, {
-        allowedTypes: ALLOWED_FILE_TYPES.images,
+        allowedTypes: [...ALLOWED_FILE_TYPES.images],
         maxSize: MAX_FILE_SIZES.image, // 10 MB
       });
 
@@ -137,7 +137,7 @@ describe('fileValidation', () => {
       });
 
       const result = await validateFile(file, {
-        allowedTypes: ALLOWED_FILE_TYPES.images,
+        allowedTypes: [...ALLOWED_FILE_TYPES.images],
       });
 
       expect(result.success).toBe(false);
@@ -152,7 +152,7 @@ describe('fileValidation', () => {
       });
 
       const result = await validateFile(file, {
-        allowedTypes: ALLOWED_FILE_TYPES.documents,
+        allowedTypes: [...ALLOWED_FILE_TYPES.documents],
         maxSize: MAX_FILE_SIZES.document,
       });
 
@@ -171,7 +171,7 @@ describe('fileValidation', () => {
       ];
 
       const result = await validateFiles(files, {
-        allowedTypes: ALLOWED_FILE_TYPES.images,
+        allowedTypes: [...ALLOWED_FILE_TYPES.images],
       });
 
       expect(result.success).toBe(true);
@@ -187,7 +187,7 @@ describe('fileValidation', () => {
       ];
 
       const result = await validateFiles(files, {
-        allowedTypes: ALLOWED_FILE_TYPES.images,
+        allowedTypes: [...ALLOWED_FILE_TYPES.images],
       });
 
       expect(result.success).toBe(false);

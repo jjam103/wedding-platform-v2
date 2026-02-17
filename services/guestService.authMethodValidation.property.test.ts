@@ -29,9 +29,9 @@ describe('Feature: admin-ux-enhancements, Property 1: Auth Method Consistency', 
    * For any guest record, the auth_method field should always contain 
    * a valid value ('email_matching' or 'magic_link'), never NULL or invalid values
    */
-  it('should ensure all created guests have valid auth_method', () => {
-    fc.assert(
-      fc.property(
+  it('should ensure all created guests have valid auth_method', async () => {
+    await fc.assert(
+      fc.asyncProperty(
         fc.record({
           firstName: fc.string({ minLength: 1, maxLength: 50 }),
           lastName: fc.string({ minLength: 1, maxLength: 50 }),
@@ -71,7 +71,7 @@ describe('Feature: admin-ux-enhancements, Property 1: Auth Method Consistency', 
             firstName: guestData.firstName,
             lastName: guestData.lastName,
             email: guestData.email,
-            ageType: guestData.ageType,
+            ageType: guestData.ageType as 'adult' | 'child' | 'senior',
             guestType: guestData.guestType,
             groupId: guestData.groupId,
           });
@@ -80,10 +80,10 @@ describe('Feature: admin-ux-enhancements, Property 1: Auth Method Consistency', 
           expect(result.success).toBe(true);
           if (result.success) {
             // Auth method must be one of the valid values
-            expect(['email_matching', 'magic_link']).toContain(result.data.auth_method);
+            expect(['email_matching', 'magic_link']).toContain(result.data.authMethod);
             // Auth method must never be null or undefined
-            expect(result.data.auth_method).not.toBeNull();
-            expect(result.data.auth_method).not.toBeUndefined();
+            expect(result.data.authMethod).not.toBeNull();
+            expect(result.data.authMethod).not.toBeUndefined();
           }
         }
       ),
@@ -97,9 +97,9 @@ describe('Feature: admin-ux-enhancements, Property 1: Auth Method Consistency', 
    * When creating a guest without specifying auth_method,
    * it should inherit the system default
    */
-  it('should inherit default auth_method when not specified', () => {
-    fc.assert(
-      fc.property(
+  it('should inherit default auth_method when not specified', async () => {
+    await fc.assert(
+      fc.asyncProperty(
         fc.record({
           firstName: fc.string({ minLength: 1, maxLength: 50 }),
           lastName: fc.string({ minLength: 1, maxLength: 50 }),
@@ -130,12 +130,15 @@ describe('Feature: admin-ux-enhancements, Property 1: Auth Method Consistency', 
             }),
           });
 
-          const result = await guestService.create(guestData);
+          const result = await guestService.create({
+            ...guestData,
+            ageType: guestData.ageType as 'adult' | 'child' | 'senior',
+          });
 
           // Property: Guest should inherit the default auth method
           expect(result.success).toBe(true);
           if (result.success) {
-            expect(result.data.auth_method).toBe(defaultAuthMethod);
+            expect(result.data.authMethod).toBe(defaultAuthMethod);
           }
         }
       ),
@@ -148,9 +151,9 @@ describe('Feature: admin-ux-enhancements, Property 1: Auth Method Consistency', 
    * 
    * When updating a guest's auth_method, only valid values should be accepted
    */
-  it('should only accept valid auth_method values on update', () => {
-    fc.assert(
-      fc.property(
+  it('should only accept valid auth_method values on update', async () => {
+    await fc.assert(
+      fc.asyncProperty(
         fc.uuid(),
         fc.oneof(
           fc.constant('email_matching'),
@@ -175,16 +178,16 @@ describe('Feature: admin-ux-enhancements, Property 1: Auth Method Consistency', 
               }),
             });
 
-            const result = await guestService.update(guestId, { authMethod });
+            const result = await guestService.update(guestId, { authMethod: authMethod as 'email_matching' | 'magic_link' });
 
             // Property: Valid auth methods should succeed
             expect(result.success).toBe(true);
             if (result.success) {
-              expect(result.data.auth_method).toBe(authMethod);
+              expect(result.data.authMethod).toBe(authMethod);
             }
           } else {
             // Property: Invalid auth methods should fail validation
-            const result = await guestService.update(guestId, { authMethod });
+            const result = await guestService.update(guestId, { authMethod: authMethod as any });
             expect(result.success).toBe(false);
             if (!result.success) {
               expect(result.error.code).toBe('VALIDATION_ERROR');
@@ -201,9 +204,9 @@ describe('Feature: admin-ux-enhancements, Property 1: Auth Method Consistency', 
    * 
    * When bulk updating auth methods, all guests should receive the same valid value
    */
-  it('should consistently apply auth_method in bulk updates', () => {
-    fc.assert(
-      fc.property(
+  it('should consistently apply auth_method in bulk updates', async () => {
+    await fc.assert(
+      fc.asyncProperty(
         fc.array(fc.uuid(), { minLength: 1, maxLength: 50 }),
         fc.constantFrom('email_matching', 'magic_link'),
         async (guestIds, authMethod) => {
@@ -226,14 +229,14 @@ describe('Feature: admin-ux-enhancements, Property 1: Auth Method Consistency', 
 
           // Simulate bulk update (would be implemented in service)
           const result = await Promise.all(
-            guestIds.map(id => guestService.update(id, { authMethod }))
+            guestIds.map(id => guestService.update(id, { authMethod: authMethod as 'email_matching' | 'magic_link' }))
           );
 
           // Property: All updates should succeed with consistent auth_method
           result.forEach(r => {
             expect(r.success).toBe(true);
             if (r.success) {
-              expect(r.data.auth_method).toBe(authMethod);
+              expect(r.data.authMethod).toBe(authMethod);
             }
           });
         }

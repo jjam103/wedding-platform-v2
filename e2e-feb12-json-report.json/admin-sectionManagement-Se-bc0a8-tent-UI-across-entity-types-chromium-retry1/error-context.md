@@ -1,0 +1,126 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - link "Skip to main content" [ref=e2] [cursor=pointer]:
+    - /url: "#main-content"
+  - link "Skip to main content" [ref=e3] [cursor=pointer]:
+    - /url: "#main-content"
+  - generic [ref=e4]:
+    - navigation "Main navigation" [ref=e5]:
+      - generic [ref=e6]:
+        - generic [ref=e7]:
+          - link "Admin" [ref=e8] [cursor=pointer]:
+            - /url: /admin
+            - generic [ref=e9]: 🌴
+            - generic [ref=e10]: Admin
+          - button "Content" [expanded] [ref=e11]:
+            - generic [ref=e12]: 📝
+            - generic [ref=e13]: Content
+          - button "Guests" [ref=e14]:
+            - generic [ref=e15]: 👥
+            - generic [ref=e16]: Guests
+          - button "RSVPs" [ref=e17]:
+            - generic [ref=e18]: ✓
+            - generic [ref=e19]: RSVPs
+          - button "Logistics" [ref=e20]:
+            - generic [ref=e21]: 🚗
+            - generic [ref=e22]: Logistics
+          - button "Admin" [ref=e23]:
+            - generic [ref=e24]: ⚙️
+            - generic [ref=e25]: Admin
+        - tabpanel [ref=e26]:
+          - link "Home Page" [ref=e27] [cursor=pointer]:
+            - /url: /admin/home-page
+          - link "Activities" [ref=e28] [cursor=pointer]:
+            - /url: /admin/activities
+          - link "Events" [ref=e29] [cursor=pointer]:
+            - /url: /admin/events
+          - link "Content Pages" [ref=e30] [cursor=pointer]:
+            - /url: /admin/content-pages
+          - link "Locations" [ref=e31] [cursor=pointer]:
+            - /url: /admin/locations
+          - link "Photos" [ref=e32] [cursor=pointer]:
+            - /url: /admin/photos
+    - banner [ref=e33]:
+      - generic [ref=e34]:
+        - heading "Wedding Admin" [level=1] [ref=e36]
+        - toolbar "User actions" [ref=e37]:
+          - link "Preview guest portal in new tab" [ref=e38] [cursor=pointer]:
+            - /url: /
+            - generic [ref=e39]: 👁️
+            - generic [ref=e40]: Preview Guest Portal
+          - button "Notifications (coming soon)" [ref=e41]: 🔔
+          - button "User menu" [ref=e43]:
+            - generic [ref=e44]: A
+            - generic [ref=e45]: Admin
+            - generic [ref=e46]: ▼
+    - main [ref=e47]:
+      - generic [ref=e49]:
+        - generic [ref=e51]:
+          - heading "Activity Management" [level=1] [ref=e52]
+          - paragraph [ref=e53]: Manage your wedding activities
+        - generic [ref=e54]:
+          - button "Add Activity" [ref=e55]:
+            - generic [ref=e56]: Add Activity
+            - generic [ref=e57]: ▼
+          - generic [ref=e58]:
+            - generic [ref=e59]:
+              - generic [ref=e60]:
+                - generic [ref=e61]: Activity Name*
+                - textbox [ref=e62]:
+                  - /placeholder: Enter activity name
+              - generic [ref=e63]:
+                - generic [ref=e64]: Activity Type*
+                - combobox [ref=e65]
+              - generic [ref=e66]:
+                - generic [ref=e67]: Description
+                - textbox [ref=e68]:
+                  - /placeholder: Enter activity description
+              - generic [ref=e69]:
+                - generic [ref=e70]: Event
+                - combobox [ref=e71]
+              - generic [ref=e72]:
+                - generic [ref=e73]: Start Date & Time*
+                - textbox [ref=e74]
+              - generic [ref=e75]:
+                - generic [ref=e76]: End Date & Time
+                - textbox [ref=e77]
+              - generic [ref=e78]:
+                - generic [ref=e79]: Location
+                - combobox [ref=e80]
+              - generic [ref=e81]:
+                - generic [ref=e82]: Capacity
+                - spinbutton [ref=e83]
+              - generic [ref=e84]:
+                - generic [ref=e85]: Cost Per Person ($)
+                - spinbutton [ref=e86]
+              - generic [ref=e87]:
+                - generic [ref=e88]: Host Subsidy ($)
+                - spinbutton [ref=e89]
+              - generic [ref=e90]:
+                - generic [ref=e91]: Adults Only
+                - checkbox [ref=e92]
+              - generic [ref=e93]:
+                - generic [ref=e94]: Plus-One Allowed
+                - checkbox [ref=e95]
+              - generic [ref=e96]:
+                - generic [ref=e97]: Status*
+                - combobox [ref=e98]
+            - generic [ref=e99]:
+              - button [ref=e100]: Create Activity
+              - button [ref=e101]: Cancel
+        - generic [ref=e103]: Loading activities...
+  - generic [ref=e108] [cursor=pointer]:
+    - button "Open Next.js Dev Tools" [ref=e109]:
+      - img [ref=e110]
+    - generic [ref=e113]:
+      - button "Open issues overlay" [ref=e114]:
+        - generic [ref=e115]:
+          - generic [ref=e116]: "0"
+          - generic [ref=e117]: "1"
+        - generic [ref=e118]: Issue
+      - button "Collapse issues badge" [ref=e119]:
+        - img [ref=e120]
+  - alert [ref=e122]
+```

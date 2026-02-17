@@ -1,7 +1,6 @@
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
-import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
 import { generateItinerary } from '@/services/itineraryService';
+import { validateGuestAuth } from '@/lib/guestAuth';
 
 /**
  * PDF Export API Route
@@ -10,34 +9,16 @@ import { generateItinerary } from '@/services/itineraryService';
  * 
  * Requirements: 26.5
  */
-export async function GET(request: Request) {
+export async function GET() {
   try {
     // 1. Auth check
-    const supabase = createRouteHandlerClient({ cookies });
-    const { data: { session }, error: authError } = await supabase.auth.getSession();
-    
-    if (authError || !session) {
-      return NextResponse.json(
-        { success: false, error: { code: 'UNAUTHORIZED', message: 'Authentication required' } },
-        { status: 401 }
-      );
+    const authResult = await validateGuestAuth();
+    if (!authResult.success) {
+      return NextResponse.json(authResult.error, { status: authResult.status });
     }
+    const guest = authResult.guest;
     
-    // 2. Get guest ID from session
-    const { data: guest, error: guestError } = await supabase
-      .from('guests')
-      .select('id, first_name, last_name')
-      .eq('email', session.user.email)
-      .single();
-    
-    if (guestError || !guest) {
-      return NextResponse.json(
-        { success: false, error: { code: 'NOT_FOUND', message: 'Guest not found' } },
-        { status: 404 }
-      );
-    }
-    
-    // 3. Generate itinerary
+    // 2. Generate itinerary
     const result = await generateItinerary(guest.id);
     
     if (!result.success) {
@@ -46,10 +27,10 @@ export async function GET(request: Request) {
     
     const itinerary = result.data;
     
-    // 4. Generate PDF HTML content
+    // 3. Generate PDF HTML content
     const pdfHtml = generatePDFHTML(itinerary, guest);
     
-    // 5. For now, return HTML that can be printed as PDF
+    // 4. For now, return HTML that can be printed as PDF
     // In production, you would use a library like puppeteer or jsPDF
     // to generate actual PDF bytes
     
@@ -102,8 +83,8 @@ function generatePDFHTML(itinerary: any, guest: any): string {
       grouped.get(dateKey)!.push(event);
     });
     
-    return Array.from(grouped.entries()).map(([date, events]) => ({
-      date,
+    return Array.from(grouped.entries()).map(([, events]) => ({
+      date: events[0].date,
       events: events.sort((a, b) => new Date(a.time).getTime() - new Date(b.time).getTime()),
     }));
   };

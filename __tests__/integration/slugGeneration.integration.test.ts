@@ -27,16 +27,16 @@ describe('Slug Generation Integration Tests', () => {
         .from('events')
         .insert({
           name: 'Test Event One',
-          event_type: 'ceremony',
+          event_type: 'ceremony' as any,
           start_date: new Date().toISOString(),
-          status: 'draft',
+          status: 'draft' as any,
         })
         .select()
         .single();
 
       expect(error).toBeNull();
       expect(data).toBeDefined();
-      expect(data?.slug).toBe('test-event-one');
+      expect((data as any)?.slug).toBe('test-event-one');
     });
 
     it('should handle special characters in event name', async () => {
@@ -44,15 +44,15 @@ describe('Slug Generation Integration Tests', () => {
         .from('events')
         .insert({
           name: 'Test Event: Special & Characters!',
-          event_type: 'ceremony',
+          event_type: 'ceremony' as any,
           start_date: new Date().toISOString(),
-          status: 'draft',
+          status: 'draft' as any,
         })
         .select()
         .single();
 
       expect(error).toBeNull();
-      expect(data?.slug).toBe('test-event-special-characters');
+      expect((data as any)?.slug).toBe('test-event-special-characters');
     });
 
     it('should handle duplicate event names with numeric suffixes', async () => {
@@ -61,23 +61,23 @@ describe('Slug Generation Integration Tests', () => {
         .from('events')
         .insert({
           name: 'Test Event Duplicate',
-          event_type: 'ceremony',
+          event_type: 'ceremony' as any,
           start_date: new Date().toISOString(),
-          status: 'draft',
+          status: 'draft' as any,
         })
         .select()
         .single();
 
-      expect(event1?.slug).toBe('test-event-duplicate');
+      expect((event1 as any)?.slug).toBe('test-event-duplicate');
 
       // Insert second event with same name
       const { data: event2, error: error2 } = await supabase
         .from('events')
         .insert({
           name: 'Test Event Duplicate',
-          event_type: 'ceremony',
+          event_type: 'ceremony' as any,
           start_date: new Date().toISOString(),
-          status: 'draft',
+          status: 'draft' as any,
         })
         .select()
         .single();
@@ -89,7 +89,7 @@ describe('Slug Generation Integration Tests', () => {
         expect(error2.code).toBe('23505'); // Unique violation
       } else {
         // If it succeeds, the slug should have a numeric suffix
-        expect(event2?.slug).toMatch(/^test-event-duplicate-\d+$/);
+        expect((event2 as any)?.slug).toMatch(/^test-event-duplicate-\d+$/);
       }
     });
 
@@ -100,25 +100,25 @@ describe('Slug Generation Integration Tests', () => {
         .insert({
           name: 'Test Event Custom',
           slug: 'my-custom-slug',
-          event_type: 'ceremony',
+          event_type: 'ceremony' as any,
           start_date: new Date().toISOString(),
-          status: 'draft',
+          status: 'draft' as any,
         })
         .select()
         .single();
 
-      expect(event?.slug).toBe('my-custom-slug');
+      expect((event as any)?.slug).toBe('my-custom-slug');
 
       // Update event name
       const { data: updated } = await supabase
         .from('events')
-        .update({ name: 'Test Event Custom Updated' })
-        .eq('id', event!.id)
+        .update({ name: 'Test Event Custom Updated' } as any)
+        .eq('id', (event as any)!.id)
         .select()
         .single();
 
       // Slug should be preserved
-      expect(updated?.slug).toBe('my-custom-slug');
+      expect((updated as any)?.slug).toBe('my-custom-slug');
     });
   });
 
@@ -128,16 +128,16 @@ describe('Slug Generation Integration Tests', () => {
         .from('activities')
         .insert({
           name: 'Test Activity One',
-          activity_type: 'activity',
+          activity_type: 'activity' as any,
           start_time: new Date().toISOString(),
-          status: 'draft',
+          status: 'draft' as any,
         })
         .select()
         .single();
 
       expect(error).toBeNull();
       expect(data).toBeDefined();
-      expect(data?.slug).toBe('test-activity-one');
+      expect((data as any)?.slug).toBe('test-activity-one');
     });
 
     it('should handle special characters in activity name', async () => {
@@ -145,15 +145,15 @@ describe('Slug Generation Integration Tests', () => {
         .from('activities')
         .insert({
           name: 'Test Activity: Special & Characters!',
-          activity_type: 'activity',
+          activity_type: 'activity' as any,
           start_time: new Date().toISOString(),
-          status: 'draft',
+          status: 'draft' as any,
         })
         .select()
         .single();
 
       expect(error).toBeNull();
-      expect(data?.slug).toBe('test-activity-special-characters');
+      expect((data as any)?.slug).toBe('test-activity-special-characters');
     });
 
     it('should handle duplicate activity names with numeric suffixes', async () => {
@@ -162,23 +162,23 @@ describe('Slug Generation Integration Tests', () => {
         .from('activities')
         .insert({
           name: 'Test Activity Duplicate',
-          activity_type: 'activity',
+          activity_type: 'activity' as any,
           start_time: new Date().toISOString(),
-          status: 'draft',
+          status: 'draft' as any,
         })
         .select()
         .single();
 
-      expect(activity1?.slug).toBe('test-activity-duplicate');
+      expect((activity1 as any)?.slug).toBe('test-activity-duplicate');
 
       // Insert second activity with same name
       const { data: activity2, error: error2 } = await supabase
         .from('activities')
         .insert({
           name: 'Test Activity Duplicate',
-          activity_type: 'activity',
+          activity_type: 'activity' as any,
           start_time: new Date().toISOString(),
-          status: 'draft',
+          status: 'draft' as any,
         })
         .select()
         .single();
@@ -190,7 +190,7 @@ describe('Slug Generation Integration Tests', () => {
         expect(error2.code).toBe('23505'); // Unique violation
       } else {
         // If it succeeds, the slug should have a numeric suffix
-        expect(activity2?.slug).toMatch(/^test-activity-duplicate-\d+$/);
+        expect((activity2 as any)?.slug).toMatch(/^test-activity-duplicate-\d+$/);
       }
     });
 
@@ -201,25 +201,25 @@ describe('Slug Generation Integration Tests', () => {
         .insert({
           name: 'Test Activity Custom',
           slug: 'my-custom-activity-slug',
-          activity_type: 'activity',
+          activity_type: 'activity' as any,
           start_time: new Date().toISOString(),
-          status: 'draft',
+          status: 'draft' as any,
         })
         .select()
         .single();
 
-      expect(activity?.slug).toBe('my-custom-activity-slug');
+      expect((activity as any)?.slug).toBe('my-custom-activity-slug');
 
       // Update activity name
       const { data: updated } = await supabase
         .from('activities')
-        .update({ name: 'Test Activity Custom Updated' })
-        .eq('id', activity!.id)
+        .update({ name: 'Test Activity Custom Updated' } as any)
+        .eq('id', (activity as any)!.id)
         .select()
         .single();
 
       // Slug should be preserved
-      expect(updated?.slug).toBe('my-custom-activity-slug');
+      expect((updated as any)?.slug).toBe('my-custom-activity-slug');
     });
   });
 });

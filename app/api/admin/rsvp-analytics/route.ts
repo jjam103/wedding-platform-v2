@@ -134,10 +134,49 @@ export async function GET(request: Request): Promise<NextResponse> {
       );
     }
 
+    // Handle empty RSVPs gracefully
+    if (!allRsvps || allRsvps.length === 0) {
+      const emptyAnalytics: RSVPAnalytics = {
+        overall_response_rate: 0,
+        response_counts: {
+          attending: 0,
+          declined: 0,
+          maybe: 0,
+          pending: 0,
+        },
+        event_response_rates: [],
+        activity_response_rates: [],
+        capacity_utilization: [],
+        response_trends: [],
+        pending_reminders: 0,
+      };
+      return NextResponse.json({ success: true, data: emptyAnalytics }, { status: 200 });
+    }
+
     // Filter by guest type if specified
     let filteredRsvps = allRsvps;
     if (guestType) {
-      const guestIds = allRsvps.map(r => r.guest_id);
+      const guestIds = allRsvps.map(r => r.guest_id).filter(Boolean);
+      
+      if (guestIds.length === 0) {
+        // No guest IDs to filter, return empty analytics
+        const emptyAnalytics: RSVPAnalytics = {
+          overall_response_rate: 0,
+          response_counts: {
+            attending: 0,
+            declined: 0,
+            maybe: 0,
+            pending: 0,
+          },
+          event_response_rates: [],
+          activity_response_rates: [],
+          capacity_utilization: [],
+          response_trends: [],
+          pending_reminders: 0,
+        };
+        return NextResponse.json({ success: true, data: emptyAnalytics }, { status: 200 });
+      }
+      
       const { data: guests, error: guestError } = await adminSupabase
         .from('guests')
         .select('id, guest_type')
@@ -151,7 +190,7 @@ export async function GET(request: Request): Promise<NextResponse> {
         );
       }
 
-      const filteredGuestIds = new Set(guests.map(g => g.id));
+      const filteredGuestIds = new Set((guests || []).map(g => g.id));
       filteredRsvps = allRsvps.filter(r => filteredGuestIds.has(r.guest_id));
     }
 
@@ -181,7 +220,7 @@ export async function GET(request: Request): Promise<NextResponse> {
       );
     }
 
-    const event_response_rates: EventResponseRate[] = events.map(event => {
+    const event_response_rates: EventResponseRate[] = (events || []).map(event => {
       const eventRsvps = filteredRsvps.filter(r => r.event_id === event.id);
       const total_invited = eventRsvps.length;
       const total_responded = eventRsvps.filter(r => r.status !== 'pending').length;
@@ -216,7 +255,7 @@ export async function GET(request: Request): Promise<NextResponse> {
       );
     }
 
-    const activity_response_rates: ActivityResponseRate[] = activities.map(activity => {
+    const activity_response_rates: ActivityResponseRate[] = (activities || []).map(activity => {
       const activityRsvps = filteredRsvps.filter(r => r.activity_id === activity.id);
       const total_invited = activityRsvps.length;
       const total_responded = activityRsvps.filter(r => r.status !== 'pending').length;
@@ -244,7 +283,7 @@ export async function GET(request: Request): Promise<NextResponse> {
     });
 
     // Calculate capacity utilization warnings
-    const capacity_utilization = activities
+    const capacity_utilization = (activities || [])
       .filter(a => a.capacity)
       .map(activity => {
         const activityRsvps = filteredRsvps.filter(r => r.activity_id === activity.id);

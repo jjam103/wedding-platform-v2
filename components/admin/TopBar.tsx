@@ -74,6 +74,19 @@ export function TopBar() {
 
         {/* Right side - Actions */}
         <div className="flex items-center gap-3" role="toolbar" aria-label="User actions">
+          {/* Preview Guest Portal */}
+          <a
+            href="/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-2 px-3 py-2 bg-jungle-600 text-white rounded-lg hover:bg-jungle-700 transition-colors text-sm font-medium"
+            aria-label="Preview guest portal in new tab"
+            title="Preview Guest Portal"
+          >
+            <span className="text-lg" aria-hidden="true">👁️</span>
+            <span className="hidden sm:inline">Preview Guest Portal</span>
+          </a>
+
           {/* Notification bell (placeholder) */}
           <button
             className="p-2 text-sage-600 hover:text-sage-900 hover:bg-sage-100 rounded-lg transition-colors relative"
@@ -103,13 +116,15 @@ export function TopBar() {
             </button>
 
             {/* Dropdown menu */}
-            {isUserMenuOpen && (
-              <div 
-                id="user-menu-dropdown"
-                className="absolute right-0 mt-2 w-48 bg-white border border-sage-200 rounded-lg shadow-lg py-1 z-50 animate-slide-down"
-                role="menu"
-                aria-label="User menu options"
-              >
+            <div 
+              id="user-menu-dropdown"
+              className={`absolute right-0 mt-2 w-48 bg-white border border-sage-200 rounded-lg shadow-lg py-1 z-50 ${
+                isUserMenuOpen ? 'animate-slide-down' : 'hidden'
+              }`}
+              role="menu"
+              aria-label="User menu options"
+              hidden={!isUserMenuOpen}
+            >
                 <button
                   onClick={handleProfile}
                   className="w-full px-4 py-2 text-left text-sm text-sage-700 hover:bg-sage-50 transition-colors flex items-center gap-2"
@@ -143,7 +158,6 @@ export function TopBar() {
                   )}
                 </button>
               </div>
-            )}
           </div>
         </div>
       </div>

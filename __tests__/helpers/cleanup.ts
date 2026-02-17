@@ -29,10 +29,19 @@ function getCleanupClient() {
 
 /**
  * Clean up test guests by email pattern
+ * Matches ALL @example.com emails (test domain for E2E tests)
+ * This catches test.user%, john.doe%, john%, and any other test patterns
  */
-export async function cleanupTestGuests(emailPattern = 'test.user%@example.com'): Promise<void> {
+export async function cleanupTestGuests(emailPattern = '%@example.com'): Promise<void> {
   const supabase = getCleanupClient();
   
+  // Count before cleanup for logging
+  const { count: beforeCount } = await supabase
+    .from('guests')
+    .select('*', { count: 'exact', head: true })
+    .like('email', emailPattern);
+  
+  // Delete all guests with @example.com domain
   const { error } = await supabase
     .from('guests')
     .delete()
@@ -40,23 +49,55 @@ export async function cleanupTestGuests(emailPattern = 'test.user%@example.com')
   
   if (error) {
     console.error('Failed to cleanup test guests:', error);
+    return;
+  }
+  
+  // Count after cleanup for verification
+  const { count: afterCount } = await supabase
+    .from('guests')
+    .select('*', { count: 'exact', head: true })
+    .like('email', emailPattern);
+  
+  const cleaned = (beforeCount || 0) - (afterCount || 0);
+  if (cleaned > 0) {
+    console.log(`   Cleaned up ${cleaned} test guests`);
   }
 }
 
 /**
  * Clean up test guest groups by name pattern
+ * Matches any group with "Test" or "Cleanup" in the name
  * Note: Table is named 'groups' not 'guest_groups'
  */
-export async function cleanupTestGuestGroups(namePattern = 'Test Family%'): Promise<void> {
+export async function cleanupTestGuestGroups(namePattern = '%Test%'): Promise<void> {
   const supabase = getCleanupClient();
   
+  // Count before cleanup
+  const { count: beforeCount } = await supabase
+    .from('groups')
+    .select('*', { count: 'exact', head: true })
+    .or('name.like.%Test%,name.like.%Cleanup%');
+  
+  // Clean up any group with "Test" or "Cleanup" in the name
   const { error } = await supabase
     .from('groups')
     .delete()
-    .like('name', namePattern);
+    .or('name.like.%Test%,name.like.%Cleanup%');
   
   if (error) {
     console.error('Failed to cleanup test guest groups:', error);
+    return;
+  }
+  
+  // Count after cleanup
+  const { count: afterCount } = await supabase
+    .from('groups')
+    .select('*', { count: 'exact', head: true })
+    .or('name.like.%Test%,name.like.%Cleanup%');
+  
+  const cleaned = (beforeCount || 0) - (afterCount || 0);
+  if (cleaned > 0) {
+    console.log(`   Cleaned up ${cleaned} test guest groups`);
   }
 }
 
@@ -182,11 +223,11 @@ export async function cleanupTestRSVPs(guestIds?: string[]): Promise<void> {
   
   // If no specific guest IDs provided, clean up RSVPs for test guests
   if (!guestIds || guestIds.length === 0) {
-    // Get test guests first
+    // Get test guests first (matches both test.user% and test-guest-% patterns)
     const { data: testGuests } = await supabase
       .from('guests')
       .select('id')
-      .like('email', 'test.user%@example.com');
+      .like('email', 'test%@example.com');
     
     if (testGuests && testGuests.length > 0) {
       guestIds = testGuests.map(g => g.id);
@@ -340,6 +381,25 @@ export async function withCleanup<T>(
 
 
 /**
+ * Clean up guest sessions for specific guests only
+ * More targeted than cleanupGuestSessions which deletes ALL sessions
+ */
+export async function cleanupGuestSessionsForGuests(guestIds: string[]): Promise<void> {
+  if (guestIds.length === 0) return;
+  
+  const supabase = getCleanupClient();
+  
+  const { error } = await supabase
+    .from('guest_sessions')
+    .delete()
+    .in('guest_id', guestIds);
+  
+  if (error) {
+    console.error('Failed to cleanup guest sessions for specific guests:', error);
+  }
+}
+
+/**
  * Clean up all guest sessions
  */
 export async function cleanupGuestSessions(): Promise<void> {
@@ -390,6 +450,8 @@ export async function cleanupAuditLogs(): Promise<void> {
 /**
  * Comprehensive cleanup for integration tests
  * Cleans all test-related data in the correct order
+ * 
+ * Enhanced with verification to ensure cleanup completed successfully
  */
 export async function cleanup(): Promise<void> {
   console.log('🧹 Running comprehensive test cleanup...');
@@ -430,7 +492,38 @@ export async function cleanup(): Promise<void> {
   // 11. Clean up content pages (no dependencies)
   await cleanupTestContentPages();
   
+  // Verify cleanup completed
+  await verifyCleanupComplete();
+  
   console.log('✅ Comprehensive cleanup complete');
+}
+
+/**
+ * Verify that cleanup completed successfully
+ * Checks for remaining test data and warns if found
+ */
+async function verifyCleanupComplete(): Promise<void> {
+  const supabase = getCleanupClient();
+  
+  // Check for remaining test guests
+  const { count: guestCount } = await supabase
+    .from('guests')
+    .select('*', { count: 'exact', head: true })
+    .like('email', '%@example.com');
+  
+  if (guestCount && guestCount > 0) {
+    console.warn(`⚠️  Cleanup incomplete: ${guestCount} test guests remain`);
+  }
+  
+  // Check for remaining test groups
+  const { count: groupCount } = await supabase
+    .from('groups')
+    .select('*', { count: 'exact', head: true })
+    .or('name.like.%Test%,name.like.%Cleanup%');
+  
+  if (groupCount && groupCount > 0) {
+    console.warn(`⚠️  Cleanup incomplete: ${groupCount} test groups remain`);
+  }
 }
 
 /**

@@ -1,6 +1,6 @@
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
-import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
+import { validateGuestAuth } from '@/lib/guestAuth';
+import { createSupabaseClient } from '@/lib/supabase';
 
 /**
  * Family Members API Routes
@@ -16,33 +16,15 @@ import { NextResponse } from 'next/server';
  */
 export async function GET(request: Request) {
   try {
-    const supabase = createRouteHandlerClient({ cookies });
-    
-    // Check authentication
-    const { data: { session }, error: authError } = await supabase.auth.getSession();
-    
-    if (authError || !session) {
-      return NextResponse.json(
-        { success: false, error: { code: 'UNAUTHORIZED', message: 'Authentication required' } },
-        { status: 401 }
-      );
+    // Auth check
+    const authResult = await validateGuestAuth();
+    if (!authResult.success) {
+      return NextResponse.json(authResult.error, { status: authResult.status });
     }
-    
-    // Get current guest
-    const { data: guest, error: guestError } = await supabase
-      .from('guests')
-      .select('id, group_id, age_type')
-      .eq('email', session.user.email)
-      .single();
-    
-    if (guestError || !guest) {
-      return NextResponse.json(
-        { success: false, error: { code: 'NOT_FOUND', message: 'Guest profile not found' } },
-        { status: 404 }
-      );
-    }
+    const guest = authResult.guest;
     
     // Get family members based on access control
+    const supabase = createSupabaseClient();
     let familyMembers = [];
     
     if (guest.age_type === 'adult') {

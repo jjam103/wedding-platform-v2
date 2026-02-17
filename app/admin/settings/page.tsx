@@ -27,6 +27,13 @@ export default async function SettingsPage() {
     redirect('/auth/login');
   }
 
+  // Get current user info
+  const { data: adminUser } = await supabase
+    .from('admin_users')
+    .select('id, role')
+    .eq('id', session.user.id)
+    .single();
+
   // Fetch current settings
   const settingsResult = await settingsService.getSettings();
   const settings = settingsResult.success ? settingsResult.data : [];
@@ -40,7 +47,11 @@ export default async function SettingsPage() {
         </p>
       </div>
 
-      <SettingsManager initialSettings={settings} />
+      <SettingsManager 
+        initialSettings={settings}
+        currentUserId={session.user.id}
+        currentUserRole={adminUser?.role as 'owner' | 'admin' | undefined}
+      />
     </div>
   );
 }

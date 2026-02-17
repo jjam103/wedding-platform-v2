@@ -51,7 +51,7 @@ describe('Regression: Guest Authentication', () => {
         }),
       } as any);
 
-      const response = await fetch('/api/auth/guest/email-match', {
+      const response = await fetch('/api/guest-auth/email-match', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: 'john@example.com' }),

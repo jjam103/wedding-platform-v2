@@ -1,5 +1,6 @@
 import { test as setup, expect } from '@playwright/test';
 import path from 'path';
+import fs from 'fs';
 
 /**
  * Playwright Authentication Setup
@@ -14,6 +15,13 @@ const authFile = path.join(__dirname, '../../.auth/user.json');
 
 setup('authenticate as admin', async ({ page }) => {
   console.log('Setting up authentication for E2E tests...');
+  
+  // Ensure .auth directory exists
+  const authDir = path.dirname(authFile);
+  if (!fs.existsSync(authDir)) {
+    fs.mkdirSync(authDir, { recursive: true });
+    console.log(`Created .auth directory: ${authDir}`);
+  }
   
   // Enable console logging to debug issues
   page.on('console', msg => {

@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { safeGetJSON, safeSetJSON } from '@/utils/storage';
 
 interface NavigationItem {
   id: string;
@@ -51,9 +52,8 @@ export function GroupedNavigation({
   // Load expanded groups from localStorage
   useEffect(() => {
     try {
-      const stored = localStorage.getItem(STORAGE_KEY);
-      if (stored) {
-        const parsed = JSON.parse(stored);
+      const parsed = safeGetJSON<string[]>(STORAGE_KEY, []);
+      if (parsed.length > 0) {
         setExpandedGroups(new Set(parsed));
       } else {
         // Default: expand all groups
@@ -76,7 +76,7 @@ export function GroupedNavigation({
   // Save expanded groups to localStorage
   useEffect(() => {
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(Array.from(expandedGroups)));
+      safeSetJSON(STORAGE_KEY, Array.from(expandedGroups));
     } catch (error) {
       console.error('Failed to save expanded groups:', error);
     }
@@ -110,8 +110,10 @@ export function GroupedNavigation({
     const handleStorageChange = (e: StorageEvent) => {
       if (e.key === STORAGE_KEY && e.newValue) {
         try {
-          const parsed = JSON.parse(e.newValue);
-          setExpandedGroups(new Set(parsed));
+          const parsed = safeGetJSON<string[]>(STORAGE_KEY, []);
+          if (parsed.length > 0) {
+            setExpandedGroups(new Set(parsed));
+          }
         } catch (error) {
           console.error('Failed to sync expanded groups:', error);
         }

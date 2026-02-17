@@ -200,10 +200,14 @@ export function RSVPForm({
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
+    <form 
+      onSubmit={handleSubmit} 
+      className="space-y-6"
+      aria-label="RSVP Form"
+    >
       {/* Deadline Warning */}
       {isDeadlinePassed && (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4" role="alert">
           <p className="text-sm text-red-800 font-medium">
             ⚠️ The RSVP deadline for this activity has passed. You can no longer submit or update your RSVP.
           </p>
@@ -212,7 +216,7 @@ export function RSVPForm({
 
       {/* Capacity Warning */}
       {!isDeadlinePassed && isCapacityAlmostFull && !isCapacityFull && (
-        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4" role="alert">
           <p className="text-sm text-yellow-800 font-medium">
             ⚠️ This activity is almost full! Only {activityDetails?.capacityRemaining} spot(s) remaining.
           </p>
@@ -220,8 +224,8 @@ export function RSVPForm({
       )}
 
       {/* Status Selection */}
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
+      <div role="group" aria-labelledby="rsvp-status-label">
+        <label id="rsvp-status-label" className="block text-sm font-medium text-gray-700 mb-2">
           RSVP Status *
         </label>
         <div className="grid grid-cols-3 gap-3">
@@ -229,7 +233,9 @@ export function RSVPForm({
             type="button"
             onClick={() => handleStatusChange('attending')}
             disabled={isDeadlinePassed || (isCapacityFull && formData.status !== 'attending')}
-            className={`px-4 py-3 rounded-lg border-2 font-medium transition-colors ${
+            aria-pressed={formData.status === 'attending'}
+            aria-label="RSVP as attending"
+            className={`px-4 py-3 rounded-lg border-2 font-medium transition-colors min-h-[44px] ${
               formData.status === 'attending'
                 ? 'border-green-500 bg-green-50 text-green-700'
                 : 'border-gray-300 bg-white text-gray-700 hover:border-green-300'
@@ -245,7 +251,9 @@ export function RSVPForm({
             type="button"
             onClick={() => handleStatusChange('maybe')}
             disabled={isDeadlinePassed}
-            className={`px-4 py-3 rounded-lg border-2 font-medium transition-colors ${
+            aria-pressed={formData.status === 'maybe'}
+            aria-label="RSVP as maybe"
+            className={`px-4 py-3 rounded-lg border-2 font-medium transition-colors min-h-[44px] ${
               formData.status === 'maybe'
                 ? 'border-yellow-500 bg-yellow-50 text-yellow-700'
                 : 'border-gray-300 bg-white text-gray-700 hover:border-yellow-300'
@@ -257,7 +265,9 @@ export function RSVPForm({
             type="button"
             onClick={() => handleStatusChange('declined')}
             disabled={isDeadlinePassed}
-            className={`px-4 py-3 rounded-lg border-2 font-medium transition-colors ${
+            aria-pressed={formData.status === 'declined'}
+            aria-label="RSVP as declined"
+            className={`px-4 py-3 rounded-lg border-2 font-medium transition-colors min-h-[44px] ${
               formData.status === 'declined'
                 ? 'border-red-500 bg-red-50 text-red-700'
                 : 'border-gray-300 bg-white text-gray-700 hover:border-red-300'
@@ -267,7 +277,9 @@ export function RSVPForm({
           </button>
         </div>
         {errors.capacity && (
-          <p className="mt-2 text-sm text-red-600">{errors.capacity}</p>
+          <p className="mt-2 text-sm text-red-600" role="alert" id="capacity-error">
+            {errors.capacity}
+          </p>
         )}
       </div>
 
@@ -284,15 +296,21 @@ export function RSVPForm({
             value={formData.guestCount || 1}
             onChange={(e) => handleGuestCountChange(parseInt(e.target.value, 10))}
             disabled={isDeadlinePassed}
-            className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 ${
+            required
+            aria-required="true"
+            aria-invalid={!!errors.guestCount}
+            aria-describedby={errors.guestCount ? 'guestCount-error' : undefined}
+            className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 min-h-[44px] ${
               errors.guestCount ? 'border-red-500' : 'border-gray-300'
             } ${isDeadlinePassed ? 'opacity-50 cursor-not-allowed' : ''}`}
           />
           {errors.guestCount && (
-            <p className="mt-1 text-sm text-red-600">{errors.guestCount}</p>
+            <p className="mt-1 text-sm text-red-600" role="alert" id="guestCount-error">
+              {errors.guestCount}
+            </p>
           )}
           {activityDetails?.capacityRemaining !== null && activityDetails?.capacityRemaining !== undefined && (
-            <p className="mt-1 text-sm text-gray-600">
+            <p className="mt-1 text-sm text-gray-600" role="status">
               {activityDetails.capacityRemaining} spot(s) remaining
             </p>
           )}
@@ -312,12 +330,16 @@ export function RSVPForm({
             onChange={(e) => handleDietaryRestrictionsChange(e.target.value)}
             disabled={isDeadlinePassed}
             placeholder="Please let us know about any dietary restrictions or allergies..."
+            aria-invalid={!!errors.dietaryRestrictions}
+            aria-describedby={errors.dietaryRestrictions ? 'dietaryRestrictions-error' : undefined}
             className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 ${
               errors.dietaryRestrictions ? 'border-red-500' : 'border-gray-300'
             } ${isDeadlinePassed ? 'opacity-50 cursor-not-allowed' : ''}`}
           />
           {errors.dietaryRestrictions && (
-            <p className="mt-1 text-sm text-red-600">{errors.dietaryRestrictions}</p>
+            <p className="mt-1 text-sm text-red-600" role="alert" id="dietaryRestrictions-error">
+              {errors.dietaryRestrictions}
+            </p>
           )}
         </div>
       )}
@@ -341,7 +363,7 @@ export function RSVPForm({
 
       {/* Submit Error */}
       {submitError && (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4" role="alert">
           <p className="text-sm text-red-800">{submitError}</p>
         </div>
       )}

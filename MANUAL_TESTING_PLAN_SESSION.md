@@ -20,16 +20,17 @@ Based on recent changes and known issues, focus on these areas:
 ### 1. Critical Path Testing (Priority 1)
 
 #### Admin Authentication & Access
-- [ ] Login to admin dashboard
-- [ ] Verify role-based access control
-- [ ] Check session persistence
-- [ ] Test logout functionality
+- [x] Login to admin dashboard
+- [x] Verify role-based access control
+- [x] Check session persistence
+- [x] Test logout functionality
 
 #### Guest Groups Management
-- [ ] Navigate to `/admin/guest-groups`
-- [ ] Create a new guest group
-- [ ] Edit existing group
-- [ ] Delete a group
+- [x] Navigate to `/admin/guest-groups` 
+    Note - am using the guest groups collapsible seciton on the guest page. The separate guest groups page can get deled. 
+- [x] Create a new guest group
+- [x] Edit existing group
+- [s] Delete a group
 - [ ] Verify RLS policies (groups only visible to owners)
 
 #### Guest Management

@@ -28,25 +28,25 @@ describe('Admin User Schema Integration Tests', () => {
     });
 
     it('should enforce role enum constraint', async () => {
-      const { error } = await supabase
+      const { error } = (await supabase
         .from('admin_users')
         .insert({
           email: 'test@example.com',
-          role: 'invalid_role', // Should fail
-        });
+          role: 'invalid_role' as any, // Should fail
+        })) as any;
 
       expect(error).toBeTruthy();
       expect(error?.message).toContain('role');
     });
 
     it('should enforce status enum constraint', async () => {
-      const { error } = await supabase
+      const { error } = (await supabase
         .from('admin_users')
         .insert({
           email: 'test@example.com',
           role: 'admin',
-          status: 'invalid_status', // Should fail
-        });
+          status: 'invalid_status' as any, // Should fail
+        })) as any;
 
       expect(error).toBeTruthy();
       expect(error?.message).toContain('status');
@@ -56,22 +56,22 @@ describe('Admin User Schema Integration Tests', () => {
       const email = `unique-test-${Date.now()}@example.com`;
 
       // Insert first user
-      const { error: error1 } = await supabase
+      const { error: error1 } = (await supabase
         .from('admin_users')
         .insert({
           email,
-          role: 'admin',
-        });
+          role: 'admin' as any,
+        })) as any;
 
       expect(error1).toBeNull();
 
       // Try to insert duplicate email
-      const { error: error2 } = await supabase
+      const { error: error2 } = (await supabase
         .from('admin_users')
         .insert({
           email,
-          role: 'admin',
-        });
+          role: 'admin' as any,
+        })) as any;
 
       expect(error2).toBeTruthy();
       expect(error2?.message).toContain('unique');
@@ -83,21 +83,21 @@ describe('Admin User Schema Integration Tests', () => {
     it('should have default values for status and timestamps', async () => {
       const email = `default-test-${Date.now()}@example.com`;
 
-      const { data, error } = await supabase
+      const { data, error } = (await supabase
         .from('admin_users')
         .insert({
           email,
-          role: 'admin',
+          role: 'admin' as any,
         })
         .select()
-        .single();
+        .single()) as any;
 
       expect(error).toBeNull();
       expect(data).toBeDefined();
-      expect(data?.status).toBe('active');
-      expect(data?.created_at).toBeDefined();
-      expect(data?.updated_at).toBeDefined();
-      expect(data?.invited_at).toBeDefined();
+      expect((data as any)?.status).toBe('active');
+      expect((data as any)?.created_at).toBeDefined();
+      expect((data as any)?.updated_at).toBeDefined();
+      expect((data as any)?.invited_at).toBeDefined();
 
       // Cleanup
       await supabase.from('admin_users').delete().eq('email', email);
@@ -108,32 +108,32 @@ describe('Admin User Schema Integration Tests', () => {
       const adminEmail = `admin-${Date.now()}@example.com`;
 
       // Create owner
-      const { data: owner, error: ownerError } = await supabase
+      const { data: owner, error: ownerError } = (await supabase
         .from('admin_users')
         .insert({
           email: ownerEmail,
-          role: 'owner',
+          role: 'owner' as any,
         })
         .select()
-        .single();
+        .single()) as any;
 
       expect(ownerError).toBeNull();
       expect(owner).toBeDefined();
 
       // Create admin invited by owner
-      const { data: admin, error: adminError } = await supabase
+      const { data: admin, error: adminError } = (await supabase
         .from('admin_users')
         .insert({
           email: adminEmail,
-          role: 'admin',
-          invited_by: owner!.id,
+          role: 'admin' as any,
+          invited_by: (owner as any)!.id,
         })
         .select()
-        .single();
+        .single()) as any;
 
       expect(adminError).toBeNull();
       expect(admin).toBeDefined();
-      expect(admin?.invited_by).toBe(owner!.id);
+      expect((admin as any)?.invited_by).toBe((owner as any)!.id);
 
       // Cleanup
       await supabase.from('admin_users').delete().eq('email', adminEmail);
@@ -165,14 +165,14 @@ describe('Admin User Schema Integration Tests', () => {
     });
 
     it('should enforce category enum constraint', async () => {
-      const { error } = await supabase
+      const { error } = (await supabase
         .from('email_templates')
         .insert({
           name: 'Test Template',
           subject: 'Test Subject',
           body_html: '<p>Test</p>',
-          category: 'invalid_category', // Should fail
-        });
+          category: 'invalid_category' as any, // Should fail
+        })) as any;
 
       expect(error).toBeTruthy();
       expect(error?.message).toContain('category');
@@ -181,23 +181,23 @@ describe('Admin User Schema Integration Tests', () => {
     it('should have default values', async () => {
       const name = `Test Template ${Date.now()}`;
 
-      const { data, error } = await supabase
+      const { data, error } = (await supabase
         .from('email_templates')
         .insert({
           name,
           subject: 'Test Subject',
           body_html: '<p>Test</p>',
-          category: 'custom',
+          category: 'custom' as any,
         })
         .select()
-        .single();
+        .single()) as any;
 
       expect(error).toBeNull();
       expect(data).toBeDefined();
-      expect(data?.variables).toEqual([]);
-      expect(data?.usage_count).toBe(0);
-      expect(data?.created_at).toBeDefined();
-      expect(data?.updated_at).toBeDefined();
+      expect((data as any)?.variables).toEqual([]);
+      expect((data as any)?.usage_count).toBe(0);
+      expect((data as any)?.created_at).toBeDefined();
+      expect((data as any)?.updated_at).toBeDefined();
 
       // Cleanup
       await supabase.from('email_templates').delete().eq('name', name);
@@ -207,21 +207,21 @@ describe('Admin User Schema Integration Tests', () => {
       const name = `Test Template ${Date.now()}`;
       const variables = ['guest_name', 'event_name', 'rsvp_link'];
 
-      const { data, error } = await supabase
+      const { data, error } = (await supabase
         .from('email_templates')
         .insert({
           name,
           subject: 'Test Subject',
           body_html: '<p>Test</p>',
           variables,
-          category: 'custom',
+          category: 'custom' as any,
         })
         .select()
-        .single();
+        .single()) as any;
 
       expect(error).toBeNull();
       expect(data).toBeDefined();
-      expect(data?.variables).toEqual(variables);
+      expect((data as any)?.variables).toEqual(variables);
 
       // Cleanup
       await supabase.from('email_templates').delete().eq('name', name);
@@ -238,7 +238,7 @@ describe('Admin User Schema Integration Tests', () => {
       expect(data!.length).toBeGreaterThan(0);
 
       // Check for specific default templates
-      const templateNames = data!.map((t) => t.name);
+      const templateNames = (data as any)!.map((t: any) => t.name);
       expect(templateNames).toContain('RSVP Confirmation');
       expect(templateNames).toContain('RSVP Reminder');
       expect(templateNames).toContain('Activity Reminder');
@@ -269,38 +269,38 @@ describe('Admin User Schema Integration Tests', () => {
     });
 
     it('should enforce delivery_status enum constraint', async () => {
-      const { error } = await supabase
+      const { error } = (await supabase
         .from('email_history')
         .insert({
-          recipient_ids: ['00000000-0000-0000-0000-000000000000'],
+          recipient_ids: ['00000000-0000-0000-0000-000000000000'] as any,
           subject: 'Test',
           body_html: '<p>Test</p>',
-          delivery_status: 'invalid_status', // Should fail
-        });
+          delivery_status: 'invalid_status' as any, // Should fail
+        })) as any;
 
       expect(error).toBeTruthy();
       expect(error?.message).toContain('delivery_status');
     });
 
     it('should have default values', async () => {
-      const { data, error } = await supabase
+      const { data, error } = (await supabase
         .from('email_history')
         .insert({
-          recipient_ids: ['00000000-0000-0000-0000-000000000000'],
+          recipient_ids: ['00000000-0000-0000-0000-000000000000'] as any,
           subject: 'Test',
           body_html: '<p>Test</p>',
         })
         .select()
-        .single();
+        .single()) as any;
 
       expect(error).toBeNull();
       expect(data).toBeDefined();
-      expect(data?.delivery_status).toBe('pending');
-      expect(data?.created_at).toBeDefined();
-      expect(data?.updated_at).toBeDefined();
+      expect((data as any)?.delivery_status).toBe('pending');
+      expect((data as any)?.created_at).toBeDefined();
+      expect((data as any)?.updated_at).toBeDefined();
 
       // Cleanup
-      await supabase.from('email_history').delete().eq('id', data!.id);
+      await supabase.from('email_history').delete().eq('id', (data as any)!.id);
     });
 
     it('should support UUID array for recipient_ids', async () => {
@@ -313,7 +313,7 @@ describe('Admin User Schema Integration Tests', () => {
       const { data, error } = await supabase
         .from('email_history')
         .insert({
-          recipient_ids: recipientIds,
+          recipient_ids: recipientIds as any,
           subject: 'Test',
           body_html: '<p>Test</p>',
         })
@@ -322,10 +322,10 @@ describe('Admin User Schema Integration Tests', () => {
 
       expect(error).toBeNull();
       expect(data).toBeDefined();
-      expect(data?.recipient_ids).toEqual(recipientIds);
+      expect((data as any)?.recipient_ids).toEqual(recipientIds);
 
       // Cleanup
-      await supabase.from('email_history').delete().eq('id', data!.id);
+      await supabase.from('email_history').delete().eq('id', (data as any)!.id);
     });
 
     it('should support foreign key to email_templates', async () => {
@@ -347,8 +347,8 @@ describe('Admin User Schema Integration Tests', () => {
       const { data: history, error: historyError } = await supabase
         .from('email_history')
         .insert({
-          template_id: template!.id,
-          recipient_ids: ['00000000-0000-0000-0000-000000000000'],
+          template_id: (template as any)!.id,
+          recipient_ids: ['00000000-0000-0000-0000-000000000000'] as any,
           subject: 'Test',
           body_html: '<p>Test</p>',
         })
@@ -356,10 +356,10 @@ describe('Admin User Schema Integration Tests', () => {
         .single();
 
       expect(historyError).toBeNull();
-      expect(history?.template_id).toBe(template!.id);
+      expect((history as any)?.template_id).toBe((template as any)!.id);
 
       // Cleanup
-      await supabase.from('email_history').delete().eq('id', history!.id);
+      await supabase.from('email_history').delete().eq('id', (history as any)!.id);
       await supabase.from('email_templates').delete().eq('name', templateName);
     });
 
@@ -370,7 +370,7 @@ describe('Admin User Schema Integration Tests', () => {
         .from('admin_users')
         .insert({
           email,
-          role: 'admin',
+          role: 'admin' as any,
         })
         .select()
         .single();
@@ -381,19 +381,19 @@ describe('Admin User Schema Integration Tests', () => {
       const { data: history, error: historyError } = await supabase
         .from('email_history')
         .insert({
-          recipient_ids: ['00000000-0000-0000-0000-000000000000'],
+          recipient_ids: ['00000000-0000-0000-0000-000000000000'] as any,
           subject: 'Test',
           body_html: '<p>Test</p>',
-          sent_by: admin!.id,
+          sent_by: (admin as any)!.id,
         })
         .select()
         .single();
 
       expect(historyError).toBeNull();
-      expect(history?.sent_by).toBe(admin!.id);
+      expect((history as any)?.sent_by).toBe((admin as any)!.id);
 
       // Cleanup
-      await supabase.from('email_history').delete().eq('id', history!.id);
+      await supabase.from('email_history').delete().eq('id', (history as any)!.id);
       await supabase.from('admin_users').delete().eq('email', email);
     });
 
@@ -419,20 +419,20 @@ describe('Admin User Schema Integration Tests', () => {
       const { data, error } = await supabase
         .from('email_history')
         .insert({
-          recipient_ids: ['00000000-0000-0000-0000-000000000000'],
+          recipient_ids: ['00000000-0000-0000-0000-000000000000'] as any,
           subject: 'Test',
           body_html: '<p>Test</p>',
-          webhook_data: webhookData,
+          webhook_data: webhookData as any,
         })
         .select()
         .single();
 
       expect(error).toBeNull();
       expect(data).toBeDefined();
-      expect(data?.webhook_data).toEqual(webhookData);
+      expect((data as any)?.webhook_data).toEqual(webhookData);
 
       // Cleanup
-      await supabase.from('email_history').delete().eq('id', data!.id);
+      await supabase.from('email_history').delete().eq('id', (data as any)!.id);
     });
   });
 
@@ -454,8 +454,8 @@ describe('Admin User Schema Integration Tests', () => {
       const { data: history } = await supabase
         .from('email_history')
         .insert({
-          template_id: template!.id,
-          recipient_ids: ['00000000-0000-0000-0000-000000000000'],
+          template_id: (template as any)!.id,
+          recipient_ids: ['00000000-0000-0000-0000-000000000000'] as any,
           subject: 'Test',
           body_html: '<p>Test</p>',
         })
@@ -463,19 +463,19 @@ describe('Admin User Schema Integration Tests', () => {
         .single();
 
       // Delete template
-      await supabase.from('email_templates').delete().eq('id', template!.id);
+      await supabase.from('email_templates').delete().eq('id', (template as any)!.id);
 
       // Check that template_id is NULL
       const { data: updatedHistory } = await supabase
         .from('email_history')
         .select('*')
-        .eq('id', history!.id)
+        .eq('id', (history as any)!.id)
         .single();
 
-      expect(updatedHistory?.template_id).toBeNull();
+      expect((updatedHistory as any)?.template_id).toBeNull();
 
       // Cleanup
-      await supabase.from('email_history').delete().eq('id', history!.id);
+      await supabase.from('email_history').delete().eq('id', (history as any)!.id);
     });
 
     it('should set invited_by to NULL when inviter is deleted', async () => {
@@ -487,7 +487,7 @@ describe('Admin User Schema Integration Tests', () => {
         .from('admin_users')
         .insert({
           email: ownerEmail,
-          role: 'owner',
+          role: 'owner' as any,
         })
         .select()
         .single();
@@ -497,26 +497,26 @@ describe('Admin User Schema Integration Tests', () => {
         .from('admin_users')
         .insert({
           email: adminEmail,
-          role: 'admin',
-          invited_by: owner!.id,
+          role: 'admin' as any,
+          invited_by: (owner as any)!.id,
         })
         .select()
         .single();
 
       // Delete owner
-      await supabase.from('admin_users').delete().eq('id', owner!.id);
+      await supabase.from('admin_users').delete().eq('id', (owner as any)!.id);
 
       // Check that invited_by is NULL
       const { data: updatedAdmin } = await supabase
         .from('admin_users')
         .select('*')
-        .eq('id', admin!.id)
+        .eq('id', (admin as any)!.id)
         .single();
 
-      expect(updatedAdmin?.invited_by).toBeNull();
+      expect((updatedAdmin as any)?.invited_by).toBeNull();
 
       // Cleanup
-      await supabase.from('admin_users').delete().eq('id', admin!.id);
+      await supabase.from('admin_users').delete().eq('id', (admin as any)!.id);
     });
   });
 });

@@ -263,6 +263,17 @@ export async function POST(request: Request) {
     const buffer = Buffer.from(arrayBuffer);
 
     // 4. Call service to upload
+    console.log('[Photo API] Calling uploadPhoto service with:', {
+      fileName: file.name,
+      fileType: file.type,
+      fileSize: buffer.length,
+      metadata: {
+        ...metadataValidation.data,
+        uploader_id: session.user.id,
+        moderation_status: 'approved',
+      }
+    });
+    
     const result = await uploadPhoto(
       buffer,
       file.name,
@@ -274,8 +285,11 @@ export async function POST(request: Request) {
       }
     );
 
+    console.log('[Photo API] Upload result:', result);
+
     // 5. Return response
     if (!result.success) {
+      console.error('[Photo API] Upload failed:', result.error);
       const statusMap: Record<string, number> = {
         VALIDATION_ERROR: 400,
         STORAGE_UNAVAILABLE: 503,
@@ -289,13 +303,14 @@ export async function POST(request: Request) {
 
     return NextResponse.json(result, { status: 201 });
   } catch (error) {
-    console.error('Photo upload error:', error);
+    console.error('[Photo API] Unexpected error:', error);
     return NextResponse.json(
       {
         success: false,
         error: {
           code: 'INTERNAL_ERROR',
           message: 'An unexpected error occurred',
+          details: error instanceof Error ? error.message : 'Unknown error',
         },
       },
       { status: 500 }

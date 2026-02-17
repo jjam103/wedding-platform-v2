@@ -41,23 +41,22 @@ export function CollapsibleForm<T extends z.ZodTypeAny>({
   cancelLabel = 'Cancel',
   children,
 }: CollapsibleFormProps<T>) {
-  const [formData, setFormData] = useState<Record<string, any>>(initialData || {});
+  // Initialize formData with initialData immediately (no delay)
+  const [formData, setFormData] = useState<Record<string, any>>(() => initialData || {});
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isDirty, setIsDirty] = useState(false);
   const formRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
+  
+  // Generate unique ID for this form instance
+  const formId = useRef(`collapsible-form-${Math.random().toString(36).substr(2, 9)}`).current;
 
-  // Reset form when initialData changes
+  // Update form when initialData changes (for edit mode)
   useEffect(() => {
-    if (initialData) {
-      // Use a timeout to ensure this runs after the current render cycle
-      const timeoutId = setTimeout(() => {
-        setFormData(initialData);
-        setIsDirty(false);
-      }, 0);
-      
-      return () => clearTimeout(timeoutId);
+    if (initialData && Object.keys(initialData).length > 0) {
+      setFormData(initialData);
+      setIsDirty(false);
     }
   }, [initialData]);
 
@@ -147,7 +146,8 @@ export function CollapsibleForm<T extends z.ZodTypeAny>({
       setFormData({});
       setErrors({});
       setIsDirty(false);
-      onToggle(); // Collapse form
+      // CRITICAL FIX: Don't wait for parent - form should close immediately
+      // Parent's onSubmit callback should handle closing via onToggle or onCancel
     } catch (error) {
       console.error('Form submission error:', error);
       setErrors({ _form: error instanceof Error ? error.message : 'Submission failed' });
@@ -195,6 +195,7 @@ export function CollapsibleForm<T extends z.ZodTypeAny>({
             onChange={(e) => handleFieldChange(field.name, e.target.value)}
             placeholder={field.placeholder}
             required={field.required}
+            aria-required={field.required ? 'true' : undefined}
             rows={field.rows || 4}
             className={baseInputClasses}
             aria-invalid={!!error}
@@ -207,6 +208,7 @@ export function CollapsibleForm<T extends z.ZodTypeAny>({
             value={value}
             onChange={(e) => handleFieldChange(field.name, e.target.value)}
             required={field.required}
+            aria-required={field.required ? 'true' : undefined}
             className={baseInputClasses}
             aria-invalid={!!error}
             aria-describedby={error ? `${fieldId}-error` : undefined}
@@ -233,6 +235,7 @@ export function CollapsibleForm<T extends z.ZodTypeAny>({
             }}
             placeholder={field.placeholder}
             required={field.required}
+            aria-required={field.required ? 'true' : undefined}
             className={baseInputClasses}
             aria-invalid={!!error}
             aria-describedby={error ? `${fieldId}-error` : undefined}
@@ -249,13 +252,26 @@ export function CollapsibleForm<T extends z.ZodTypeAny>({
   };
 
   return (
-    <div ref={formRef} className="border border-sage-200 rounded-lg overflow-hidden bg-white shadow-sm">
+    <div 
+      ref={formRef} 
+      className="border border-sage-200 rounded-lg bg-white shadow-sm" 
+      style={{
+        overflow: isOpen ? 'visible' : 'hidden',
+        position: 'relative',
+      }}
+      data-submitting={isSubmitting ? 'true' : 'false'}
+    >
       {/* Header */}
       <button
         onClick={onToggle}
-        className="w-full flex items-center justify-between px-4 py-3 bg-sage-50 hover:bg-sage-100 transition-colors"
+        disabled={isSubmitting}
+        className="w-full flex items-center justify-between px-4 py-3 bg-sage-50 hover:bg-sage-100 transition-colors min-h-[44px] disabled:opacity-50 disabled:cursor-not-allowed"
+        style={{
+          pointerEvents: isSubmitting ? 'none' : 'auto'
+        }}
         aria-expanded={isOpen}
-        aria-controls="collapsible-form-content"
+        aria-controls={formId}
+        data-testid="collapsible-form-toggle"
       >
         <span className="font-medium text-sage-900">{title}</span>
         <span 
@@ -269,15 +285,25 @@ export function CollapsibleForm<T extends z.ZodTypeAny>({
       {/* Collapsible Content */}
       <div
         ref={contentRef}
-        id="collapsible-form-content"
-        className={`transition-all duration-300 ease-in-out ${isOpen ? '' : 'overflow-hidden'}`}
+        id={formId}
+        className={`transition-all ${isSubmitting ? '' : 'duration-300'} ease-in-out ${isOpen ? '' : 'overflow-hidden'}`}
         style={{
           maxHeight: isOpen ? 'none' : '0px',
           opacity: isOpen ? 1 : 0,
+          // CRITICAL FIX: Don't disable pointer events when open - this was blocking form submission!
+          pointerEvents: isOpen ? 'auto' : 'none',
+          position: 'relative',
+          zIndex: isOpen ? 10 : 0,
         }}
         aria-hidden={!isOpen}
+        data-testid="collapsible-form-content"
+        data-state={isOpen ? 'open' : 'closed'}
       >
-        <form onSubmit={handleSubmit} className="p-4 space-y-4">
+        <form onSubmit={handleSubmit} noValidate className="p-4 space-y-4" style={{
+          position: 'relative',
+          zIndex: 1000, // Very high z-index to ensure form is always on top
+          // CRITICAL FIX: Removed pointerEvents override - let parent control this
+        }}>
           {/* Form-level error */}
           {errors._form && (
             <div className="p-3 bg-red-50 border border-red-200 rounded-lg" role="alert">
@@ -310,7 +336,8 @@ export function CollapsibleForm<T extends z.ZodTypeAny>({
               type="submit"
               disabled={isSubmitting}
               style={{ backgroundColor: '#22c55e', color: '#ffffff' }}
-              className="px-4 py-2 rounded-lg hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
+              className="px-4 py-2 rounded-lg hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium min-h-[44px]"
+              data-testid="form-submit-button"
             >
               {isSubmitting ? 'Submitting...' : submitLabel}
             </button>
@@ -319,7 +346,8 @@ export function CollapsibleForm<T extends z.ZodTypeAny>({
               onClick={handleCancel}
               disabled={isSubmitting}
               style={{ backgroundColor: '#e5e7eb', color: '#111827' }}
-              className="px-4 py-2 rounded-lg hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
+              className="px-4 py-2 rounded-lg hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium min-h-[44px]"
+              data-testid="form-cancel-button"
             >
               {cancelLabel}
             </button>

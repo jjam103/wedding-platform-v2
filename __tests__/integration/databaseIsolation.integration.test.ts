@@ -98,18 +98,18 @@ describe('Database Isolation Verification', () => {
       console.log('✅ Service client can access activities table');
     });
 
-    it('should enforce RLS on guest_groups table with service client', async () => {
+    it('should enforce RLS on groups table with service client', async () => {
       const serviceClient = createServiceClient();
       
       // Service client should be able to query
       const { data, error } = await serviceClient
-        .from('guest_groups')
+        .from('groups')
         .select('*')
         .limit(1);
       
       // Should succeed
       expect(error).toBeNull();
-      console.log('✅ Service client can access guest_groups table');
+      console.log('✅ Service client can access groups table');
     });
 
     it('should enforce RLS on sections table with service client', async () => {

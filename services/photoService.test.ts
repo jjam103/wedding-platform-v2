@@ -13,10 +13,10 @@ process.env.SUPABASE_SERVICE_ROLE_KEY = 'test-service-role-key';
 
 // Mock external dependencies - Pattern A
 jest.mock('@supabase/supabase-js', () => {
-  const mockFrom = jest.fn();
-  const mockStorageFrom = jest.fn();
-  const mockUpload = jest.fn();
-  const mockGetPublicUrl = jest.fn();
+  const mockFrom = (jest.fn() as any);
+  const mockStorageFrom = (jest.fn() as any);
+  const mockUpload = (jest.fn() as any);
+  const mockGetPublicUrl = (jest.fn() as any);
   
   const mockSupabaseClient = {
     from: mockFrom,
@@ -37,8 +37,8 @@ jest.mock('@supabase/supabase-js', () => {
 });
 
 jest.mock('./b2Service', () => ({
-  uploadToB2: jest.fn(),
-  isB2Healthy: jest.fn(),
+  uploadToB2: (jest.fn() as any),
+  isB2Healthy: (jest.fn() as any),
 }));
 
 jest.mock('../utils/sanitization', () => ({
@@ -116,9 +116,9 @@ describe('photoService', () => {
       
       // Mock database insert chain - use mockImplementation for fresh chain each call
       mockFrom.mockImplementation(() => ({
-        insert: jest.fn().mockReturnValue({
-          select: jest.fn().mockReturnValue({
-            single: jest.fn().mockResolvedValue({ data: expectedPhoto, error: null }),
+        insert: (jest.fn() as any).mockReturnValue({
+          select: (jest.fn() as any).mockReturnValue({
+            single: (jest.fn() as any).mockResolvedValue({ data: expectedPhoto, error: null }),
           }),
         }),
       }));
@@ -170,9 +170,9 @@ describe('photoService', () => {
       
       // Mock database insert chain
       mockFrom.mockReturnValue({
-        insert: jest.fn().mockReturnValue({
-          select: jest.fn().mockReturnValue({
-            single: jest.fn().mockResolvedValue({ data: expectedPhoto, error: null }),
+        insert: (jest.fn() as any).mockReturnValue({
+          select: (jest.fn() as any).mockReturnValue({
+            single: (jest.fn() as any).mockResolvedValue({ data: expectedPhoto, error: null }),
           }),
         }),
       });
@@ -216,9 +216,9 @@ describe('photoService', () => {
       
       // Mock database error
       mockFrom.mockReturnValue({
-        insert: jest.fn().mockReturnValue({
-          select: jest.fn().mockReturnValue({
-            single: jest.fn().mockResolvedValue({ 
+        insert: (jest.fn() as any).mockReturnValue({
+          select: (jest.fn() as any).mockReturnValue({
+            single: (jest.fn() as any).mockResolvedValue({ 
               data: null, 
               error: { message: 'Database connection failed' } 
             }),
@@ -253,9 +253,9 @@ describe('photoService', () => {
       
       const expectedPhoto = { id: 'photo-1', storage_type: 'b2' };
       mockFrom.mockReturnValue({
-        insert: jest.fn().mockReturnValue({
-          select: jest.fn().mockReturnValue({
-            single: jest.fn().mockResolvedValue({ data: expectedPhoto, error: null }),
+        insert: (jest.fn() as any).mockReturnValue({
+          select: (jest.fn() as any).mockReturnValue({
+            single: (jest.fn() as any).mockResolvedValue({ data: expectedPhoto, error: null }),
           }),
         }),
       });
@@ -289,10 +289,10 @@ describe('photoService', () => {
       
       // Mock database update chain
       mockFrom.mockReturnValue({
-        update: jest.fn().mockReturnValue({
-          eq: jest.fn().mockReturnValue({
-            select: jest.fn().mockReturnValue({
-              single: jest.fn().mockResolvedValue({ data: expectedPhoto, error: null }),
+        update: (jest.fn() as any).mockReturnValue({
+          eq: (jest.fn() as any).mockReturnValue({
+            select: (jest.fn() as any).mockReturnValue({
+              single: (jest.fn() as any).mockResolvedValue({ data: expectedPhoto, error: null }),
             }),
           }),
         }),
@@ -327,10 +327,10 @@ describe('photoService', () => {
       
       // Mock database update chain
       mockFrom.mockReturnValue({
-        update: jest.fn().mockReturnValue({
-          eq: jest.fn().mockReturnValue({
-            select: jest.fn().mockReturnValue({
-              single: jest.fn().mockResolvedValue({ data: expectedPhoto, error: null }),
+        update: (jest.fn() as any).mockReturnValue({
+          eq: (jest.fn() as any).mockReturnValue({
+            select: (jest.fn() as any).mockReturnValue({
+              single: (jest.fn() as any).mockResolvedValue({ data: expectedPhoto, error: null }),
             }),
           }),
         }),
@@ -372,10 +372,10 @@ describe('photoService', () => {
       
       // Mock database not found error
       mockFrom.mockReturnValue({
-        update: jest.fn().mockReturnValue({
-          eq: jest.fn().mockReturnValue({
-            select: jest.fn().mockReturnValue({
-              single: jest.fn().mockResolvedValue({
+        update: (jest.fn() as any).mockReturnValue({
+          eq: (jest.fn() as any).mockReturnValue({
+            select: (jest.fn() as any).mockReturnValue({
+              single: (jest.fn() as any).mockResolvedValue({
                 data: null,
                 error: { code: 'PGRST116', message: 'No rows found' }
               }),
@@ -409,10 +409,10 @@ describe('photoService', () => {
       
       // Mock database update chain
       mockFrom.mockReturnValue({
-        update: jest.fn().mockReturnValue({
-          eq: jest.fn().mockReturnValue({
-            select: jest.fn().mockReturnValue({
-              single: jest.fn().mockResolvedValue({ data: expectedPhoto, error: null }),
+        update: (jest.fn() as any).mockReturnValue({
+          eq: (jest.fn() as any).mockReturnValue({
+            select: (jest.fn() as any).mockReturnValue({
+              single: (jest.fn() as any).mockResolvedValue({ data: expectedPhoto, error: null }),
             }),
           }),
         }),
@@ -445,9 +445,9 @@ describe('photoService', () => {
       
       // Mock database select chain
       mockFrom.mockReturnValue({
-        select: jest.fn().mockReturnValue({
-          eq: jest.fn().mockReturnValue({
-            single: jest.fn().mockResolvedValue({ data: expectedPhoto, error: null }),
+        select: (jest.fn() as any).mockReturnValue({
+          eq: (jest.fn() as any).mockReturnValue({
+            single: (jest.fn() as any).mockResolvedValue({ data: expectedPhoto, error: null }),
           }),
         }),
       });
@@ -466,9 +466,9 @@ describe('photoService', () => {
     it('should return NOT_FOUND when photo does not exist', async () => {
       // Arrange
       mockFrom.mockReturnValue({
-        select: jest.fn().mockReturnValue({
-          eq: jest.fn().mockReturnValue({
-            single: jest.fn().mockResolvedValue({
+        select: (jest.fn() as any).mockReturnValue({
+          eq: (jest.fn() as any).mockReturnValue({
+            single: (jest.fn() as any).mockResolvedValue({
               data: null,
               error: { code: 'PGRST116', message: 'No rows found' }
             }),
@@ -507,10 +507,10 @@ describe('photoService', () => {
       
       // Mock database update chain
       mockFrom.mockReturnValue({
-        update: jest.fn().mockReturnValue({
-          eq: jest.fn().mockReturnValue({
-            select: jest.fn().mockReturnValue({
-              single: jest.fn().mockResolvedValue({ data: expectedPhoto, error: null }),
+        update: (jest.fn() as any).mockReturnValue({
+          eq: (jest.fn() as any).mockReturnValue({
+            select: (jest.fn() as any).mockReturnValue({
+              single: (jest.fn() as any).mockResolvedValue({ data: expectedPhoto, error: null }),
             }),
           }),
         }),
@@ -554,8 +554,8 @@ describe('photoService', () => {
     it('should return success when photo is deleted successfully', async () => {
       // Arrange
       mockFrom.mockReturnValue({
-        delete: jest.fn().mockReturnValue({
-          eq: jest.fn().mockResolvedValue({ data: null, error: null }),
+        delete: (jest.fn() as any).mockReturnValue({
+          eq: (jest.fn() as any).mockResolvedValue({ data: null, error: null }),
         }),
       });
 
@@ -572,8 +572,8 @@ describe('photoService', () => {
     it('should return DATABASE_ERROR when database delete fails', async () => {
       // Arrange
       mockFrom.mockReturnValue({
-        delete: jest.fn().mockReturnValue({
-          eq: jest.fn().mockResolvedValue({
+        delete: (jest.fn() as any).mockReturnValue({
+          eq: (jest.fn() as any).mockResolvedValue({
             data: null,
             error: { message: 'Database connection failed' }
           }),

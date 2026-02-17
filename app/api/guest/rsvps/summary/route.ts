@@ -1,8 +1,7 @@
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
-import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
 import * as rsvpService from '@/services/rsvpService';
 import { ERROR_CODES } from '@/types';
+import { validateGuestAuth } from '@/lib/guestAuth';
 
 /**
  * GET /api/guest/rsvps/summary
@@ -12,32 +11,14 @@ import { ERROR_CODES } from '@/types';
  * 
  * Requirements: 7.5
  */
-export async function GET(request: Request) {
+export async function GET() {
   try {
     // 1. Auth check
-    const supabase = createRouteHandlerClient({ cookies });
-    const { data: { session }, error: authError } = await supabase.auth.getSession();
-    
-    if (authError || !session) {
-      return NextResponse.json(
-        { success: false, error: { code: ERROR_CODES.UNAUTHORIZED, message: 'Authentication required' } },
-        { status: 401 }
-      );
+    const authResult = await validateGuestAuth();
+    if (!authResult.success) {
+      return NextResponse.json(authResult.error, { status: authResult.status });
     }
-
-    // Get guest ID from session
-    const { data: guest, error: guestError } = await supabase
-      .from('guests')
-      .select('id')
-      .eq('email', session.user.email)
-      .single();
-
-    if (guestError || !guest) {
-      return NextResponse.json(
-        { success: false, error: { code: ERROR_CODES.NOT_FOUND, message: 'Guest not found' } },
-        { status: 404 }
-      );
-    }
+    const guest = authResult.guest;
 
     // 2. Get all RSVPs for this guest
     const rsvpsResult = await rsvpService.getByGuest(guest.id);

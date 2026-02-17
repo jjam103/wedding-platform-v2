@@ -24,7 +24,7 @@ jest.mock('@/types', () => ({
 
 // Mock Supabase with shared client instance (Pattern A)
 jest.mock('@supabase/supabase-js', () => {
-  const mockFrom = jest.fn();
+  const mockFrom = (jest.fn() as any);
   const mockSupabaseClient = {
     from: mockFrom,
   };
@@ -78,13 +78,13 @@ describe('rsvpService', () => {
         updated_at: '2024-01-01T00:00:00Z',
       };
 
-      const mockSingle = jest.fn().mockResolvedValue({
+      const mockSingle = (jest.fn() as any).mockResolvedValue({
         data: mockRSVP,
         error: null,
       });
-      const mockSelect = jest.fn().mockReturnValue({ single: mockSingle });
-      const mockInsert = jest.fn().mockReturnValue({ select: mockSelect });
-      mockFrom.mockReturnValue({ insert: mockInsert });
+      const mockSelect = (jest.fn() as any).mockReturnValue({ single: mockSingle });
+      const mockInsert = (jest.fn() as any).mockReturnValue({ select: mockSelect });
+      (mockFrom as any).mockReturnValue({ insert: mockInsert });
 
       const result = await rsvpService.create(validData);
 
@@ -132,13 +132,13 @@ describe('rsvpService', () => {
     });
 
     it('should return DUPLICATE_ENTRY when RSVP already exists', async () => {
-      const mockSingle = jest.fn().mockResolvedValue({
+      const mockSingle = (jest.fn() as any).mockResolvedValue({
         data: null,
         error: { code: '23505', message: 'Unique constraint violation' },
-      });
-      const mockSelect = jest.fn().mockReturnValue({ single: mockSingle });
-      const mockInsert = jest.fn().mockReturnValue({ select: mockSelect });
-      mockFrom.mockReturnValue({ insert: mockInsert });
+      } as any);
+      const mockSelect = (jest.fn() as any).mockReturnValue({ single: mockSingle });
+      const mockInsert = (jest.fn() as any).mockReturnValue({ select: mockSelect });
+      (mockFrom as any).mockReturnValue({ insert: mockInsert });
 
       const result = await rsvpService.create(validData);
 
@@ -149,13 +149,13 @@ describe('rsvpService', () => {
     });
 
     it('should return DATABASE_ERROR when insert fails', async () => {
-      const mockSingle = jest.fn().mockResolvedValue({
+      const mockSingle = (jest.fn() as any).mockResolvedValue({
         data: null,
         error: { message: 'Connection failed' },
-      });
-      const mockSelect = jest.fn().mockReturnValue({ single: mockSingle });
-      const mockInsert = jest.fn().mockReturnValue({ select: mockSelect });
-      mockFrom.mockReturnValue({ insert: mockInsert });
+      } as any);
+      const mockSelect = (jest.fn() as any).mockReturnValue({ single: mockSingle });
+      const mockInsert = (jest.fn() as any).mockReturnValue({ select: mockSelect });
+      (mockFrom as any).mockReturnValue({ insert: mockInsert });
 
       const result = await rsvpService.create(validData);
 
@@ -173,7 +173,7 @@ describe('rsvpService', () => {
         notes: '<svg onload=alert(1)>Notes',
       };
 
-      const mockSingle = jest.fn().mockResolvedValue({
+      const mockSingle = (jest.fn() as any).mockResolvedValue({
         data: {
           id: 'rsvp-1',
           dietary_notes: 'Vegetarian',
@@ -181,10 +181,10 @@ describe('rsvpService', () => {
           notes: 'Notes',
         },
         error: null,
-      });
-      const mockSelect = jest.fn().mockReturnValue({ single: mockSingle });
-      const mockInsert = jest.fn().mockReturnValue({ select: mockSelect });
-      mockFrom.mockReturnValue({ insert: mockInsert });
+      } as any);
+      const mockSelect = (jest.fn() as any).mockReturnValue({ single: mockSingle });
+      const mockInsert = (jest.fn() as any).mockReturnValue({ select: mockSelect });
+      (mockFrom as any).mockReturnValue({ insert: mockInsert });
 
       const result = await rsvpService.create(maliciousData);
 
@@ -200,17 +200,17 @@ describe('rsvpService', () => {
     it('should set responded_at when status is not pending', async () => {
       const attendingData = { ...validData, status: 'attending' as const };
 
-      const mockSingle = jest.fn().mockResolvedValue({
+      const mockSingle = (jest.fn() as any).mockResolvedValue({
         data: {
           id: 'rsvp-1',
           status: 'attending',
           responded_at: '2024-01-01T12:00:00Z',
         },
         error: null,
-      });
-      const mockSelect = jest.fn().mockReturnValue({ single: mockSingle });
-      const mockInsert = jest.fn().mockReturnValue({ select: mockSelect });
-      mockFrom.mockReturnValue({ insert: mockInsert });
+      } as any);
+      const mockSelect = (jest.fn() as any).mockReturnValue({ single: mockSingle });
+      const mockInsert = (jest.fn() as any).mockReturnValue({ select: mockSelect });
+      (mockFrom as any).mockReturnValue({ insert: mockInsert });
 
       const result = await rsvpService.create(attendingData);
 
@@ -226,17 +226,17 @@ describe('rsvpService', () => {
     it('should not set responded_at when status is pending', async () => {
       const pendingData = { ...validData, status: 'pending' as const };
 
-      const mockSingle = jest.fn().mockResolvedValue({
+      const mockSingle = (jest.fn() as any).mockResolvedValue({
         data: {
           id: 'rsvp-1',
           status: 'pending',
           responded_at: null,
         },
         error: null,
-      });
-      const mockSelect = jest.fn().mockReturnValue({ single: mockSingle });
-      const mockInsert = jest.fn().mockReturnValue({ select: mockSelect });
-      mockFrom.mockReturnValue({ insert: mockInsert });
+      } as any);
+      const mockSelect = (jest.fn() as any).mockReturnValue({ single: mockSingle });
+      const mockInsert = (jest.fn() as any).mockReturnValue({ select: mockSelect });
+      (mockFrom as any).mockReturnValue({ insert: mockInsert });
 
       const result = await rsvpService.create(pendingData);
 
@@ -267,13 +267,13 @@ describe('rsvpService', () => {
         updated_at: '2024-01-01T00:00:00Z',
       };
 
-      const mockSingle = jest.fn().mockResolvedValue({
+      const mockSingle = (jest.fn() as any).mockResolvedValue({
         data: mockRSVP,
         error: null,
       });
-      const mockEq = jest.fn().mockReturnValue({ single: mockSingle });
-      const mockSelect = jest.fn().mockReturnValue({ eq: mockEq });
-      mockFrom.mockReturnValue({ select: mockSelect });
+      const mockEq = (jest.fn() as any).mockReturnValue({ single: mockSingle });
+      const mockSelect = (jest.fn() as any).mockReturnValue({ eq: mockEq });
+      (mockFrom as any).mockReturnValue({ select: mockSelect });
 
       const result = await rsvpService.get('rsvp-1');
 
@@ -285,13 +285,13 @@ describe('rsvpService', () => {
     });
 
     it('should return NOT_FOUND when RSVP does not exist', async () => {
-      const mockSingle = jest.fn().mockResolvedValue({
+      const mockSingle = (jest.fn() as any).mockResolvedValue({
         data: null,
         error: { code: 'PGRST116' },
-      });
-      const mockEq = jest.fn().mockReturnValue({ single: mockSingle });
-      const mockSelect = jest.fn().mockReturnValue({ eq: mockEq });
-      mockFrom.mockReturnValue({ select: mockSelect });
+      } as any);
+      const mockEq = (jest.fn() as any).mockReturnValue({ single: mockSingle });
+      const mockSelect = (jest.fn() as any).mockReturnValue({ eq: mockEq });
+      (mockFrom as any).mockReturnValue({ select: mockSelect });
 
       const result = await rsvpService.get('nonexistent-id');
 
@@ -302,13 +302,13 @@ describe('rsvpService', () => {
     });
 
     it('should return DATABASE_ERROR when database query fails', async () => {
-      const mockSingle = jest.fn().mockResolvedValue({
+      const mockSingle = (jest.fn() as any).mockResolvedValue({
         data: null,
         error: { message: 'Connection failed' },
-      });
-      const mockEq = jest.fn().mockReturnValue({ single: mockSingle });
-      const mockSelect = jest.fn().mockReturnValue({ eq: mockEq });
-      mockFrom.mockReturnValue({ select: mockSelect });
+      } as any);
+      const mockEq = (jest.fn() as any).mockReturnValue({ single: mockSingle });
+      const mockSelect = (jest.fn() as any).mockReturnValue({ eq: mockEq });
+      (mockFrom as any).mockReturnValue({ select: mockSelect });
 
       const result = await rsvpService.get('rsvp-1');
 
@@ -342,14 +342,14 @@ describe('rsvpService', () => {
         updated_at: '2024-01-02T00:00:00Z',
       };
 
-      const mockSingle = jest.fn().mockResolvedValue({
+      const mockSingle = (jest.fn() as any).mockResolvedValue({
         data: mockUpdatedRSVP,
         error: null,
       });
-      const mockSelect = jest.fn().mockReturnValue({ single: mockSingle });
-      const mockEq = jest.fn().mockReturnValue({ select: mockSelect });
-      const mockUpdate = jest.fn().mockReturnValue({ eq: mockEq });
-      mockFrom.mockReturnValue({ update: mockUpdate });
+      const mockSelect = (jest.fn() as any).mockReturnValue({ single: mockSingle });
+      const mockEq = (jest.fn() as any).mockReturnValue({ select: mockSelect });
+      const mockUpdate = (jest.fn() as any).mockReturnValue({ eq: mockEq });
+      (mockFrom as any).mockReturnValue({ update: mockUpdate });
 
       const result = await rsvpService.update('rsvp-1', updateData);
 
@@ -364,18 +364,18 @@ describe('rsvpService', () => {
     it('should set responded_at when status changes from pending', async () => {
       const statusUpdate = { status: 'attending' as const };
 
-      const mockSingle = jest.fn().mockResolvedValue({
+      const mockSingle = (jest.fn() as any).mockResolvedValue({
         data: {
           id: 'rsvp-1',
           status: 'attending',
           responded_at: '2024-01-02T12:00:00Z',
         },
         error: null,
-      });
-      const mockSelect = jest.fn().mockReturnValue({ single: mockSingle });
-      const mockEq = jest.fn().mockReturnValue({ select: mockSelect });
-      const mockUpdate = jest.fn().mockReturnValue({ eq: mockEq });
-      mockFrom.mockReturnValue({ update: mockUpdate });
+      } as any);
+      const mockSelect = (jest.fn() as any).mockReturnValue({ single: mockSingle });
+      const mockEq = (jest.fn() as any).mockReturnValue({ select: mockSelect });
+      const mockUpdate = (jest.fn() as any).mockReturnValue({ eq: mockEq });
+      (mockFrom as any).mockReturnValue({ update: mockUpdate });
 
       const result = await rsvpService.update('rsvp-1', statusUpdate);
 
@@ -389,14 +389,14 @@ describe('rsvpService', () => {
     });
 
     it('should return NOT_FOUND when RSVP to update does not exist', async () => {
-      const mockSingle = jest.fn().mockResolvedValue({
+      const mockSingle = (jest.fn() as any).mockResolvedValue({
         data: null,
         error: { code: 'PGRST116' },
-      });
-      const mockSelect = jest.fn().mockReturnValue({ single: mockSingle });
-      const mockEq = jest.fn().mockReturnValue({ select: mockSelect });
-      const mockUpdate = jest.fn().mockReturnValue({ eq: mockEq });
-      mockFrom.mockReturnValue({ update: mockUpdate });
+      } as any);
+      const mockSelect = (jest.fn() as any).mockReturnValue({ single: mockSingle });
+      const mockEq = (jest.fn() as any).mockReturnValue({ select: mockSelect });
+      const mockUpdate = (jest.fn() as any).mockReturnValue({ eq: mockEq });
+      (mockFrom as any).mockReturnValue({ update: mockUpdate });
 
       const result = await rsvpService.update('nonexistent-id', updateData);
 
@@ -407,14 +407,14 @@ describe('rsvpService', () => {
     });
 
     it('should return DATABASE_ERROR when update fails', async () => {
-      const mockSingle = jest.fn().mockResolvedValue({
+      const mockSingle = (jest.fn() as any).mockResolvedValue({
         data: null,
         error: { message: 'Update failed' },
-      });
-      const mockSelect = jest.fn().mockReturnValue({ single: mockSingle });
-      const mockEq = jest.fn().mockReturnValue({ select: mockSelect });
-      const mockUpdate = jest.fn().mockReturnValue({ eq: mockEq });
-      mockFrom.mockReturnValue({ update: mockUpdate });
+      } as any);
+      const mockSelect = (jest.fn() as any).mockReturnValue({ single: mockSingle });
+      const mockEq = (jest.fn() as any).mockReturnValue({ select: mockSelect });
+      const mockUpdate = (jest.fn() as any).mockReturnValue({ eq: mockEq });
+      (mockFrom as any).mockReturnValue({ update: mockUpdate });
 
       const result = await rsvpService.update('rsvp-1', updateData);
 
@@ -427,11 +427,11 @@ describe('rsvpService', () => {
 
   describe('deleteRSVP', () => {
     it('should return success when RSVP is deleted successfully', async () => {
-      const mockEq = jest.fn().mockResolvedValue({
+      const mockEq = (jest.fn() as any).mockResolvedValue({
         error: null,
       });
-      const mockDelete = jest.fn().mockReturnValue({ eq: mockEq });
-      mockFrom.mockReturnValue({ delete: mockDelete });
+      const mockDelete = (jest.fn() as any).mockReturnValue({ eq: mockEq });
+      (mockFrom as any).mockReturnValue({ delete: mockDelete });
 
       const result = await rsvpService.deleteRSVP('rsvp-1');
 
@@ -439,11 +439,11 @@ describe('rsvpService', () => {
     });
 
     it('should return DATABASE_ERROR when delete fails', async () => {
-      const mockEq = jest.fn().mockResolvedValue({
+      const mockEq = (jest.fn() as any).mockResolvedValue({
         error: { message: 'Delete failed' },
-      });
-      const mockDelete = jest.fn().mockReturnValue({ eq: mockEq });
-      mockFrom.mockReturnValue({ delete: mockDelete });
+      } as any);
+      const mockDelete = (jest.fn() as any).mockReturnValue({ eq: mockEq });
+      (mockFrom as any).mockReturnValue({ delete: mockDelete });
 
       const result = await rsvpService.deleteRSVP('rsvp-1');
 
@@ -487,14 +487,14 @@ describe('rsvpService', () => {
         },
       ];
 
-      const mockOrder = jest.fn().mockResolvedValue({
+      const mockOrder = (jest.fn() as any).mockResolvedValue({
         data: mockRSVPs,
         error: null,
         count: 2,
       });
-      const mockRange = jest.fn().mockReturnValue({ order: mockOrder });
-      const mockSelect = jest.fn().mockReturnValue({ range: mockRange });
-      mockFrom.mockReturnValue({ select: mockSelect });
+      const mockRange = (jest.fn() as any).mockReturnValue({ order: mockOrder });
+      const mockSelect = (jest.fn() as any).mockReturnValue({ range: mockRange });
+      (mockFrom as any).mockReturnValue({ select: mockSelect });
 
       const filters: Partial<ListRSVPsDTO> = { page: 1, page_size: 10 };
       const result = await rsvpService.list(filters);
@@ -513,15 +513,15 @@ describe('rsvpService', () => {
         page_size: 10,
       };
 
-      const mockOrder = jest.fn().mockResolvedValue({
+      const mockOrder = (jest.fn() as any).mockResolvedValue({
         data: [],
         error: null,
         count: 0,
       });
-      const mockRange = jest.fn().mockReturnValue({ order: mockOrder });
-      const mockEq = jest.fn().mockReturnValue({ range: mockRange });
-      const mockSelect = jest.fn().mockReturnValue({ eq: mockEq });
-      mockFrom.mockReturnValue({ select: mockSelect });
+      const mockRange = (jest.fn() as any).mockReturnValue({ order: mockOrder });
+      const mockEq = (jest.fn() as any).mockReturnValue({ range: mockRange });
+      const mockSelect = (jest.fn() as any).mockReturnValue({ eq: mockEq });
+      (mockFrom as any).mockReturnValue({ select: mockSelect });
 
       const result = await rsvpService.list(filters);
 
@@ -536,15 +536,15 @@ describe('rsvpService', () => {
         page_size: 10,
       };
 
-      const mockOrder = jest.fn().mockResolvedValue({
+      const mockOrder = (jest.fn() as any).mockResolvedValue({
         data: [],
         error: null,
         count: 0,
       });
-      const mockRange = jest.fn().mockReturnValue({ order: mockOrder });
-      const mockEq = jest.fn().mockReturnValue({ range: mockRange });
-      const mockSelect = jest.fn().mockReturnValue({ eq: mockEq });
-      mockFrom.mockReturnValue({ select: mockSelect });
+      const mockRange = (jest.fn() as any).mockReturnValue({ order: mockOrder });
+      const mockEq = (jest.fn() as any).mockReturnValue({ range: mockRange });
+      const mockSelect = (jest.fn() as any).mockReturnValue({ eq: mockEq });
+      (mockFrom as any).mockReturnValue({ select: mockSelect });
 
       const result = await rsvpService.list(filters);
 
@@ -553,13 +553,13 @@ describe('rsvpService', () => {
     });
 
     it('should return DATABASE_ERROR when query fails', async () => {
-      const mockOrder = jest.fn().mockResolvedValue({
+      const mockOrder = (jest.fn() as any).mockResolvedValue({
         data: null,
         error: { message: 'Connection failed' },
-      });
-      const mockRange = jest.fn().mockReturnValue({ order: mockOrder });
-      const mockSelect = jest.fn().mockReturnValue({ range: mockRange });
-      mockFrom.mockReturnValue({ select: mockSelect });
+      } as any);
+      const mockRange = (jest.fn() as any).mockReturnValue({ order: mockOrder });
+      const mockSelect = (jest.fn() as any).mockReturnValue({ range: mockRange });
+      (mockFrom as any).mockReturnValue({ select: mockSelect });
 
       const result = await rsvpService.list();
 
@@ -584,23 +584,23 @@ describe('rsvpService', () => {
       ];
 
       // Mock activity query (first call)
-      const mockSingle = jest.fn().mockResolvedValue({
+      const mockSingle = (jest.fn() as any).mockResolvedValue({
         data: mockActivity,
         error: null,
       });
-      const mockEq1 = jest.fn().mockReturnValue({ single: mockSingle });
-      const mockSelect1 = jest.fn().mockReturnValue({ eq: mockEq1 });
+      const mockEq1 = (jest.fn() as any).mockReturnValue({ single: mockSingle });
+      const mockSelect1 = (jest.fn() as any).mockReturnValue({ eq: mockEq1 });
 
       // Mock RSVPs query (second call)
-      const mockEq3 = jest.fn().mockResolvedValue({
+      const mockEq3 = (jest.fn() as any).mockResolvedValue({
         data: mockRSVPs,
         error: null,
       });
-      const mockEq2 = jest.fn().mockReturnValue({ eq: mockEq3 });
-      const mockSelect2 = jest.fn().mockReturnValue({ eq: mockEq2 });
+      const mockEq2 = (jest.fn() as any).mockReturnValue({ eq: mockEq3 });
+      const mockSelect2 = (jest.fn() as any).mockReturnValue({ eq: mockEq2 });
 
       let callCount = 0;
-      mockFrom.mockImplementation((table: string) => {
+      (mockFrom as any).mockImplementation((table: string) => {
         if (table === 'activities') {
           return { select: mockSelect1 };
         } else if (table === 'rsvps') {
@@ -631,22 +631,22 @@ describe('rsvpService', () => {
       ];
 
       // Mock activity query
-      const mockSingle = jest.fn().mockResolvedValue({
+      const mockSingle = (jest.fn() as any).mockResolvedValue({
         data: mockActivity,
         error: null,
       });
-      const mockEq1 = jest.fn().mockReturnValue({ single: mockSingle });
-      const mockSelect1 = jest.fn().mockReturnValue({ eq: mockEq1 });
+      const mockEq1 = (jest.fn() as any).mockReturnValue({ single: mockSingle });
+      const mockSelect1 = (jest.fn() as any).mockReturnValue({ eq: mockEq1 });
 
       // Mock RSVPs query
-      const mockEq3 = jest.fn().mockResolvedValue({
+      const mockEq3 = (jest.fn() as any).mockResolvedValue({
         data: mockRSVPs,
         error: null,
       });
-      const mockEq2 = jest.fn().mockReturnValue({ eq: mockEq3 });
-      const mockSelect2 = jest.fn().mockReturnValue({ eq: mockEq2 });
+      const mockEq2 = (jest.fn() as any).mockReturnValue({ eq: mockEq3 });
+      const mockSelect2 = (jest.fn() as any).mockReturnValue({ eq: mockEq2 });
 
-      mockFrom.mockImplementation((table: string) => {
+      (mockFrom as any).mockImplementation((table: string) => {
         if (table === 'activities') {
           return { select: mockSelect1 };
         } else if (table === 'rsvps') {
@@ -666,13 +666,13 @@ describe('rsvpService', () => {
     });
 
     it('should return DATABASE_ERROR when activity query fails', async () => {
-      const mockSingle = jest.fn().mockResolvedValue({
+      const mockSingle = (jest.fn() as any).mockResolvedValue({
         data: null,
         error: { message: 'Activity not found' },
-      });
-      const mockEq = jest.fn().mockReturnValue({ single: mockSingle });
-      const mockSelect = jest.fn().mockReturnValue({ eq: mockEq });
-      mockFrom.mockReturnValue({ select: mockSelect });
+      } as any);
+      const mockEq = (jest.fn() as any).mockReturnValue({ single: mockSingle });
+      const mockSelect = (jest.fn() as any).mockReturnValue({ eq: mockEq });
+      (mockFrom as any).mockReturnValue({ select: mockSelect });
 
       const result = await rsvpService.calculateActivityCapacity('nonexistent-activity');
 
@@ -693,47 +693,47 @@ describe('rsvpService', () => {
       // Mock activities query (first call)
       // Query: await supabase.from('activities').select('id, name, capacity').not('capacity', 'is', null).eq('status', 'published')
       // The final .eq() must return a Promise that resolves to { data, error }
-      const mockEq2 = jest.fn().mockResolvedValue({
+      const mockEq2 = (jest.fn() as any).mockResolvedValue({
         data: mockActivities,
         error: null,
       });
-      const mockEq1 = jest.fn().mockImplementation(() => mockEq2()); // Call mockEq2 to get the promise
-      const mockNot = jest.fn().mockReturnValue({ eq: mockEq1 });
-      const mockSelect1 = jest.fn().mockReturnValue({ not: mockNot });
+      const mockEq1 = (jest.fn() as any).mockImplementation(() => mockEq2()); // Call mockEq2 to get the promise
+      const mockNot = (jest.fn() as any).mockReturnValue({ eq: mockEq1 });
+      const mockSelect1 = (jest.fn() as any).mockReturnValue({ not: mockNot });
 
       // For calculateActivityCapacity calls, we need to mock multiple sequences
       // Activity 1: 9/10 (90% - warning)
-      const mockSingle1 = jest.fn().mockResolvedValue({
+      const mockSingle1 = (jest.fn() as any).mockResolvedValue({
         data: { capacity: 10, name: 'Beach Volleyball' },
         error: null,
-      });
-      const mockEqA1 = jest.fn().mockReturnValue({ single: mockSingle1 });
-      const mockSelectA1 = jest.fn().mockReturnValue({ eq: mockEqA1 });
+      } as any);
+      const mockEqA1 = (jest.fn() as any).mockReturnValue({ single: mockSingle1 });
+      const mockSelectA1 = (jest.fn() as any).mockReturnValue({ eq: mockEqA1 });
 
-      const mockEqR1b = jest.fn().mockResolvedValue({
+      const mockEqR1b = (jest.fn() as any).mockResolvedValue({
         data: [{ guest_count: 4 }, { guest_count: 3 }, { guest_count: 2 }],
         error: null,
-      });
-      const mockEqR1a = jest.fn().mockReturnValue({ eq: mockEqR1b });
-      const mockSelectR1 = jest.fn().mockReturnValue({ eq: mockEqR1a });
+      } as any);
+      const mockEqR1a = (jest.fn() as any).mockReturnValue({ eq: mockEqR1b });
+      const mockSelectR1 = (jest.fn() as any).mockReturnValue({ eq: mockEqR1a });
 
       // Activity 2: 20/20 (100% - full)
-      const mockSingle2 = jest.fn().mockResolvedValue({
+      const mockSingle2 = (jest.fn() as any).mockResolvedValue({
         data: { capacity: 20, name: 'Snorkeling' },
         error: null,
-      });
-      const mockEqA2 = jest.fn().mockReturnValue({ single: mockSingle2 });
-      const mockSelectA2 = jest.fn().mockReturnValue({ eq: mockEqA2 });
+      } as any);
+      const mockEqA2 = (jest.fn() as any).mockReturnValue({ single: mockSingle2 });
+      const mockSelectA2 = (jest.fn() as any).mockReturnValue({ eq: mockEqA2 });
 
-      const mockEqR2b = jest.fn().mockResolvedValue({
+      const mockEqR2b = (jest.fn() as any).mockResolvedValue({
         data: Array(20).fill({ guest_count: 1 }),
         error: null,
       });
-      const mockEqR2a = jest.fn().mockReturnValue({ eq: mockEqR2b });
-      const mockSelectR2 = jest.fn().mockReturnValue({ eq: mockEqR2a });
+      const mockEqR2a = (jest.fn() as any).mockReturnValue({ eq: mockEqR2b });
+      const mockSelectR2 = (jest.fn() as any).mockReturnValue({ eq: mockEqR2a });
 
       let callCount = 0;
-      mockFrom.mockImplementation((table: string) => {
+      (mockFrom as any).mockImplementation((table: string) => {
         callCount++;
         if (table === 'activities' && callCount === 1) {
           return { select: mockSelect1 };
@@ -773,31 +773,31 @@ describe('rsvpService', () => {
       ];
 
       // Mock activities query
-      const mockEq2 = jest.fn().mockResolvedValue({
+      const mockEq2 = (jest.fn() as any).mockResolvedValue({
         data: mockActivities,
         error: null,
       });
-      const mockEq1 = jest.fn().mockImplementation(() => mockEq2()); // Call mockEq2 to get the promise
-      const mockNot = jest.fn().mockReturnValue({ eq: mockEq1 });
-      const mockSelect1 = jest.fn().mockReturnValue({ not: mockNot });
+      const mockEq1 = (jest.fn() as any).mockImplementation(() => mockEq2()); // Call mockEq2 to get the promise
+      const mockNot = (jest.fn() as any).mockReturnValue({ eq: mockEq1 });
+      const mockSelect1 = (jest.fn() as any).mockReturnValue({ not: mockNot });
 
       // Mock capacity calculation - only 5/10 (50%)
-      const mockSingle = jest.fn().mockResolvedValue({
+      const mockSingle = (jest.fn() as any).mockResolvedValue({
         data: { capacity: 10, name: 'Beach Volleyball' },
         error: null,
-      });
-      const mockEqA = jest.fn().mockReturnValue({ single: mockSingle });
-      const mockSelectA = jest.fn().mockReturnValue({ eq: mockEqA });
+      } as any);
+      const mockEqA = (jest.fn() as any).mockReturnValue({ single: mockSingle });
+      const mockSelectA = (jest.fn() as any).mockReturnValue({ eq: mockEqA });
 
-      const mockEqRb = jest.fn().mockResolvedValue({
+      const mockEqRb = (jest.fn() as any).mockResolvedValue({
         data: [{ guest_count: 5 }],
         error: null,
-      });
-      const mockEqRa = jest.fn().mockReturnValue({ eq: mockEqRb });
-      const mockSelectR = jest.fn().mockReturnValue({ eq: mockEqRa });
+      } as any);
+      const mockEqRa = (jest.fn() as any).mockReturnValue({ eq: mockEqRb });
+      const mockSelectR = (jest.fn() as any).mockReturnValue({ eq: mockEqRa });
 
       let callCount = 0;
-      mockFrom.mockImplementation((table: string) => {
+      (mockFrom as any).mockImplementation((table: string) => {
         callCount++;
         if (table === 'activities' && callCount === 1) {
           return { select: mockSelect1 };
@@ -824,22 +824,22 @@ describe('rsvpService', () => {
       const mockRSVPs = [{ guest_count: 5 }]; // 5 attending, 5 available
 
       // Mock activity query
-      const mockSingle = jest.fn().mockResolvedValue({
+      const mockSingle = (jest.fn() as any).mockResolvedValue({
         data: mockActivity,
         error: null,
       });
-      const mockEqA = jest.fn().mockReturnValue({ single: mockSingle });
-      const mockSelectA = jest.fn().mockReturnValue({ eq: mockEqA });
+      const mockEqA = (jest.fn() as any).mockReturnValue({ single: mockSingle });
+      const mockSelectA = (jest.fn() as any).mockReturnValue({ eq: mockEqA });
 
       // Mock RSVPs query
-      const mockEqRb = jest.fn().mockResolvedValue({
+      const mockEqRb = (jest.fn() as any).mockResolvedValue({
         data: mockRSVPs,
         error: null,
       });
-      const mockEqRa = jest.fn().mockReturnValue({ eq: mockEqRb });
-      const mockSelectR = jest.fn().mockReturnValue({ eq: mockEqRa });
+      const mockEqRa = (jest.fn() as any).mockReturnValue({ eq: mockEqRb });
+      const mockSelectR = (jest.fn() as any).mockReturnValue({ eq: mockEqRa });
 
-      mockFrom.mockImplementation((table: string) => {
+      (mockFrom as any).mockImplementation((table: string) => {
         if (table === 'activities') {
           return { select: mockSelectA };
         } else if (table === 'rsvps') {
@@ -862,22 +862,22 @@ describe('rsvpService', () => {
       const mockRSVPs = [{ guest_count: 8 }]; // 8 attending, 2 available
 
       // Mock activity query
-      const mockSingle = jest.fn().mockResolvedValue({
+      const mockSingle = (jest.fn() as any).mockResolvedValue({
         data: mockActivity,
         error: null,
       });
-      const mockEqA = jest.fn().mockReturnValue({ single: mockSingle });
-      const mockSelectA = jest.fn().mockReturnValue({ eq: mockEqA });
+      const mockEqA = (jest.fn() as any).mockReturnValue({ single: mockSingle });
+      const mockSelectA = (jest.fn() as any).mockReturnValue({ eq: mockEqA });
 
       // Mock RSVPs query
-      const mockEqRb = jest.fn().mockResolvedValue({
+      const mockEqRb = (jest.fn() as any).mockResolvedValue({
         data: mockRSVPs,
         error: null,
       });
-      const mockEqRa = jest.fn().mockReturnValue({ eq: mockEqRb });
-      const mockSelectR = jest.fn().mockReturnValue({ eq: mockEqRa });
+      const mockEqRa = (jest.fn() as any).mockReturnValue({ eq: mockEqRb });
+      const mockSelectR = (jest.fn() as any).mockReturnValue({ eq: mockEqRa });
 
-      mockFrom.mockImplementation((table: string) => {
+      (mockFrom as any).mockImplementation((table: string) => {
         if (table === 'activities') {
           return { select: mockSelectA };
         } else if (table === 'rsvps') {
@@ -900,22 +900,22 @@ describe('rsvpService', () => {
       const mockRSVPs = [{ guest_count: 100 }];
 
       // Mock activity query
-      const mockSingle = jest.fn().mockResolvedValue({
+      const mockSingle = (jest.fn() as any).mockResolvedValue({
         data: mockActivity,
         error: null,
       });
-      const mockEqA = jest.fn().mockReturnValue({ single: mockSingle });
-      const mockSelectA = jest.fn().mockReturnValue({ eq: mockEqA });
+      const mockEqA = (jest.fn() as any).mockReturnValue({ single: mockSingle });
+      const mockSelectA = (jest.fn() as any).mockReturnValue({ eq: mockEqA });
 
       // Mock RSVPs query
-      const mockEqRb = jest.fn().mockResolvedValue({
+      const mockEqRb = (jest.fn() as any).mockResolvedValue({
         data: mockRSVPs,
         error: null,
       });
-      const mockEqRa = jest.fn().mockReturnValue({ eq: mockEqRb });
-      const mockSelectR = jest.fn().mockReturnValue({ eq: mockEqRa });
+      const mockEqRa = (jest.fn() as any).mockReturnValue({ eq: mockEqRb });
+      const mockSelectR = (jest.fn() as any).mockReturnValue({ eq: mockEqRa });
 
-      mockFrom.mockImplementation((table: string) => {
+      (mockFrom as any).mockImplementation((table: string) => {
         if (table === 'activities') {
           return { select: mockSelectA };
         } else if (table === 'rsvps') {
@@ -940,22 +940,22 @@ describe('rsvpService', () => {
       const mockRSVPs = [{ guest_count: 5 }]; // 5 attending
 
       // Mock activity query
-      const mockSingle = jest.fn().mockResolvedValue({
+      const mockSingle = (jest.fn() as any).mockResolvedValue({
         data: mockActivity,
         error: null,
       });
-      const mockEqA = jest.fn().mockReturnValue({ single: mockSingle });
-      const mockSelectA = jest.fn().mockReturnValue({ eq: mockEqA });
+      const mockEqA = (jest.fn() as any).mockReturnValue({ single: mockSingle });
+      const mockSelectA = (jest.fn() as any).mockReturnValue({ eq: mockEqA });
 
       // Mock RSVPs query
-      const mockEqRb = jest.fn().mockResolvedValue({
+      const mockEqRb = (jest.fn() as any).mockResolvedValue({
         data: mockRSVPs,
         error: null,
       });
-      const mockEqRa = jest.fn().mockReturnValue({ eq: mockEqRb });
-      const mockSelectR = jest.fn().mockReturnValue({ eq: mockEqRa });
+      const mockEqRa = (jest.fn() as any).mockReturnValue({ eq: mockEqRb });
+      const mockSelectR = (jest.fn() as any).mockReturnValue({ eq: mockEqRa });
 
-      mockFrom.mockImplementation((table: string) => {
+      (mockFrom as any).mockImplementation((table: string) => {
         if (table === 'activities') {
           return { select: mockSelectA };
         } else if (table === 'rsvps') {
@@ -974,22 +974,22 @@ describe('rsvpService', () => {
       const mockRSVPs = [{ guest_count: 8 }]; // 8 attending
 
       // Mock activity query
-      const mockSingle = jest.fn().mockResolvedValue({
+      const mockSingle = (jest.fn() as any).mockResolvedValue({
         data: mockActivity,
         error: null,
       });
-      const mockEqA = jest.fn().mockReturnValue({ single: mockSingle });
-      const mockSelectA = jest.fn().mockReturnValue({ eq: mockEqA });
+      const mockEqA = (jest.fn() as any).mockReturnValue({ single: mockSingle });
+      const mockSelectA = (jest.fn() as any).mockReturnValue({ eq: mockEqA });
 
       // Mock RSVPs query
-      const mockEqRb = jest.fn().mockResolvedValue({
+      const mockEqRb = (jest.fn() as any).mockResolvedValue({
         data: mockRSVPs,
         error: null,
       });
-      const mockEqRa = jest.fn().mockReturnValue({ eq: mockEqRb });
-      const mockSelectR = jest.fn().mockReturnValue({ eq: mockEqRa });
+      const mockEqRa = (jest.fn() as any).mockReturnValue({ eq: mockEqRb });
+      const mockSelectR = (jest.fn() as any).mockReturnValue({ eq: mockEqRa });
 
-      mockFrom.mockImplementation((table: string) => {
+      (mockFrom as any).mockImplementation((table: string) => {
         if (table === 'activities') {
           return { select: mockSelectA };
         } else if (table === 'rsvps') {
@@ -1013,31 +1013,31 @@ describe('rsvpService', () => {
       const mockExistingRSVP = { guest_count: 3, status: 'attending' };
 
       // Mock activity query (first call)
-      const mockSingle1 = jest.fn().mockResolvedValue({
+      const mockSingle1 = (jest.fn() as any).mockResolvedValue({
         data: mockActivity,
         error: null,
       });
-      const mockEqA = jest.fn().mockReturnValue({ single: mockSingle1 });
-      const mockSelectA = jest.fn().mockReturnValue({ eq: mockEqA });
+      const mockEqA = (jest.fn() as any).mockReturnValue({ single: mockSingle1 });
+      const mockSelectA = (jest.fn() as any).mockReturnValue({ eq: mockEqA });
 
       // Mock RSVPs query (second call)
-      const mockEqRb = jest.fn().mockResolvedValue({
+      const mockEqRb = (jest.fn() as any).mockResolvedValue({
         data: mockRSVPs,
         error: null,
       });
-      const mockEqRa = jest.fn().mockReturnValue({ eq: mockEqRb });
-      const mockSelectR = jest.fn().mockReturnValue({ eq: mockEqRa });
+      const mockEqRa = (jest.fn() as any).mockReturnValue({ eq: mockEqRb });
+      const mockSelectR = (jest.fn() as any).mockReturnValue({ eq: mockEqRa });
 
       // Mock existing RSVP query (third call)
-      const mockSingle2 = jest.fn().mockResolvedValue({
+      const mockSingle2 = (jest.fn() as any).mockResolvedValue({
         data: mockExistingRSVP,
         error: null,
       });
-      const mockEqE = jest.fn().mockReturnValue({ single: mockSingle2 });
-      const mockSelectE = jest.fn().mockReturnValue({ eq: mockEqE });
+      const mockEqE = (jest.fn() as any).mockReturnValue({ single: mockSingle2 });
+      const mockSelectE = (jest.fn() as any).mockReturnValue({ eq: mockEqE });
 
       let callCount = 0;
-      mockFrom.mockImplementation((table: string) => {
+      (mockFrom as any).mockImplementation((table: string) => {
         callCount++;
         if (table === 'activities') {
           return { select: mockSelectA };
@@ -1060,22 +1060,22 @@ describe('rsvpService', () => {
       const mockRSVPs = [{ guest_count: 100 }];
 
       // Mock activity query
-      const mockSingle = jest.fn().mockResolvedValue({
+      const mockSingle = (jest.fn() as any).mockResolvedValue({
         data: mockActivity,
         error: null,
       });
-      const mockEqA = jest.fn().mockReturnValue({ single: mockSingle });
-      const mockSelectA = jest.fn().mockReturnValue({ eq: mockEqA });
+      const mockEqA = (jest.fn() as any).mockReturnValue({ single: mockSingle });
+      const mockSelectA = (jest.fn() as any).mockReturnValue({ eq: mockEqA });
 
       // Mock RSVPs query
-      const mockEqRb = jest.fn().mockResolvedValue({
+      const mockEqRb = (jest.fn() as any).mockResolvedValue({
         data: mockRSVPs,
         error: null,
       });
-      const mockEqRa = jest.fn().mockReturnValue({ eq: mockEqRb });
-      const mockSelectR = jest.fn().mockReturnValue({ eq: mockEqRa });
+      const mockEqRa = (jest.fn() as any).mockReturnValue({ eq: mockEqRb });
+      const mockSelectR = (jest.fn() as any).mockReturnValue({ eq: mockEqRa });
 
-      mockFrom.mockImplementation((table: string) => {
+      (mockFrom as any).mockImplementation((table: string) => {
         if (table === 'activities') {
           return { select: mockSelectA };
         } else if (table === 'rsvps') {

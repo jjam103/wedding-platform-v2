@@ -11,6 +11,7 @@ import {
   deleteContentPage,
 } from '@/services/contentPagesService';
 import { updateContentPageSchema } from '@/schemas/cmsSchemas';
+import { ERROR_CODES } from '@/types';
 
 /**
  * GET /api/admin/content-pages/[id]
@@ -27,7 +28,7 @@ export async function GET(
       const { id } = resolvedParams;
 
       if (!id) {
-        return errorResponse('INVALID_REQUEST', 'Content page ID is required', 400);
+        return errorResponse(ERROR_CODES.VALIDATION_ERROR, 'Content page ID is required', 400);
       }
 
       // Call service
@@ -66,7 +67,7 @@ export async function PUT(
       const { id } = resolvedParams;
 
       if (!id) {
-        return errorResponse('INVALID_REQUEST', 'Content page ID is required', 400);
+        return errorResponse(ERROR_CODES.VALIDATION_ERROR, 'Content page ID is required', 400);
       }
 
       const body = await request.json();
@@ -125,7 +126,7 @@ export async function DELETE(
       const { id } = resolvedParams;
 
       if (!id) {
-        return errorResponse('INVALID_REQUEST', 'Content page ID is required', 400);
+        return errorResponse(ERROR_CODES.VALIDATION_ERROR, 'Content page ID is required', 400);
       }
 
       // Call service

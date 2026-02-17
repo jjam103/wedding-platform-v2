@@ -47,25 +47,25 @@ describe('Mock Data Factories', () => {
       const guest = createTestGuest();
       
       expect(guest.id).toMatch(/^test-guest-/);
-      expect(guest.firstName).toBe('Test');
-      expect(guest.lastName).toBe('User');
+      expect(guest.first_name).toBe('Test');
+      expect(guest.last_name).toBe('User');
       expect(guest.email).toMatch(/test\.user\.\d+@example\.com/);
-      expect(guest.ageType).toBe('adult');
-      expect(guest.guestType).toBe('wedding_guest');
+      expect(guest.age_type).toBe('adult');
+      expect(guest.guest_type).toBe('wedding_guest');
     });
     
     it('should override default values', () => {
       const guest = createTestGuest({
-        firstName: 'John',
-        lastName: 'Doe',
+        first_name: 'John',
+        last_name: 'Doe',
         email: 'john@example.com',
-        ageType: 'senior',
+        age_type: 'senior',
       });
       
-      expect(guest.firstName).toBe('John');
-      expect(guest.lastName).toBe('Doe');
+      expect(guest.first_name).toBe('John');
+      expect(guest.last_name).toBe('Doe');
       expect(guest.email).toBe('john@example.com');
-      expect(guest.ageType).toBe('senior');
+      expect(guest.age_type).toBe('senior');
     });
   });
   
@@ -94,8 +94,8 @@ describe('Mock Data Factories', () => {
       
       expect(event.id).toMatch(/^test-event-/);
       expect(event.name).toMatch(/Test Event \d+/);
-      expect(event.startDate).toBeDefined();
-      expect(event.endDate).toBeDefined();
+      expect(event.start_date).toBeDefined();
+      expect(event.end_date).toBeDefined();
     });
   });
   
@@ -106,7 +106,7 @@ describe('Mock Data Factories', () => {
       expect(activity.id).toMatch(/^test-activity-/);
       expect(activity.name).toMatch(/Test Activity \d+/);
       expect(activity.capacity).toBe(50);
-      expect(activity.adultsOnly).toBe(false);
+      expect(activity.adults_only).toBe(false);
     });
   });
   
@@ -129,20 +129,20 @@ describe('Mock Data Factories', () => {
       const guests = createTestGuests(5);
       
       expect(guests).toHaveLength(5);
-      expect(guests[0].firstName).toBe('Test0');
-      expect(guests[1].firstName).toBe('Test1');
+      expect(guests[0].first_name).toBe('Test0');
+      expect(guests[1].first_name).toBe('Test1');
     });
     
     it('should apply overrides to all guests', () => {
       const guests = createTestGuests(3, {
-        groupId: 'group-123',
-        ageType: 'child',
+        group_id: 'group-123',
+        age_type: 'child',
       });
       
       expect(guests).toHaveLength(3);
       guests.forEach(guest => {
-        expect(guest.groupId).toBe('group-123');
-        expect(guest.ageType).toBe('child');
+        expect(guest.group_id).toBe('group-123');
+        expect(guest.age_type).toBe('child');
       });
     });
   });

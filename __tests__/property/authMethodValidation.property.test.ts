@@ -26,11 +26,11 @@ describe('Feature: guest-portal-and-admin-enhancements, Property: Authentication
     // Create test group
     const { data: group } = await supabase
       .from('groups')
-      .insert({ name: 'Property Test Auth Group' })
+      .insert({ name: 'Property Test Auth Group' } as any)
       .select()
       .single();
 
-    testGroupId = group!.id;
+    testGroupId = (group as any)!.id;
   });
 
   afterAll(async () => {
@@ -57,22 +57,22 @@ describe('Feature: guest-portal-and-admin-enhancements, Property: Authentication
                 first_name: firstName,
                 last_name: lastName,
                 email: email,
-                age_type: 'adult',
-                guest_type: 'wedding_guest',
-                auth_method: authMethod,
+                age_type: 'adult' as any,
+                guest_type: 'wedding_guest' as any,
+                auth_method: authMethod as any,
               })
               .select()
               .single();
 
             // Clean up
             if (guest) {
-              await supabase.from('guests').delete().eq('id', guest.id);
+              await supabase.from('guests').delete().eq('id', (guest as any).id);
             }
 
             // Assertion
             expect(error).toBeNull();
             expect(guest).toBeDefined();
-            expect(guest?.auth_method).toBe(authMethod);
+            expect((guest as any)?.auth_method).toBe(authMethod);
           }
         ),
         { numRuns: 20 }
@@ -99,8 +99,8 @@ describe('Feature: guest-portal-and-admin-enhancements, Property: Authentication
                 first_name: firstName,
                 last_name: lastName,
                 email: email,
-                age_type: 'adult',
-                guest_type: 'wedding_guest',
+                age_type: 'adult' as any,
+                guest_type: 'wedding_guest' as any,
                 auth_method: invalidAuthMethod as any,
               });
 
@@ -130,8 +130,8 @@ describe('Feature: guest-portal-and-admin-enhancements, Property: Authentication
                 first_name: firstName,
                 last_name: lastName,
                 email: email,
-                age_type: 'adult',
-                guest_type: 'wedding_guest',
+                age_type: 'adult' as any,
+                guest_type: 'wedding_guest' as any,
                 // auth_method not specified
               })
               .select()
@@ -139,13 +139,13 @@ describe('Feature: guest-portal-and-admin-enhancements, Property: Authentication
 
             // Clean up
             if (guest) {
-              await supabase.from('guests').delete().eq('id', guest.id);
+              await supabase.from('guests').delete().eq('id', (guest as any).id);
             }
 
             // Assertion
             expect(error).toBeNull();
             expect(guest).toBeDefined();
-            expect(guest?.auth_method).toBe('email_matching');
+            expect((guest as any)?.auth_method).toBe('email_matching');
           }
         ),
         { numRuns: 20 }
@@ -171,19 +171,19 @@ describe('Feature: guest-portal-and-admin-enhancements, Property: Authentication
                 first_name: firstName,
                 last_name: lastName,
                 email: email,
-                age_type: 'adult',
-                guest_type: 'wedding_guest',
-                auth_method: initialMethod,
+                age_type: 'adult' as any,
+                guest_type: 'wedding_guest' as any,
+                auth_method: initialMethod as any,
               })
               .select()
               .single();
 
-            const guestId = guest!.id;
+            const guestId = (guest as any)!.id;
 
             // Update auth_method
             const { data: updatedGuest, error } = await supabase
               .from('guests')
-              .update({ auth_method: updatedMethod })
+              .update({ auth_method: updatedMethod as any })
               .eq('id', guestId)
               .select()
               .single();
@@ -194,7 +194,7 @@ describe('Feature: guest-portal-and-admin-enhancements, Property: Authentication
             // Assertion
             expect(error).toBeNull();
             expect(updatedGuest).toBeDefined();
-            expect(updatedGuest?.auth_method).toBe(updatedMethod);
+            expect((updatedGuest as any)?.auth_method).toBe(updatedMethod);
           }
         ),
         { numRuns: 20 }
@@ -217,13 +217,13 @@ describe('Feature: guest-portal-and-admin-enhancements, Property: Authentication
                 first_name: 'Token',
                 last_name: 'Test',
                 email: `token.test.${Date.now()}@example.com`,
-                age_type: 'adult',
-                guest_type: 'wedding_guest',
+                age_type: 'adult' as any,
+                guest_type: 'wedding_guest' as any,
               })
               .select()
               .single();
 
-            const guestId = guest!.id;
+            const guestId = (guest as any)!.id;
             const expiresAt = new Date(Date.now() + minutesInFuture * 60 * 1000);
 
             // Create token with future expiration
@@ -233,20 +233,20 @@ describe('Feature: guest-portal-and-admin-enhancements, Property: Authentication
                 token: token,
                 guest_id: guestId,
                 expires_at: expiresAt.toISOString(),
-              })
+              } as any)
               .select()
               .single();
 
             // Clean up
             if (tokenRecord) {
-              await supabase.from('magic_link_tokens').delete().eq('id', tokenRecord.id);
+              await supabase.from('magic_link_tokens').delete().eq('id', (tokenRecord as any).id);
             }
             await supabase.from('guests').delete().eq('id', guestId);
 
             // Assertion
             expect(error).toBeNull();
             expect(tokenRecord).toBeDefined();
-            expect(new Date(tokenRecord!.expires_at).getTime()).toBeGreaterThan(Date.now());
+            expect(new Date((tokenRecord as any)!.expires_at).getTime()).toBeGreaterThan(Date.now());
           }
         ),
         { numRuns: 20 }
@@ -268,13 +268,13 @@ describe('Feature: guest-portal-and-admin-enhancements, Property: Authentication
                 first_name: 'SingleUse',
                 last_name: 'Test',
                 email: `singleuse.${Date.now()}@example.com`,
-                age_type: 'adult',
-                guest_type: 'wedding_guest',
+                age_type: 'adult' as any,
+                guest_type: 'wedding_guest' as any,
               })
               .select()
               .single();
 
-            const guestId = guest!.id;
+            const guestId = (guest as any)!.id;
             const expiresAt = new Date(Date.now() + 15 * 60 * 1000);
 
             // Create token
@@ -284,11 +284,11 @@ describe('Feature: guest-portal-and-admin-enhancements, Property: Authentication
                 token: token,
                 guest_id: guestId,
                 expires_at: expiresAt.toISOString(),
-              })
+              } as any)
               .select()
               .single();
 
-            const tokenId = tokenRecord!.id;
+            const tokenId = (tokenRecord as any)!.id;
 
             // Mark token as used (first time)
             const { data: firstUse } = await supabase.rpc(
@@ -331,13 +331,13 @@ describe('Feature: guest-portal-and-admin-enhancements, Property: Authentication
                 first_name: 'Expired',
                 last_name: 'Test',
                 email: `expired.${Date.now()}@example.com`,
-                age_type: 'adult',
-                guest_type: 'wedding_guest',
+                age_type: 'adult' as any,
+                guest_type: 'wedding_guest' as any,
               })
               .select()
               .single();
 
-            const guestId = guest!.id;
+            const guestId = (guest as any)!.id;
             const expiresAt = new Date(Date.now() - minutesInPast * 60 * 1000);
 
             // Create expired token
@@ -347,11 +347,11 @@ describe('Feature: guest-portal-and-admin-enhancements, Property: Authentication
                 token: token,
                 guest_id: guestId,
                 expires_at: expiresAt.toISOString(),
-              })
+              } as any)
               .select()
               .single();
 
-            const tokenId = tokenRecord!.id;
+            const tokenId = (tokenRecord as any)!.id;
 
             // Try to mark expired token as used
             const { data: result } = await supabase.rpc(
@@ -386,13 +386,13 @@ describe('Feature: guest-portal-and-admin-enhancements, Property: Authentication
                 first_name: 'Unique',
                 last_name: 'Test',
                 email: `unique.${Date.now()}@example.com`,
-                age_type: 'adult',
-                guest_type: 'wedding_guest',
+                age_type: 'adult' as any,
+                guest_type: 'wedding_guest' as any,
               })
               .select()
               .single();
 
-            const guestId = guest!.id;
+            const guestId = (guest as any)!.id;
             const expiresAt = new Date(Date.now() + 15 * 60 * 1000);
 
             // Create first token
@@ -402,11 +402,11 @@ describe('Feature: guest-portal-and-admin-enhancements, Property: Authentication
                 token: token,
                 guest_id: guestId,
                 expires_at: expiresAt.toISOString(),
-              })
+              } as any)
               .select()
               .single();
 
-            const token1Id = token1!.id;
+            const token1Id = (token1 as any)!.id;
 
             // Try to create duplicate token
             const { error: duplicateError } = await supabase
@@ -415,7 +415,7 @@ describe('Feature: guest-portal-and-admin-enhancements, Property: Authentication
                 token: token,
                 guest_id: guestId,
                 expires_at: expiresAt.toISOString(),
-              });
+              } as any);
 
             // Clean up
             await supabase.from('magic_link_tokens').delete().eq('id', token1Id);

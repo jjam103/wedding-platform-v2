@@ -464,7 +464,7 @@ describe('ConfirmDialog Property Tests', () => {
       await fc.assert(
         fc.asyncProperty(
           fc.record({
-            variant: fc.constantFrom('danger'),
+            variant: fc.constantFrom('danger' as const),
             entityName: fc.string({ minLength: 1, maxLength: 100 }).filter(s => s.trim().length > 0),
           }),
           async ({ variant, entityName }) => {

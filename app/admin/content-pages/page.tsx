@@ -46,6 +46,7 @@ export default function ContentPagesPage() {
     if (result.success) {
       showToast({ type: 'success', message: 'Content page created successfully' });
       setIsFormOpen(false);
+      // Force refetch to ensure new page appears in table
       await refetch();
     } else {
       showToast({ type: 'error', message: result.error || 'Failed to create page' });
@@ -146,7 +147,7 @@ export default function ContentPagesPage() {
             onClick={() => handleToggleSections(page.id)}
             aria-label={`${expandedPageId === page.id ? 'Hide' : 'Show'} sections for ${page.title}`}
           >
-            {expandedPageId === page.id ? 'Hide Sections' : 'Sections'}
+            {expandedPageId === page.id ? 'Hide Sections' : 'Manage Sections'}
           </Button>
           <Button
             size="sm"
@@ -187,11 +188,20 @@ export default function ContentPagesPage() {
 
   return (
     <div className="p-6">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900 mb-2">Content Pages</h1>
-        <p className="text-gray-600">
-          Manage custom content pages with rich text and sections
-        </p>
+      <div className="mb-6 flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">Content Pages</h1>
+          <p className="text-gray-600">
+            Manage custom content pages with rich text and sections
+          </p>
+        </div>
+        <Button 
+          onClick={() => setIsFormOpen(true)} 
+          variant="primary"
+          aria-label="Add new content page"
+        >
+          Add Page
+        </Button>
       </div>
 
       <ContentPageForm
@@ -245,7 +255,7 @@ export default function ContentPagesPage() {
                       onClick={() => handleToggleSections(page.id)}
                       aria-label={`${expandedPageId === page.id ? 'Hide' : 'Show'} sections for ${page.title}`}
                     >
-                      {expandedPageId === page.id ? '▼ Hide Sections' : '▶ Sections'}
+                      {expandedPageId === page.id ? '▼ Hide Sections' : '▶ Manage Sections'}
                     </Button>
                     <Button
                       size="sm"

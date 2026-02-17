@@ -1,0 +1,211 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - link "Skip to main content" [ref=e2] [cursor=pointer]:
+    - /url: "#main-content"
+  - link "Skip to main content" [ref=e3] [cursor=pointer]:
+    - /url: "#main-content"
+  - generic [ref=e4]:
+    - navigation "Main navigation" [ref=e5]:
+      - generic [ref=e7]:
+        - link "Admin" [ref=e8] [cursor=pointer]:
+          - /url: /admin
+          - generic [ref=e9]: 🌴
+          - generic [ref=e10]: Admin
+        - button "Content" [ref=e11]:
+          - generic [ref=e12]: 📝
+          - generic [ref=e13]: Content
+        - button "Guests" [ref=e14]:
+          - generic [ref=e15]: 👥
+          - generic [ref=e16]: Guests
+        - button "RSVPs" [ref=e17]:
+          - generic [ref=e18]: ✓
+          - generic [ref=e19]: RSVPs
+        - button "Logistics" [ref=e20]:
+          - generic [ref=e21]: 🚗
+          - generic [ref=e22]: Logistics
+        - button "Admin" [ref=e23]:
+          - generic [ref=e24]: ⚙️
+          - generic [ref=e25]: Admin
+    - banner [ref=e26]:
+      - generic [ref=e27]:
+        - heading "Wedding Admin" [level=1] [ref=e29]
+        - toolbar "User actions" [ref=e30]:
+          - link "Preview guest portal in new tab" [ref=e31] [cursor=pointer]:
+            - /url: /
+            - generic [ref=e32]: 👁️
+            - generic [ref=e33]: Preview Guest Portal
+          - button "Notifications (coming soon)" [ref=e34]: 🔔
+          - button "User menu" [ref=e36]:
+            - generic [ref=e37]: A
+            - generic [ref=e38]: Admin
+            - generic [ref=e39]: ▼
+    - main [ref=e40]:
+      - generic [ref=e42]:
+        - generic [ref=e44]:
+          - heading "RSVP Management" [level=1] [ref=e45]
+          - paragraph [ref=e46]: View and manage all RSVPs across events and activities
+        - generic [ref=e47]:
+          - generic [ref=e48]:
+            - generic [ref=e49]:
+              - generic [ref=e50]: Total RSVPs
+              - generic [ref=e51]: "0"
+            - generic [ref=e52]:
+              - generic [ref=e53]: Attending
+              - generic [ref=e54]: "0"
+              - generic [ref=e55]: 0 total guests
+            - generic [ref=e56]:
+              - generic [ref=e57]: Declined
+              - generic [ref=e58]: "0"
+            - generic [ref=e59]:
+              - generic [ref=e60]: Maybe
+              - generic [ref=e61]: "0"
+            - generic [ref=e62]:
+              - generic [ref=e63]: Pending
+              - generic [ref=e64]: "0"
+          - generic [ref=e65]:
+            - generic [ref=e66]:
+              - generic [ref=e67]:
+                - generic [ref=e68]: Search RSVPs
+                - searchbox "Search RSVPs" [ref=e69]
+              - generic [ref=e70]:
+                - group "Filter controls" [ref=e71]:
+                  - generic [ref=e72]:
+                    - generic [ref=e73]: Filter by Event
+                    - combobox "Filter by Event" [ref=e74]:
+                      - option "All Event" [selected]
+                      - option "Test Wedding Ceremony"
+                      - option "Reception"
+                      - option "Wedding Ceremony"
+                      - option "E2E Test Event"
+                      - option "E2E Test Event"
+                      - option "E2E Test Event"
+                      - option "E2E Test Event"
+                      - option "E2E Test Event"
+                      - option "E2E Test Event"
+                      - option "E2E Test Event"
+                      - option "E2E Test Event"
+                      - option "E2E Test Event"
+                      - option "E2E Test Event"
+                      - option "E2E Test Event"
+                      - option "E2E Test Event"
+                      - option "E2E Test Event"
+                      - option "E2E Test Event"
+                      - option "E2E Test Event"
+                      - option "E2E Test Event"
+                      - option "E2E Test Event"
+                      - option "E2E Test Event"
+                      - option "E2E Test Event"
+                      - option "E2E Test Event"
+                      - option "E2E Test Event"
+                      - option "E2E Test Event"
+                      - option "E2E Test Event"
+                      - option "E2E Test Event"
+                      - option "E2E Test Event"
+                      - option "Duplicate Event Name"
+                      - option "Duplicate Event Name"
+                      - option "Duplicate Event Name"
+                      - option "Duplicate Event Name"
+                      - option "Duplicate Event Name"
+                      - option "Duplicate Event Name"
+                      - option "Duplicate Event Name"
+                      - option "Duplicate Event Name"
+                      - option "Duplicate Event Name"
+                      - option "Duplicate Event Name"
+                      - option "Duplicate Event Name"
+                      - option "Duplicate Event Name"
+                      - option "Duplicate Event Name"
+                      - option "Duplicate Event Name"
+                      - option "Duplicate Event Name"
+                      - option "Duplicate Event Name"
+                      - option "Duplicate Event Name"
+                      - option "Duplicate Event Name"
+                      - option "Duplicate Event Name"
+                      - option "Duplicate Event Name"
+                      - option "Duplicate Event Name"
+                      - option "Duplicate Event Name"
+                  - generic [ref=e75]:
+                    - generic [ref=e76]: Filter by Activity
+                    - combobox "Filter by Activity" [ref=e77]:
+                      - option "All Activity" [selected]
+                      - option "Test Beach Volleyball"
+                      - option "E2E Test Activity"
+                      - option "E2E Test Activity"
+                      - option "E2E Test Activity"
+                      - option "E2E Test Activity"
+                      - option "E2E Test Activity"
+                      - option "E2E Test Activity"
+                      - option "E2E Test Activity"
+                      - option "E2E Test Activity"
+                      - option "E2E Test Activity"
+                      - option "E2E Test Activity"
+                      - option "E2E Test Activity"
+                      - option "E2E Test Activity"
+                      - option "E2E Test Activity"
+                      - option "E2E Test Activity"
+                      - option "E2E Test Activity"
+                      - option "E2E Test Activity"
+                      - option "E2E Test Activity"
+                      - option "E2E Test Activity"
+                      - option "E2E Test Activity"
+                      - option "E2E Test Activity"
+                      - option "E2E Test Activity"
+                      - option "E2E Test Activity"
+                      - option "E2E Test Activity"
+                      - option "Duplicate Activity Name"
+                      - option "Duplicate Activity Name"
+                      - option "Duplicate Activity Name"
+                      - option "Duplicate Activity Name"
+                      - option "Duplicate Activity Name"
+                      - option "Duplicate Activity Name"
+                      - option "Duplicate Activity Name"
+                      - option "Duplicate Activity Name"
+                      - option "Duplicate Activity Name"
+                      - option "Duplicate Activity Name"
+                      - option "Duplicate Activity Name"
+                      - option "Duplicate Activity Name"
+                      - option "Duplicate Activity Name"
+                      - option "Duplicate Activity Name"
+                      - option "Duplicate Activity Name"
+                      - option "Duplicate Activity Name"
+                  - generic [ref=e78]:
+                    - generic [ref=e79]: Filter by Status
+                    - combobox "Filter by Status" [ref=e80]:
+                      - option "All Status" [selected]
+                      - option "Pending"
+                      - option "Attending"
+                      - option "Declined"
+                      - option "Maybe"
+                - button "Export RSVPs to CSV" [ref=e82] [cursor=pointer]: Export
+            - table "RSVPs data table" [ref=e85]:
+              - rowgroup [ref=e86]:
+                - row "Select all rows Guest Name Email Event Activity Status Guest Count Responded" [ref=e87]:
+                  - columnheader "Select all rows" [ref=e88]:
+                    - checkbox "Select all rows" [ref=e89]
+                  - columnheader "Guest Name" [ref=e90] [cursor=pointer]:
+                    - generic [ref=e92]: Guest Name
+                  - columnheader "Email" [ref=e93] [cursor=pointer]:
+                    - generic [ref=e95]: Email
+                  - columnheader "Event" [ref=e96] [cursor=pointer]:
+                    - generic [ref=e98]: Event
+                  - columnheader "Activity" [ref=e99] [cursor=pointer]:
+                    - generic [ref=e101]: Activity
+                  - columnheader "Status" [ref=e102] [cursor=pointer]:
+                    - generic [ref=e104]: Status
+                  - columnheader "Guest Count" [ref=e105] [cursor=pointer]:
+                    - generic [ref=e107]: Guest Count
+                  - columnheader "Responded" [ref=e108] [cursor=pointer]:
+                    - generic [ref=e110]: Responded
+              - rowgroup [ref=e111]:
+                - row "No RSVPs found" [ref=e112]:
+                  - cell "No RSVPs found" [ref=e113]
+  - button "Open Next.js Dev Tools" [ref=e119] [cursor=pointer]:
+    - generic [ref=e122]:
+      - text: Compiling
+      - generic [ref=e123]:
+        - generic [ref=e124]: .
+        - generic [ref=e125]: .
+        - generic [ref=e126]: .
+  - alert [ref=e127]
+```

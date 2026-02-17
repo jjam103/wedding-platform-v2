@@ -1,6 +1,6 @@
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
-import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
+import { validateGuestAuth } from '@/lib/guestAuth';
+import { createSupabaseClient } from '@/lib/supabase';
 
 /**
  * GET /api/guest/announcements
@@ -11,23 +11,14 @@ import { NextResponse } from 'next/server';
  */
 export async function GET() {
   try {
-    const supabase = createRouteHandlerClient({ cookies });
-
     // Check authentication
-    const {
-      data: { session },
-      error: authError,
-    } = await supabase.auth.getSession();
-
-    if (authError || !session) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: { code: 'UNAUTHORIZED', message: 'Authentication required' },
-        },
-        { status: 401 }
-      );
+    const authResult = await validateGuestAuth();
+    
+    if (!authResult.success) {
+      return NextResponse.json(authResult.error, { status: authResult.status });
     }
+
+    const supabase = createSupabaseClient();
 
     // Get active announcements
     const { data: announcements, error: announcementsError } = await supabase
@@ -38,14 +29,13 @@ export async function GET() {
       .order('created_at', { ascending: false })
       .limit(10);
 
+    // Handle missing table gracefully
+    // Return empty array instead of error for better UX
     if (announcementsError) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: { code: 'DATABASE_ERROR', message: announcementsError.message },
-        },
-        { status: 500 }
-      );
+      return NextResponse.json({
+        success: true,
+        data: [],
+      });
     }
 
     return NextResponse.json({

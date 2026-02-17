@@ -10,7 +10,6 @@ ALTER TABLE locations ENABLE ROW LEVEL SECURITY;
 ALTER TABLE events ENABLE ROW LEVEL SECURITY;
 ALTER TABLE activities ENABLE ROW LEVEL SECURITY;
 ALTER TABLE rsvps ENABLE ROW LEVEL SECURITY;
-
 -- ============================================================================
 -- USERS TABLE POLICIES
 -- ============================================================================
@@ -19,7 +18,6 @@ ALTER TABLE rsvps ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "users_view_own_info"
 ON users FOR SELECT
 USING (auth.uid() = id);
-
 -- Super admins can view all users
 CREATE POLICY "super_admins_view_all_users"
 ON users FOR SELECT
@@ -29,13 +27,11 @@ USING (
     WHERE id = auth.uid() AND role = 'super_admin'
   )
 );
-
 -- Users can update their own last_login
 CREATE POLICY "users_update_own_last_login"
 ON users FOR UPDATE
 USING (auth.uid() = id)
 WITH CHECK (auth.uid() = id);
-
 -- Super admins can manage all users
 CREATE POLICY "super_admins_manage_users"
 ON users FOR ALL
@@ -45,7 +41,6 @@ USING (
     WHERE id = auth.uid() AND role = 'super_admin'
   )
 );
-
 -- ============================================================================
 -- GROUPS TABLE POLICIES
 -- ============================================================================
@@ -60,7 +55,6 @@ USING (
     AND role IN ('super_admin', 'host')
   )
 );
-
 -- Group owners can view their groups
 CREATE POLICY "group_owners_view_their_groups"
 ON groups FOR SELECT
@@ -70,7 +64,6 @@ USING (
     WHERE user_id = auth.uid()
   )
 );
-
 -- Super admins and hosts can manage groups
 CREATE POLICY "admins_hosts_manage_groups"
 ON groups FOR ALL
@@ -81,7 +74,6 @@ USING (
     AND role IN ('super_admin', 'host')
   )
 );
-
 -- ============================================================================
 -- GROUP_MEMBERS TABLE POLICIES
 -- ============================================================================
@@ -96,7 +88,6 @@ USING (
     AND role IN ('super_admin', 'host')
   )
 );
-
 -- Group owners can view members of their groups
 CREATE POLICY "group_owners_view_their_members"
 ON group_members FOR SELECT
@@ -106,7 +97,6 @@ USING (
     WHERE user_id = auth.uid()
   )
 );
-
 -- Super admins and hosts can manage group members
 CREATE POLICY "admins_hosts_manage_group_members"
 ON group_members FOR ALL
@@ -117,7 +107,6 @@ USING (
     AND role IN ('super_admin', 'host')
   )
 );
-
 -- ============================================================================
 -- GUESTS TABLE POLICIES
 -- ============================================================================
@@ -131,7 +120,6 @@ USING (
     WHERE id = auth.uid() AND role = 'super_admin'
   )
 );
-
 -- Hosts can access all guests
 CREATE POLICY "hosts_access_all_guests"
 ON guests FOR ALL
@@ -141,7 +129,6 @@ USING (
     WHERE id = auth.uid() AND role = 'host'
   )
 );
-
 -- Group owners can access their assigned guests
 CREATE POLICY "group_owners_access_their_guests"
 ON guests FOR ALL
@@ -151,7 +138,6 @@ USING (
     WHERE user_id = auth.uid() AND role = 'owner'
   )
 );
-
 -- Guests can view their own information
 CREATE POLICY "guests_view_own_info"
 ON guests FOR SELECT
@@ -159,7 +145,6 @@ USING (
   email IS NOT NULL AND 
   email = (SELECT email FROM auth.users WHERE id = auth.uid())
 );
-
 -- Adult guests can view and edit family members in their group
 CREATE POLICY "adults_view_family"
 ON guests FOR SELECT
@@ -171,7 +156,6 @@ USING (
     AND age_type = 'adult'
   )
 );
-
 CREATE POLICY "adults_update_family"
 ON guests FOR UPDATE
 USING (
@@ -190,7 +174,6 @@ WITH CHECK (
     AND age_type = 'adult'
   )
 );
-
 -- Child guests can only update their own information
 CREATE POLICY "children_update_own_info"
 ON guests FOR UPDATE
@@ -204,7 +187,6 @@ WITH CHECK (
   email = (SELECT email FROM auth.users WHERE id = auth.uid()) AND
   age_type = 'child'
 );
-
 -- ============================================================================
 -- LOCATIONS TABLE POLICIES
 -- ============================================================================
@@ -219,12 +201,10 @@ USING (
     AND role IN ('super_admin', 'host')
   )
 );
-
 -- All authenticated users can view locations
 CREATE POLICY "authenticated_view_locations"
 ON locations FOR SELECT
 USING (auth.uid() IS NOT NULL);
-
 -- ============================================================================
 -- EVENTS TABLE POLICIES
 -- ============================================================================
@@ -239,7 +219,6 @@ USING (
     AND role IN ('super_admin', 'host')
   )
 );
-
 -- Guests can view published events matching their guest_type
 CREATE POLICY "guests_view_published_events"
 ON events FOR SELECT
@@ -258,7 +237,6 @@ USING (
     )
   )
 );
-
 -- ============================================================================
 -- ACTIVITIES TABLE POLICIES
 -- ============================================================================
@@ -273,7 +251,6 @@ USING (
     AND role IN ('super_admin', 'host')
   )
 );
-
 -- Guests can view published activities matching their guest_type
 CREATE POLICY "guests_view_published_activities"
 ON activities FOR SELECT
@@ -292,7 +269,6 @@ USING (
     )
   )
 );
-
 -- ============================================================================
 -- RSVPS TABLE POLICIES
 -- ============================================================================
@@ -307,7 +283,6 @@ USING (
     AND role IN ('super_admin', 'host')
   )
 );
-
 -- Guests can manage their own RSVPs
 CREATE POLICY "guests_manage_own_rsvps"
 ON rsvps FOR ALL
@@ -325,7 +300,6 @@ WITH CHECK (
     AND email = (SELECT email FROM auth.users WHERE id = auth.uid())
   )
 );
-
 -- Adult family members can manage RSVPs for their family
 CREATE POLICY "adults_manage_family_rsvps"
 ON rsvps FOR ALL
@@ -347,7 +321,6 @@ WITH CHECK (
     AND g1.age_type = 'adult'
   )
 );
-
 -- Group owners can view RSVPs for their group members
 CREATE POLICY "group_owners_view_group_rsvps"
 ON rsvps FOR SELECT
@@ -360,7 +333,6 @@ USING (
     )
   )
 );
-
 -- Comments for documentation
 COMMENT ON POLICY "super_admins_access_all_guests" ON guests IS 'Super admins have full access to all guest records';
 COMMENT ON POLICY "group_owners_access_their_guests" ON guests IS 'Group owners can only access guests in their assigned groups (Property 3: Group Data Isolation)';

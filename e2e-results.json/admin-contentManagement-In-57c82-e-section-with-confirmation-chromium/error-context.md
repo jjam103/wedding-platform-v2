@@ -1,0 +1,111 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - link "Skip to main content" [ref=e2] [cursor=pointer]:
+    - /url: "#main-content"
+  - link "Skip to main content" [ref=e3] [cursor=pointer]:
+    - /url: "#main-content"
+  - generic [ref=e4]:
+    - navigation "Main navigation" [ref=e5]:
+      - generic [ref=e6]:
+        - generic [ref=e7]:
+          - link "Admin" [ref=e8] [cursor=pointer]:
+            - /url: /admin
+            - generic [ref=e9]: 🌴
+            - generic [ref=e10]: Admin
+          - button "Content" [expanded] [ref=e11]:
+            - generic [ref=e12]: 📝
+            - generic [ref=e13]: Content
+          - button "Guests" [ref=e14]:
+            - generic [ref=e15]: 👥
+            - generic [ref=e16]: Guests
+          - button "RSVPs" [ref=e17]:
+            - generic [ref=e18]: ✓
+            - generic [ref=e19]: RSVPs
+          - button "Logistics" [ref=e20]:
+            - generic [ref=e21]: 🚗
+            - generic [ref=e22]: Logistics
+          - button "Admin" [ref=e23]:
+            - generic [ref=e24]: ⚙️
+            - generic [ref=e25]: Admin
+        - tabpanel [ref=e26]:
+          - link "Home Page" [ref=e27] [cursor=pointer]:
+            - /url: /admin/home-page
+          - link "Activities" [ref=e28] [cursor=pointer]:
+            - /url: /admin/activities
+          - link "Events" [ref=e29] [cursor=pointer]:
+            - /url: /admin/events
+          - link "Content Pages" [ref=e30] [cursor=pointer]:
+            - /url: /admin/content-pages
+          - link "Locations" [ref=e31] [cursor=pointer]:
+            - /url: /admin/locations
+          - link "Photos" [ref=e32] [cursor=pointer]:
+            - /url: /admin/photos
+    - banner [ref=e33]:
+      - generic [ref=e34]:
+        - heading "Wedding Admin" [level=1] [ref=e36]
+        - toolbar "User actions" [ref=e37]:
+          - button "Notifications (coming soon)" [ref=e38]: 🔔
+          - button "User menu" [ref=e40]:
+            - generic [ref=e41]: A
+            - generic [ref=e42]: Admin
+            - generic [ref=e43]: ▼
+    - main [ref=e44]:
+      - generic [ref=e46]:
+        - generic [ref=e47]:
+          - heading "Home Page Editor" [level=1] [ref=e48]
+          - paragraph [ref=e49]: Customize your wedding homepage with a title, subtitle, welcome message, and hero image.
+        - generic [ref=e50]:
+          - generic [ref=e51]:
+            - generic [ref=e52]: Wedding Title *
+            - textbox "Wedding Title *" [ref=e53]:
+              - /placeholder: Sarah & Michael's Costa Rica Wedding
+              - text: Test Wedding 1770828474203
+            - paragraph [ref=e54]: The main title displayed on your wedding homepage
+          - generic [ref=e55]:
+            - generic [ref=e56]: Subtitle
+            - textbox "Subtitle" [ref=e57]:
+              - /placeholder: June 14-16, 2025 • Tamarindo, Costa Rica
+              - text: June 14-16, 2025 • Test Location 1770828474203
+            - paragraph [ref=e58]: Optional subtitle with date and location
+          - generic [ref=e59]:
+            - generic [ref=e60]: Hero Image URL
+            - textbox "Hero Image URL" [ref=e61]:
+              - /placeholder: https://example.com/hero-image.jpg
+              - text: https://picsum.photos/800/400
+            - img "Hero preview" [ref=e63]
+            - paragraph [ref=e64]: URL of the hero image displayed at the top of the homepage
+          - generic [ref=e65]:
+            - generic [ref=e66]: Welcome Message
+            - generic [ref=e67]:
+              - generic [ref=e68]:
+                - button "Bold" [ref=e69]:
+                  - strong [ref=e70]: B
+                - button "Italic" [ref=e71]:
+                  - emphasis [ref=e72]: I
+                - button "Underline" [ref=e73]: U
+                - button "Bullet list" [ref=e75]: •
+                - button "Numbered list" [ref=e76]: "1."
+                - button "Insert link" [ref=e78]: 🔗
+                - button "Insert table" [ref=e79]: ⊞
+                - button "Insert divider" [ref=e80]: ―
+              - textbox "Rich text editor" [ref=e81]
+            - paragraph [ref=e82]: Rich text welcome message displayed on the homepage
+          - generic [ref=e83]:
+            - generic [ref=e84]:
+              - button "Manage Sections (Full Editor)" [ref=e85] [cursor=pointer]
+              - button "Hide Inline Section Editor" [ref=e86] [cursor=pointer]
+              - button "Preview" [ref=e87] [cursor=pointer]
+            - button "Save Changes" [disabled] [ref=e88]
+          - generic [ref=e90]:
+            - generic [ref=e91]:
+              - heading "Page Sections" [level=3] [ref=e93]
+              - button "+ Add Section" [disabled] [ref=e94]
+            - generic [ref=e95]:
+              - paragraph [ref=e96]: No sections yet
+              - button "Create First Section" [disabled] [ref=e97]
+  - button "Open Next.js Dev Tools" [ref=e103] [cursor=pointer]:
+    - img [ref=e104]
+  - alert [ref=e107]
+```

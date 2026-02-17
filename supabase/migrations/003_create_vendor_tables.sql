@@ -19,7 +19,6 @@ CREATE TABLE IF NOT EXISTS vendors (
   CONSTRAINT valid_vendor_email CHECK (email IS NULL OR email ~* '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$'),
   CONSTRAINT valid_payment_amount CHECK (amount_paid <= base_cost)
 );
-
 -- Vendor bookings table (links vendors to events/activities)
 CREATE TABLE IF NOT EXISTS vendor_bookings (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -27,30 +26,22 @@ CREATE TABLE IF NOT EXISTS vendor_bookings (
   activity_id UUID REFERENCES activities(id) ON DELETE CASCADE,
   event_id UUID REFERENCES events(id) ON DELETE CASCADE,
   booking_date DATE NOT NULL,
-  guest_count INTEGER CHECK (guest_count IS NULL OR guest_count >= 0),
-  pricing_model TEXT NOT NULL DEFAULT 'flat_rate' CHECK (pricing_model IN ('flat_rate', 'per_guest')),
-  total_cost NUMERIC(10, 2) NOT NULL DEFAULT 0 CHECK (total_cost >= 0),
-  host_subsidy NUMERIC(10, 2) NOT NULL DEFAULT 0 CHECK (host_subsidy >= 0),
   notes TEXT,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   CONSTRAINT booking_target CHECK (
     (event_id IS NOT NULL AND activity_id IS NULL) OR 
     (event_id IS NULL AND activity_id IS NOT NULL)
-  ),
-  CONSTRAINT valid_subsidy CHECK (host_subsidy <= total_cost)
+  )
 );
-
 -- Create indexes for performance
 CREATE INDEX IF NOT EXISTS idx_vendors_category ON vendors(category);
 CREATE INDEX IF NOT EXISTS idx_vendors_payment_status ON vendors(payment_status);
 CREATE INDEX IF NOT EXISTS idx_vendor_bookings_vendor_id ON vendor_bookings(vendor_id);
 CREATE INDEX IF NOT EXISTS idx_vendor_bookings_activity_id ON vendor_bookings(activity_id);
 CREATE INDEX IF NOT EXISTS idx_vendor_bookings_event_id ON vendor_bookings(event_id);
-
 -- Apply updated_at trigger to vendors
 CREATE TRIGGER update_vendors_updated_at BEFORE UPDATE ON vendors
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
-
 -- Comments for documentation
 COMMENT ON TABLE vendors IS 'Wedding service providers with pricing and payment tracking';
 COMMENT ON TABLE vendor_bookings IS 'Links vendors to specific events or activities';

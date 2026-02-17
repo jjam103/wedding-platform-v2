@@ -96,8 +96,8 @@ describe('transportationService', () => {
     it('should return success when flight info is updated successfully', async () => {
       // Mock successful update
       mockSupabase.from.mockReturnValue({
-        update: jest.fn().mockReturnValue({
-          eq: jest.fn().mockResolvedValue({ error: null }),
+        update: (jest.fn() as any).mockReturnValue({
+          eq: (jest.fn() as any).mockResolvedValue({ error: null }),
         }),
       });
 
@@ -141,8 +141,8 @@ describe('transportationService', () => {
     it('should return DATABASE_ERROR when update fails', async () => {
       // Mock database error
       mockSupabase.from.mockReturnValue({
-        update: jest.fn().mockReturnValue({
-          eq: jest.fn().mockResolvedValue({ error: { message: 'Connection failed' } }),
+        update: (jest.fn() as any).mockReturnValue({
+          eq: (jest.fn() as any).mockResolvedValue({ error: { message: 'Connection failed' } }),
         }),
       });
 
@@ -165,8 +165,8 @@ describe('transportationService', () => {
       };
 
       // Mock successful update
-      const mockUpdate = jest.fn().mockReturnValue({
-        eq: jest.fn().mockResolvedValue({ error: null }),
+      const mockUpdate = (jest.fn() as any).mockReturnValue({
+        eq: (jest.fn() as any).mockResolvedValue({ error: null }),
       });
       mockSupabase.from.mockReturnValue({ update: mockUpdate });
 
@@ -208,9 +208,9 @@ describe('transportationService', () => {
 
       // Mock successful query
       mockSupabase.from.mockReturnValue({
-        select: jest.fn().mockReturnValue({
-          eq: jest.fn().mockReturnValue({
-            not: jest.fn().mockResolvedValue({ data: mockGuests, error: null }),
+        select: (jest.fn() as any).mockReturnValue({
+          eq: (jest.fn() as any).mockReturnValue({
+            not: (jest.fn() as any).mockResolvedValue({ data: mockGuests, error: null }),
           }),
         }),
       });
@@ -229,9 +229,9 @@ describe('transportationService', () => {
     it('should return empty array when no flights found', async () => {
       // Mock empty result
       mockSupabase.from.mockReturnValue({
-        select: jest.fn().mockReturnValue({
-          eq: jest.fn().mockReturnValue({
-            not: jest.fn().mockResolvedValue({ data: [], error: null }),
+        select: (jest.fn() as any).mockReturnValue({
+          eq: (jest.fn() as any).mockReturnValue({
+            not: (jest.fn() as any).mockResolvedValue({ data: [], error: null }),
           }),
         }),
       });
@@ -247,9 +247,9 @@ describe('transportationService', () => {
     it('should return DATABASE_ERROR when query fails', async () => {
       // Mock database error
       mockSupabase.from.mockReturnValue({
-        select: jest.fn().mockReturnValue({
-          eq: jest.fn().mockReturnValue({
-            not: jest.fn().mockResolvedValue({ data: null, error: { message: 'Connection failed' } }),
+        select: (jest.fn() as any).mockReturnValue({
+          eq: (jest.fn() as any).mockReturnValue({
+            not: (jest.fn() as any).mockResolvedValue({ data: null, error: { message: 'Connection failed' } }),
           }),
         }),
       });
@@ -281,9 +281,9 @@ describe('transportationService', () => {
       };
 
       mockSupabase.from.mockReturnValue({
-        insert: jest.fn().mockReturnValue({
-          select: jest.fn().mockReturnValue({
-            single: jest.fn().mockResolvedValue({ data: mockManifest, error: null }),
+        insert: (jest.fn() as any).mockReturnValue({
+          select: (jest.fn() as any).mockReturnValue({
+            single: (jest.fn() as any).mockResolvedValue({ data: mockManifest, error: null }),
           }),
         }),
       });
@@ -335,31 +335,31 @@ describe('transportationService', () => {
       mockSupabase.from.mockImplementation((table: string) => {
         if (table === 'guests') {
           return {
-            select: jest.fn().mockReturnValue({
-              eq: jest.fn().mockReturnValue({
-                not: jest.fn().mockResolvedValue({ data: mockGuests, error: null }),
+            select: (jest.fn() as any).mockReturnValue({
+              eq: (jest.fn() as any).mockReturnValue({
+                not: (jest.fn() as any).mockResolvedValue({ data: mockGuests, error: null }),
               }),
             }),
           };
         } else if (table === 'transportation_manifests') {
           return {
-            insert: jest.fn().mockReturnValue({
-              select: jest.fn().mockReturnValue({
-                single: jest.fn().mockResolvedValue({ data: mockManifest, error: null }),
+            insert: (jest.fn() as any).mockReturnValue({
+              select: (jest.fn() as any).mockReturnValue({
+                single: (jest.fn() as any).mockResolvedValue({ data: mockManifest, error: null }),
               }),
             }),
           };
         }
         // Default return for any other table
         return {
-          select: jest.fn().mockReturnValue({
-            eq: jest.fn().mockReturnValue({
-              not: jest.fn().mockResolvedValue({ data: [], error: null }),
+          select: (jest.fn() as any).mockReturnValue({
+            eq: (jest.fn() as any).mockReturnValue({
+              not: (jest.fn() as any).mockResolvedValue({ data: [], error: null }),
             }),
           }),
-          insert: jest.fn().mockReturnValue({
-            select: jest.fn().mockReturnValue({
-              single: jest.fn().mockResolvedValue({ data: null, error: { message: 'Unexpected table' } }),
+          insert: (jest.fn() as any).mockReturnValue({
+            select: (jest.fn() as any).mockReturnValue({
+              single: (jest.fn() as any).mockResolvedValue({ data: null, error: { message: 'Unexpected table' } }),
             }),
           }),
         };
@@ -383,9 +383,9 @@ describe('transportationService', () => {
       mockSupabase.from.mockImplementation((table: string) => {
         if (table === 'guests') {
           return {
-            select: jest.fn().mockReturnValue({
-              eq: jest.fn().mockReturnValue({
-                not: jest.fn().mockResolvedValue({ data: [], error: null }),
+            select: (jest.fn() as any).mockReturnValue({
+              eq: (jest.fn() as any).mockReturnValue({
+                not: (jest.fn() as any).mockResolvedValue({ data: [], error: null }),
               }),
             }),
           };
@@ -407,9 +407,9 @@ describe('transportationService', () => {
       mockSupabase.from.mockImplementation((table: string) => {
         if (table === 'guests') {
           return {
-            select: jest.fn().mockReturnValue({
-              eq: jest.fn().mockReturnValue({
-                not: jest.fn().mockResolvedValue({ data: null, error: { message: 'Connection failed' } }),
+            select: (jest.fn() as any).mockReturnValue({
+              eq: (jest.fn() as any).mockReturnValue({
+                not: (jest.fn() as any).mockResolvedValue({ data: null, error: { message: 'Connection failed' } }),
               }),
             }),
           };
@@ -456,31 +456,31 @@ describe('transportationService', () => {
       mockSupabase.from.mockImplementation((table: string) => {
         if (table === 'guests') {
           return {
-            select: jest.fn().mockReturnValue({
-              eq: jest.fn().mockReturnValue({
-                not: jest.fn().mockResolvedValue({ data: mockGuests, error: null }),
+            select: (jest.fn() as any).mockReturnValue({
+              eq: (jest.fn() as any).mockReturnValue({
+                not: (jest.fn() as any).mockResolvedValue({ data: mockGuests, error: null }),
               }),
             }),
           };
         } else if (table === 'transportation_manifests') {
           return {
-            insert: jest.fn().mockReturnValue({
-              select: jest.fn().mockReturnValue({
-                single: jest.fn().mockResolvedValue({ data: mockManifest, error: null }),
+            insert: (jest.fn() as any).mockReturnValue({
+              select: (jest.fn() as any).mockReturnValue({
+                single: (jest.fn() as any).mockResolvedValue({ data: mockManifest, error: null }),
               }),
             }),
           };
         }
         // Default return for any other table
         return {
-          select: jest.fn().mockReturnValue({
-            eq: jest.fn().mockReturnValue({
-              not: jest.fn().mockResolvedValue({ data: [], error: null }),
+          select: (jest.fn() as any).mockReturnValue({
+            eq: (jest.fn() as any).mockReturnValue({
+              not: (jest.fn() as any).mockResolvedValue({ data: [], error: null }),
             }),
           }),
-          insert: jest.fn().mockReturnValue({
-            select: jest.fn().mockReturnValue({
-              single: jest.fn().mockResolvedValue({ data: null, error: { message: 'Unexpected table' } }),
+          insert: (jest.fn() as any).mockReturnValue({
+            select: (jest.fn() as any).mockReturnValue({
+              single: (jest.fn() as any).mockResolvedValue({ data: null, error: { message: 'Unexpected table' } }),
             }),
           }),
         };
@@ -512,17 +512,17 @@ describe('transportationService', () => {
           if (operationCount === 1) {
             // First call - select
             return {
-              select: jest.fn().mockReturnValue({
-                eq: jest.fn().mockReturnValue({
-                  single: jest.fn().mockResolvedValue({ data: currentManifest, error: null }),
+              select: (jest.fn() as any).mockReturnValue({
+                eq: (jest.fn() as any).mockReturnValue({
+                  single: (jest.fn() as any).mockResolvedValue({ data: currentManifest, error: null }),
                 }),
               }),
             };
           } else {
             // Second call - update
             return {
-              update: jest.fn().mockReturnValue({
-                eq: jest.fn().mockResolvedValue({ error: null }),
+              update: (jest.fn() as any).mockReturnValue({
+                eq: (jest.fn() as any).mockResolvedValue({ error: null }),
               }),
             };
           }
@@ -543,8 +543,8 @@ describe('transportationService', () => {
         guest_ids: ['guest-1', 'guest-2'],
       };
 
-      const mockUpdate = jest.fn().mockReturnValue({
-        eq: jest.fn().mockResolvedValue({ error: null }),
+      const mockUpdate = (jest.fn() as any).mockReturnValue({
+        eq: (jest.fn() as any).mockResolvedValue({ error: null }),
       });
 
       // Use implementation to handle different operations on same table
@@ -555,9 +555,9 @@ describe('transportationService', () => {
           if (operationCount === 1) {
             // First call - select
             return {
-              select: jest.fn().mockReturnValue({
-                eq: jest.fn().mockReturnValue({
-                  single: jest.fn().mockResolvedValue({ data: currentManifest, error: null }),
+              select: (jest.fn() as any).mockReturnValue({
+                eq: (jest.fn() as any).mockReturnValue({
+                  single: (jest.fn() as any).mockResolvedValue({ data: currentManifest, error: null }),
                 }),
               }),
             };
@@ -589,9 +589,9 @@ describe('transportationService', () => {
       mockSupabase.from.mockImplementation((table: string) => {
         if (table === 'transportation_manifests') {
           return {
-            select: jest.fn().mockReturnValue({
-              eq: jest.fn().mockReturnValue({
-                single: jest.fn().mockResolvedValue({ data: null, error: { message: 'Manifest not found' } }),
+            select: (jest.fn() as any).mockReturnValue({
+              eq: (jest.fn() as any).mockReturnValue({
+                single: (jest.fn() as any).mockResolvedValue({ data: null, error: { message: 'Manifest not found' } }),
               }),
             }),
           };
@@ -695,15 +695,15 @@ describe('transportationService', () => {
 
       mockSupabase.from
         .mockReturnValueOnce({
-          select: jest.fn().mockReturnValue({
-            eq: jest.fn().mockReturnValue({
-              single: jest.fn().mockResolvedValue({ data: mockManifest, error: null }),
+          select: (jest.fn() as any).mockReturnValue({
+            eq: (jest.fn() as any).mockReturnValue({
+              single: (jest.fn() as any).mockResolvedValue({ data: mockManifest, error: null }),
             }),
           }),
         })
         .mockReturnValueOnce({
-          select: jest.fn().mockReturnValue({
-            in: jest.fn().mockResolvedValue({ data: mockGuests, error: null }),
+          select: (jest.fn() as any).mockReturnValue({
+            in: (jest.fn() as any).mockResolvedValue({ data: mockGuests, error: null }),
           }),
         });
 
@@ -726,9 +726,9 @@ describe('transportationService', () => {
 
     it('should return DATABASE_ERROR when manifest not found', async () => {
       mockSupabase.from.mockReturnValue({
-        select: jest.fn().mockReturnValue({
-          eq: jest.fn().mockReturnValue({
-            single: jest.fn().mockResolvedValue({ data: null, error: { message: 'Manifest not found' } }),
+        select: (jest.fn() as any).mockReturnValue({
+          eq: (jest.fn() as any).mockReturnValue({
+            single: (jest.fn() as any).mockResolvedValue({ data: null, error: { message: 'Manifest not found' } }),
           }),
         }),
       });

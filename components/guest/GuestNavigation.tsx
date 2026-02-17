@@ -181,12 +181,15 @@ export function GuestNavigation() {
 
             {/* User Menu */}
             <div className="flex items-center gap-4">
-              <Link
-                href="/api/auth/logout"
-                className="text-sm text-sage-600 hover:text-sage-900 font-medium"
+              <button
+                onClick={async () => {
+                  await fetch('/api/guest-auth/logout', { method: 'POST' });
+                  window.location.href = '/auth/guest-login';
+                }}
+                className="text-sm text-sage-600 hover:text-sage-900 font-medium transition-colors"
               >
-                Logout
-              </Link>
+                Log Out
+              </button>
             </div>
           </div>
         </div>
@@ -319,14 +322,16 @@ export function GuestNavigation() {
 
                 {/* Logout Button */}
                 <div className="mt-6 pt-6 border-t border-sage-200">
-                  <Link
-                    href="/api/auth/logout"
-                    onClick={closeMobileMenu}
+                  <button
+                    onClick={async () => {
+                      await fetch('/api/guest-auth/logout', { method: 'POST' });
+                      window.location.href = '/auth/guest-login';
+                    }}
                     className="block w-full px-4 py-3 text-center rounded-lg text-base font-medium text-sage-700 hover:bg-sage-100 transition-colors"
                     style={{ minHeight: '44px' }} // Touch target size
                   >
-                    Logout
-                  </Link>
+                    Log Out
+                  </button>
                 </div>
               </div>
             </div>

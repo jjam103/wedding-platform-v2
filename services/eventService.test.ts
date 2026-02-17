@@ -13,7 +13,7 @@ jest.mock('../utils/sanitization', () => ({
 
 // Mock Supabase with shared client instance (Pattern A)
 jest.mock('@supabase/supabase-js', () => {
-  const mockFrom = jest.fn();
+  const mockFrom = (jest.fn() as any);
   const mockSupabaseClient = {
     from: mockFrom,
   };
@@ -70,20 +70,20 @@ describe('eventService', () => {
         callCount++;
         if (callCount === 1) {
           // Conflict check query
-          const mockEq = jest.fn().mockResolvedValue({
+          const mockEq = (jest.fn() as any).mockResolvedValue({
             data: [],
             error: null,
           });
-          const mockSelect = jest.fn().mockReturnValue({ eq: mockEq });
+          const mockSelect = (jest.fn() as any).mockReturnValue({ eq: mockEq });
           return { select: mockSelect };
         } else {
           // Insert query
-          const mockSingle = jest.fn().mockResolvedValue({
+          const mockSingle = (jest.fn() as any).mockResolvedValue({
             data: mockEvent,
             error: null,
           });
-          const mockSelect = jest.fn().mockReturnValue({ single: mockSingle });
-          const mockInsert = jest.fn().mockReturnValue({ select: mockSelect });
+          const mockSelect = (jest.fn() as any).mockReturnValue({ single: mockSingle });
+          const mockInsert = (jest.fn() as any).mockReturnValue({ select: mockSelect });
           return { insert: mockInsert };
         }
       });
@@ -128,11 +128,11 @@ describe('eventService', () => {
       };
 
       // Mock conflict check (conflict found)
-      const mockEq = jest.fn().mockResolvedValue({
+      const mockEq = (jest.fn() as any).mockResolvedValue({
         data: [conflictingEvent],
         error: null,
       });
-      const mockSelect = jest.fn().mockReturnValue({ eq: mockEq });
+      const mockSelect = (jest.fn() as any).mockReturnValue({ eq: mockEq });
       mockFrom.mockReturnValue({ select: mockSelect });
 
       const result = await eventService.create(validData);
@@ -152,20 +152,20 @@ describe('eventService', () => {
         callCount++;
         if (callCount === 1) {
           // Conflict check query
-          const mockEq = jest.fn().mockResolvedValue({
+          const mockEq = (jest.fn() as any).mockResolvedValue({
             data: [],
             error: null,
           });
-          const mockSelect = jest.fn().mockReturnValue({ eq: mockEq });
+          const mockSelect = (jest.fn() as any).mockReturnValue({ eq: mockEq });
           return { select: mockSelect };
         } else {
           // Insert query with error
-          const mockSingle = jest.fn().mockResolvedValue({
+          const mockSingle = (jest.fn() as any).mockResolvedValue({
             data: null,
             error: { message: 'Connection failed' },
           });
-          const mockSelect = jest.fn().mockReturnValue({ single: mockSingle });
-          const mockInsert = jest.fn().mockReturnValue({ select: mockSelect });
+          const mockSelect = (jest.fn() as any).mockReturnValue({ single: mockSingle });
+          const mockInsert = (jest.fn() as any).mockReturnValue({ select: mockSelect });
           return { insert: mockInsert };
         }
       });
@@ -192,15 +192,15 @@ describe('eventService', () => {
         callCount++;
         if (callCount === 1) {
           // Conflict check query
-          const mockEq = jest.fn().mockResolvedValue({
+          const mockEq = (jest.fn() as any).mockResolvedValue({
             data: [],
             error: null,
           });
-          const mockSelect = jest.fn().mockReturnValue({ eq: mockEq });
+          const mockSelect = (jest.fn() as any).mockReturnValue({ eq: mockEq });
           return { select: mockSelect };
         } else {
           // Insert query
-          const mockSingle = jest.fn().mockResolvedValue({
+          const mockSingle = (jest.fn() as any).mockResolvedValue({
             data: {
               id: 'event-1',
               name: 'Wedding',
@@ -208,8 +208,8 @@ describe('eventService', () => {
             },
             error: null,
           });
-          const mockSelect = jest.fn().mockReturnValue({ single: mockSingle });
-          const mockInsert = jest.fn().mockReturnValue({ select: mockSelect });
+          const mockSelect = (jest.fn() as any).mockReturnValue({ single: mockSingle });
+          const mockInsert = (jest.fn() as any).mockReturnValue({ select: mockSelect });
           return { insert: mockInsert };
         }
       });
@@ -239,12 +239,12 @@ describe('eventService', () => {
         updated_at: '2024-01-01T00:00:00Z',
       };
 
-      const mockSingle = jest.fn().mockResolvedValue({
+      const mockSingle = (jest.fn() as any).mockResolvedValue({
         data: mockEvent,
         error: null,
       });
-      const mockEq = jest.fn().mockReturnValue({ single: mockSingle });
-      const mockSelect = jest.fn().mockReturnValue({ eq: mockEq });
+      const mockEq = (jest.fn() as any).mockReturnValue({ single: mockSingle });
+      const mockSelect = (jest.fn() as any).mockReturnValue({ eq: mockEq });
       mockFrom.mockReturnValue({ select: mockSelect });
 
       const result = await eventService.get('event-1');
@@ -258,12 +258,12 @@ describe('eventService', () => {
     });
 
     it('should return NOT_FOUND when event does not exist', async () => {
-      const mockSingle = jest.fn().mockResolvedValue({
+      const mockSingle = (jest.fn() as any).mockResolvedValue({
         data: null,
         error: { code: 'PGRST116' },
       });
-      const mockEq = jest.fn().mockReturnValue({ single: mockSingle });
-      const mockSelect = jest.fn().mockReturnValue({ eq: mockEq });
+      const mockEq = (jest.fn() as any).mockReturnValue({ single: mockSingle });
+      const mockSelect = (jest.fn() as any).mockReturnValue({ eq: mockEq });
       mockFrom.mockReturnValue({ select: mockSelect });
 
       const result = await eventService.get('nonexistent-id');
@@ -275,12 +275,12 @@ describe('eventService', () => {
     });
 
     it('should return DATABASE_ERROR when database query fails', async () => {
-      const mockSingle = jest.fn().mockResolvedValue({
+      const mockSingle = (jest.fn() as any).mockResolvedValue({
         data: null,
         error: { message: 'Connection failed' },
       });
-      const mockEq = jest.fn().mockReturnValue({ single: mockSingle });
-      const mockSelect = jest.fn().mockReturnValue({ eq: mockEq });
+      const mockEq = (jest.fn() as any).mockReturnValue({ single: mockSingle });
+      const mockSelect = (jest.fn() as any).mockReturnValue({ eq: mockEq });
       mockFrom.mockReturnValue({ select: mockSelect });
 
       const result = await eventService.get('event-1');
@@ -311,13 +311,13 @@ describe('eventService', () => {
         updated_at: '2024-01-02T00:00:00Z',
       };
 
-      const mockSingle = jest.fn().mockResolvedValue({
+      const mockSingle = (jest.fn() as any).mockResolvedValue({
         data: mockUpdatedEvent,
         error: null,
       });
-      const mockSelect = jest.fn().mockReturnValue({ single: mockSingle });
-      const mockEq = jest.fn().mockReturnValue({ select: mockSelect });
-      const mockUpdate = jest.fn().mockReturnValue({ eq: mockEq });
+      const mockSelect = (jest.fn() as any).mockReturnValue({ single: mockSingle });
+      const mockEq = (jest.fn() as any).mockReturnValue({ select: mockSelect });
+      const mockUpdate = (jest.fn() as any).mockReturnValue({ eq: mockEq });
       mockFrom.mockReturnValue({ update: mockUpdate });
 
       const result = await eventService.update('event-1', updateData);
@@ -345,7 +345,7 @@ describe('eventService', () => {
         callCount++;
         if (callCount === 1) {
           // Get current event: .from('events').select('*').eq('id', id).single()
-          const mockSingle = jest.fn().mockResolvedValue({
+          const mockSingle = (jest.fn() as any).mockResolvedValue({
             data: {
               id: eventId,
               name: 'Wedding Ceremony',
@@ -359,21 +359,21 @@ describe('eventService', () => {
             },
             error: null,
           });
-          const mockEq = jest.fn().mockReturnValue({ single: mockSingle });
-          const mockSelect = jest.fn().mockReturnValue({ eq: mockEq });
+          const mockEq = (jest.fn() as any).mockReturnValue({ single: mockSingle });
+          const mockSelect = (jest.fn() as any).mockReturnValue({ eq: mockEq });
           return { select: mockSelect };
         } else if (callCount === 2) {
           // Conflict check: .from('events').select(...).eq('location_id', ...).neq('id', ...)
-          const mockNeq = jest.fn().mockResolvedValue({
+          const mockNeq = (jest.fn() as any).mockResolvedValue({
             data: [],
             error: null,
           });
-          const mockEq = jest.fn().mockReturnValue({ neq: mockNeq });
-          const mockSelect = jest.fn().mockReturnValue({ eq: mockEq });
+          const mockEq = (jest.fn() as any).mockReturnValue({ neq: mockNeq });
+          const mockSelect = (jest.fn() as any).mockReturnValue({ eq: mockEq });
           return { select: mockSelect };
         } else {
           // Update operation: .from('events').update(...).eq('id', ...).select().single()
-          const mockSingle = jest.fn().mockResolvedValue({
+          const mockSingle = (jest.fn() as any).mockResolvedValue({
             data: {
               id: eventId,
               name: 'Wedding Ceremony',
@@ -382,9 +382,9 @@ describe('eventService', () => {
             },
             error: null,
           });
-          const mockSelect = jest.fn().mockReturnValue({ single: mockSingle });
-          const mockEq = jest.fn().mockReturnValue({ select: mockSelect });
-          const mockUpdate = jest.fn().mockReturnValue({ eq: mockEq });
+          const mockSelect = (jest.fn() as any).mockReturnValue({ single: mockSingle });
+          const mockEq = (jest.fn() as any).mockReturnValue({ select: mockSelect });
+          const mockUpdate = (jest.fn() as any).mockReturnValue({ eq: mockEq });
           return { update: mockUpdate };
         }
       });
@@ -395,13 +395,13 @@ describe('eventService', () => {
     });
 
     it('should return NOT_FOUND when event to update does not exist', async () => {
-      const mockSingle = jest.fn().mockResolvedValue({
+      const mockSingle = (jest.fn() as any).mockResolvedValue({
         data: null,
         error: { code: 'PGRST116' },
       });
-      const mockSelect = jest.fn().mockReturnValue({ single: mockSingle });
-      const mockEq = jest.fn().mockReturnValue({ select: mockSelect });
-      const mockUpdate = jest.fn().mockReturnValue({ eq: mockEq });
+      const mockSelect = (jest.fn() as any).mockReturnValue({ single: mockSingle });
+      const mockEq = (jest.fn() as any).mockReturnValue({ select: mockSelect });
+      const mockUpdate = (jest.fn() as any).mockReturnValue({ eq: mockEq });
       mockFrom.mockReturnValue({ update: mockUpdate });
 
       const result = await eventService.update('nonexistent-id', updateData);
@@ -415,10 +415,10 @@ describe('eventService', () => {
 
   describe('deleteEvent', () => {
     it('should return success when event is deleted successfully', async () => {
-      const mockEq = jest.fn().mockResolvedValue({
+      const mockEq = (jest.fn() as any).mockResolvedValue({
         error: null,
       });
-      const mockDelete = jest.fn().mockReturnValue({ eq: mockEq });
+      const mockDelete = (jest.fn() as any).mockReturnValue({ eq: mockEq });
       mockFrom.mockReturnValue({ delete: mockDelete });
 
       const result = await eventService.deleteEvent('event-1');
@@ -427,10 +427,10 @@ describe('eventService', () => {
     });
 
     it('should return DATABASE_ERROR when delete fails', async () => {
-      const mockEq = jest.fn().mockResolvedValue({
+      const mockEq = (jest.fn() as any).mockResolvedValue({
         error: { message: 'Foreign key constraint violation' },
       });
-      const mockDelete = jest.fn().mockReturnValue({ eq: mockEq });
+      const mockDelete = (jest.fn() as any).mockReturnValue({ eq: mockEq });
       mockFrom.mockReturnValue({ delete: mockDelete });
 
       const result = await eventService.deleteEvent('event-1');
@@ -469,13 +469,13 @@ describe('eventService', () => {
         },
       ];
 
-      const mockRange = jest.fn().mockResolvedValue({
+      const mockRange = (jest.fn() as any).mockResolvedValue({
         data: mockEvents,
         error: null,
         count: 2,
       });
-      const mockOrder = jest.fn().mockReturnValue({ range: mockRange });
-      const mockSelect = jest.fn().mockReturnValue({ order: mockOrder });
+      const mockOrder = (jest.fn() as any).mockReturnValue({ range: mockRange });
+      const mockSelect = (jest.fn() as any).mockReturnValue({ order: mockOrder });
       mockFrom.mockReturnValue({ select: mockSelect });
 
       const filters: EventFilterDTO = { page: 1, pageSize: 10 };
@@ -497,14 +497,14 @@ describe('eventService', () => {
         pageSize: 10,
       };
 
-      const mockRange = jest.fn().mockResolvedValue({
+      const mockRange = (jest.fn() as any).mockResolvedValue({
         data: [],
         error: null,
         count: 0,
       });
-      const mockOrder = jest.fn().mockReturnValue({ range: mockRange });
-      const mockEq = jest.fn().mockReturnValue({ order: mockOrder });
-      const mockSelect = jest.fn().mockReturnValue({ eq: mockEq });
+      const mockOrder = (jest.fn() as any).mockReturnValue({ range: mockRange });
+      const mockEq = (jest.fn() as any).mockReturnValue({ order: mockOrder });
+      const mockSelect = (jest.fn() as any).mockReturnValue({ eq: mockEq });
       mockFrom.mockReturnValue({ select: mockSelect });
 
       const result = await eventService.list(filters);
@@ -520,15 +520,15 @@ describe('eventService', () => {
         pageSize: 10,
       };
 
-      const mockRange = jest.fn().mockResolvedValue({
+      const mockRange = (jest.fn() as any).mockResolvedValue({
         data: [],
         error: null,
         count: 0,
       });
-      const mockOrder = jest.fn().mockReturnValue({ range: mockRange });
-      const mockLte = jest.fn().mockReturnValue({ order: mockOrder });
-      const mockGte = jest.fn().mockReturnValue({ lte: mockLte });
-      const mockSelect = jest.fn().mockReturnValue({ gte: mockGte });
+      const mockOrder = (jest.fn() as any).mockReturnValue({ range: mockRange });
+      const mockLte = (jest.fn() as any).mockReturnValue({ order: mockOrder });
+      const mockGte = (jest.fn() as any).mockReturnValue({ lte: mockLte });
+      const mockSelect = (jest.fn() as any).mockReturnValue({ gte: mockGte });
       mockFrom.mockReturnValue({ select: mockSelect });
 
       const result = await eventService.list(filters);
@@ -537,12 +537,12 @@ describe('eventService', () => {
     });
 
     it('should return DATABASE_ERROR when query fails', async () => {
-      const mockRange = jest.fn().mockResolvedValue({
+      const mockRange = (jest.fn() as any).mockResolvedValue({
         data: null,
         error: { message: 'Connection failed' },
       });
-      const mockOrder = jest.fn().mockReturnValue({ range: mockRange });
-      const mockSelect = jest.fn().mockReturnValue({ order: mockOrder });
+      const mockOrder = (jest.fn() as any).mockReturnValue({ range: mockRange });
+      const mockSelect = (jest.fn() as any).mockReturnValue({ order: mockOrder });
       mockFrom.mockReturnValue({ select: mockSelect });
 
       const result = await eventService.list();
@@ -576,14 +576,14 @@ describe('eventService', () => {
         },
       ];
 
-      const mockRange = jest.fn().mockResolvedValue({
+      const mockRange = (jest.fn() as any).mockResolvedValue({
         data: mockResults,
         error: null,
         count: 1,
       });
-      const mockOrder = jest.fn().mockReturnValue({ range: mockRange });
-      const mockOr = jest.fn().mockReturnValue({ order: mockOrder });
-      const mockSelect = jest.fn().mockReturnValue({ or: mockOr });
+      const mockOrder = (jest.fn() as any).mockReturnValue({ range: mockRange });
+      const mockOr = (jest.fn() as any).mockReturnValue({ order: mockOrder });
+      const mockSelect = (jest.fn() as any).mockReturnValue({ or: mockOr });
       mockFrom.mockReturnValue({ select: mockSelect });
 
       const result = await eventService.search(searchParams);
@@ -602,14 +602,14 @@ describe('eventService', () => {
         pageSize: 10,
       };
 
-      const mockRange = jest.fn().mockResolvedValue({
+      const mockRange = (jest.fn() as any).mockResolvedValue({
         data: [],
         error: null,
         count: 0,
       });
-      const mockOrder = jest.fn().mockReturnValue({ range: mockRange });
-      const mockOr = jest.fn().mockReturnValue({ order: mockOrder });
-      const mockSelect = jest.fn().mockReturnValue({ or: mockOr });
+      const mockOrder = (jest.fn() as any).mockReturnValue({ range: mockRange });
+      const mockOr = (jest.fn() as any).mockReturnValue({ order: mockOrder });
+      const mockSelect = (jest.fn() as any).mockReturnValue({ or: mockOr });
       mockFrom.mockReturnValue({ select: mockSelect });
 
       const result = await eventService.search(maliciousSearch);
@@ -639,11 +639,11 @@ describe('eventService', () => {
     };
 
     it('should return success with no conflicts when no overlapping events exist', async () => {
-      const mockEq = jest.fn().mockResolvedValue({
+      const mockEq = (jest.fn() as any).mockResolvedValue({
         data: [],
         error: null,
       });
-      const mockSelect = jest.fn().mockReturnValue({ eq: mockEq });
+      const mockSelect = (jest.fn() as any).mockReturnValue({ eq: mockEq });
       mockFrom.mockReturnValue({ select: mockSelect });
 
       const result = await eventService.checkSchedulingConflicts(conflictParams);
@@ -663,11 +663,11 @@ describe('eventService', () => {
         end_date: '2025-06-15T14:30:00Z',
       };
 
-      const mockEq = jest.fn().mockResolvedValue({
+      const mockEq = (jest.fn() as any).mockResolvedValue({
         data: [overlappingEvent],
         error: null,
       });
-      const mockSelect = jest.fn().mockReturnValue({ eq: mockEq });
+      const mockSelect = (jest.fn() as any).mockReturnValue({ eq: mockEq });
       mockFrom.mockReturnValue({ select: mockSelect });
 
       const result = await eventService.checkSchedulingConflicts(conflictParams);
@@ -687,12 +687,12 @@ describe('eventService', () => {
         excludeEventId: '223e4567-e89b-12d3-a456-426614174001', // Valid UUID
       };
 
-      const mockNeq = jest.fn().mockResolvedValue({
+      const mockNeq = (jest.fn() as any).mockResolvedValue({
         data: [],
         error: null,
       });
-      const mockEq = jest.fn().mockReturnValue({ neq: mockNeq });
-      const mockSelect = jest.fn().mockReturnValue({ eq: mockEq });
+      const mockEq = (jest.fn() as any).mockReturnValue({ neq: mockNeq });
+      const mockSelect = (jest.fn() as any).mockReturnValue({ eq: mockEq });
       mockFrom.mockReturnValue({ select: mockSelect });
 
       const result = await eventService.checkSchedulingConflicts(paramsWithExclusion);
@@ -711,11 +711,11 @@ describe('eventService', () => {
         end_date: null,
       };
 
-      const mockEq = jest.fn().mockResolvedValue({
+      const mockEq = (jest.fn() as any).mockResolvedValue({
         data: [eventWithoutEndDate],
         error: null,
       });
-      const mockSelect = jest.fn().mockReturnValue({ eq: mockEq });
+      const mockSelect = (jest.fn() as any).mockReturnValue({ eq: mockEq });
       mockFrom.mockReturnValue({ select: mockSelect });
 
       const result = await eventService.checkSchedulingConflicts(conflictParams);
@@ -727,11 +727,11 @@ describe('eventService', () => {
     });
 
     it('should return DATABASE_ERROR when query fails', async () => {
-      const mockEq = jest.fn().mockResolvedValue({
+      const mockEq = (jest.fn() as any).mockResolvedValue({
         data: null,
         error: { message: 'Connection failed' },
       });
-      const mockSelect = jest.fn().mockReturnValue({ eq: mockEq });
+      const mockSelect = (jest.fn() as any).mockReturnValue({ eq: mockEq });
       mockFrom.mockReturnValue({ select: mockSelect });
 
       const result = await eventService.checkSchedulingConflicts(conflictParams);

@@ -362,7 +362,11 @@ function RSVPCard({
             )}
           </div>
         ) : (
-          <form onSubmit={handleSubmit} className="space-y-4 mt-4 pt-4 border-t border-sage-200">
+          <form 
+            onSubmit={handleSubmit} 
+            className="space-y-4 mt-4 pt-4 border-t border-sage-200"
+            aria-label={`RSVP form for ${item.name}`}
+          >
             <div>
               <label className="block text-sm font-medium text-sage-700 mb-2">
                 Your Response

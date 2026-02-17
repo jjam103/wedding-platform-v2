@@ -43,7 +43,7 @@ describe('Feature: destination-wedding-platform, Magic Link Authentication Prope
 
             // Act - Try to verify expired token
             const response = await fetch(
-              `http://localhost:3000/api/auth/guest/magic-link/verify?token=${token.token}`,
+              `http://localhost:3000/api/guest-auth/magic-link/verify?token=${token.token}`,
               { method: 'GET' }
             );
 
@@ -86,7 +86,7 @@ describe('Feature: destination-wedding-platform, Magic Link Authentication Prope
 
             // Act - Verify valid token
             const response = await fetch(
-              `http://localhost:3000/api/auth/guest/magic-link/verify?token=${token.token}`,
+              `http://localhost:3000/api/guest-auth/magic-link/verify?token=${token.token}`,
               { method: 'GET' }
             );
 
@@ -124,7 +124,7 @@ describe('Feature: destination-wedding-platform, Magic Link Authentication Prope
             const beforeRequest = Date.now();
 
             // Act - Request magic link
-            const response = await fetch('http://localhost:3000/api/auth/guest/magic-link', {
+            const response = await fetch('http://localhost:3000/api/guest-auth/magic-link', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ email: email.toLowerCase() }),
@@ -176,7 +176,7 @@ describe('Feature: destination-wedding-platform, Magic Link Authentication Prope
 
             // Act - Verify token first time (should succeed)
             const firstResponse = await fetch(
-              `http://localhost:3000/api/auth/guest/magic-link/verify?token=${token.token}`,
+              `http://localhost:3000/api/guest-auth/magic-link/verify?token=${token.token}`,
               { method: 'GET' }
             );
 
@@ -186,7 +186,7 @@ describe('Feature: destination-wedding-platform, Magic Link Authentication Prope
             const reuseResponses = await Promise.all(
               Array.from({ length: attempts }, () =>
                 fetch(
-                  `http://localhost:3000/api/auth/guest/magic-link/verify?token=${token.token}`,
+                  `http://localhost:3000/api/guest-auth/magic-link/verify?token=${token.token}`,
                   { method: 'GET' }
                 )
               )
@@ -237,7 +237,7 @@ describe('Feature: destination-wedding-platform, Magic Link Authentication Prope
 
             // Act - Verify token
             const response = await fetch(
-              `http://localhost:3000/api/auth/guest/magic-link/verify?token=${token.token}`,
+              `http://localhost:3000/api/guest-auth/magic-link/verify?token=${token.token}`,
               { method: 'GET' }
             );
 
@@ -280,7 +280,7 @@ describe('Feature: destination-wedding-platform, Magic Link Authentication Prope
             // Act - Request multiple magic links
             const responses = await Promise.all(
               Array.from({ length: tokenCount }, () =>
-                fetch('http://localhost:3000/api/auth/guest/magic-link', {
+                fetch('http://localhost:3000/api/guest-auth/magic-link', {
                   method: 'POST',
                   headers: { 'Content-Type': 'application/json' },
                   body: JSON.stringify({ email: guest.email }),
@@ -334,7 +334,7 @@ describe('Feature: destination-wedding-platform, Magic Link Authentication Prope
 
             // Act - Verify token
             const response = await fetch(
-              `http://localhost:3000/api/auth/guest/magic-link/verify?token=${token.token}`,
+              `http://localhost:3000/api/guest-auth/magic-link/verify?token=${token.token}`,
               { method: 'GET' }
             );
 
@@ -379,7 +379,7 @@ describe('Feature: destination-wedding-platform, Magic Link Authentication Prope
 
             // Act - Try to verify expired token
             const response = await fetch(
-              `http://localhost:3000/api/auth/guest/magic-link/verify?token=${token.token}`,
+              `http://localhost:3000/api/guest-auth/magic-link/verify?token=${token.token}`,
               { method: 'GET' }
             );
 
@@ -418,7 +418,7 @@ describe('Feature: destination-wedding-platform, Magic Link Authentication Prope
             });
 
             // Act - Request magic link with mixed case email
-            const response = await fetch('http://localhost:3000/api/auth/guest/magic-link', {
+            const response = await fetch('http://localhost:3000/api/guest-auth/magic-link', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ email: mixedCaseEmail }),
@@ -457,7 +457,7 @@ describe('Feature: destination-wedding-platform, Magic Link Authentication Prope
             });
 
             // Act - Request magic link
-            const response = await fetch('http://localhost:3000/api/auth/guest/magic-link', {
+            const response = await fetch('http://localhost:3000/api/guest-auth/magic-link', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ email: email.toLowerCase() }),

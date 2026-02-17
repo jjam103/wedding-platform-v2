@@ -145,6 +145,7 @@ export async function create(data: CreateActivityDTO): Promise<Result<Activity>>
     );
 
     const dbData = toSnakeCase(sanitizedWithSlug);
+    
     const { data: result, error } = await supabase
       .from('activities')
       .insert(dbData)
@@ -152,6 +153,7 @@ export async function create(data: CreateActivityDTO): Promise<Result<Activity>>
       .single();
 
     if (error) {
+      console.error('[ActivityService] Database error:', error);
       return {
         success: false,
         error: { code: 'DATABASE_ERROR', message: error.message, details: error },
@@ -160,6 +162,7 @@ export async function create(data: CreateActivityDTO): Promise<Result<Activity>>
 
     return { success: true, data: toCamelCase(result) as Activity };
   } catch (error) {
+    console.error('[ActivityService] Unexpected error:', error);
     return {
       success: false,
       error: {

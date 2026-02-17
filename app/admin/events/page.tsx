@@ -136,6 +136,22 @@ export default function EventsPage() {
   }, []);
 
   /**
+   * Get initial form data with defaults for required fields
+   */
+  const getInitialFormData = useCallback(() => {
+    if (selectedEvent) {
+      return selectedEvent;
+    }
+    // Provide defaults for required fields when creating new event
+    return {
+      name: '',
+      eventType: 'ceremony' as const,
+      startDate: '',
+      status: 'draft' as const,
+    };
+  }, [selectedEvent]);
+
+  /**
    * Handle delete button click
    */
   const handleDeleteClick = useCallback((event: Event) => {
@@ -179,7 +195,8 @@ export default function EventsPage() {
           newEventRef.current = result.data.id;
         }
         
-        // Refresh event list
+        // Refresh event list with a small delay to ensure database commit
+        await new Promise(resolve => setTimeout(resolve, 100));
         await fetchEvents();
         
         // Close form
@@ -423,8 +440,29 @@ export default function EventsPage() {
                 window.open(`/event/${slug}`, '_blank');
               }}
               title="View event detail page"
+              aria-label={`View ${event.name} detail page`}
             >
               View
+            </Button>
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={(e) => {
+                e.stopPropagation();
+                // Open the event in edit mode and scroll to section editor
+                handleRowClick(event);
+                // Wait for form to open, then scroll to section editor
+                setTimeout(() => {
+                  const sectionEditor = document.querySelector('[data-section-editor]');
+                  if (sectionEditor) {
+                    sectionEditor.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                  }
+                }, 100);
+              }}
+              title="Manage sections for this event"
+              aria-label={`Manage sections for ${event.name}`}
+            >
+              Manage Sections
             </Button>
           </div>
         );
@@ -512,6 +550,7 @@ export default function EventsPage() {
           onClick={handleAddEvent}
           aria-label="Create new event"
           data-action="add-new"
+          data-testid="add-event-button"
         >
           + Add Event
         </Button>
@@ -538,7 +577,7 @@ export default function EventsPage() {
           setSelectedLocationId('');
           setConflictError(null);
         }}
-        initialData={selectedEvent || {}}
+        initialData={getInitialFormData()}
         submitLabel={selectedEvent ? 'Update Event' : 'Create Event'}
       >
         {/* Location Selector - Custom field */}
@@ -579,12 +618,14 @@ export default function EventsPage() {
 
       {/* Inline Section Editor - Shows when editing an existing event */}
       {isFormOpen && selectedEvent && (
-        <InlineSectionEditor
-          pageType="event"
-          pageId={selectedEvent.id}
-          entityName={selectedEvent.name}
-          defaultExpanded={false}
-        />
+        <div data-section-editor>
+          <InlineSectionEditor
+            pageType="event"
+            pageId={selectedEvent.id}
+            entityName={selectedEvent.name}
+            defaultExpanded={false}
+          />
+        </div>
       )}
 
       {/* Data Table */}

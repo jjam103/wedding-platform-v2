@@ -50,13 +50,13 @@ describe('GuestActivitiesPage', () => {
         createMockActivity({
           id: 'activity-1',
           name: 'Beach Volleyball',
-          activityType: 'activity',
+          activity_type: 'activity',
           rsvpStatus: 'attending',
         }),
         createMockActivity({
           id: 'activity-2',
           name: 'Welcome Dinner',
-          activityType: 'meal',
+          activity_type: 'meal',
           rsvpStatus: 'pending',
         }),
       ];
@@ -160,17 +160,17 @@ describe('GuestActivitiesPage', () => {
         createMockActivity({
           id: 'activity-1',
           name: 'Beach Volleyball',
-          activityType: 'activity',
+          activity_type: 'activity',
         }),
         createMockActivity({
           id: 'activity-2',
           name: 'Wedding Ceremony',
-          activityType: 'ceremony',
+          activity_type: 'ceremony',
         }),
         createMockActivity({
           id: 'activity-3',
           name: 'Welcome Dinner',
-          activityType: 'meal',
+          activity_type: 'meal',
         }),
       ];
 
@@ -201,17 +201,17 @@ describe('GuestActivitiesPage', () => {
         createMockActivity({
           id: 'activity-1',
           name: 'Activity 1',
-          startTime: '2025-06-01T10:00:00Z',
+          start_time: '2025-06-01T10:00:00Z',
         }),
         createMockActivity({
           id: 'activity-2',
           name: 'Activity 2',
-          startTime: '2025-06-15T10:00:00Z',
+          start_time: '2025-06-15T10:00:00Z',
         }),
         createMockActivity({
           id: 'activity-3',
           name: 'Activity 3',
-          startTime: '2025-06-30T10:00:00Z',
+          start_time: '2025-06-30T10:00:00Z',
         }),
       ];
 
@@ -242,17 +242,17 @@ describe('GuestActivitiesPage', () => {
         createMockActivity({
           id: 'activity-1',
           name: 'Activity 1',
-          startTime: '2025-06-01T10:00:00Z',
+          start_time: '2025-06-01T10:00:00Z',
         }),
         createMockActivity({
           id: 'activity-2',
           name: 'Activity 2',
-          startTime: '2025-06-15T10:00:00Z',
+          start_time: '2025-06-15T10:00:00Z',
         }),
         createMockActivity({
           id: 'activity-3',
           name: 'Activity 3',
-          startTime: '2025-06-30T10:00:00Z',
+          start_time: '2025-06-30T10:00:00Z',
         }),
       ];
 
@@ -283,14 +283,14 @@ describe('GuestActivitiesPage', () => {
         createMockActivity({
           id: 'activity-1',
           name: 'Activity 1',
-          activityType: 'ceremony',
-          startTime: '2025-06-01T10:00:00Z',
+          activity_type: 'ceremony',
+          start_time: '2025-06-01T10:00:00Z',
         }),
         createMockActivity({
           id: 'activity-2',
           name: 'Activity 2',
-          activityType: 'meal',
-          startTime: '2025-06-15T10:00:00Z',
+          activity_type: 'meal',
+          start_time: '2025-06-15T10:00:00Z',
         }),
       ];
 
@@ -397,7 +397,7 @@ describe('GuestActivitiesPage', () => {
         createMockActivity({
           id: 'activity-1',
           name: 'Activity 1',
-          activityType: 'ceremony',
+          activity_type: 'ceremony',
         }),
       ];
 

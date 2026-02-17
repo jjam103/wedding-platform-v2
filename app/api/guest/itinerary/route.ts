@@ -1,7 +1,6 @@
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
-import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
 import * as itineraryService from '@/services/itineraryService';
+import { validateGuestAuth } from '@/lib/guestAuth';
 
 /**
  * GET /api/guest/itinerary
@@ -18,29 +17,13 @@ import * as itineraryService from '@/services/itineraryService';
 export async function GET(request: Request) {
   try {
     // 1. AUTHENTICATION
-    const supabase = createRouteHandlerClient({ cookies });
-    const { data: { session }, error: authError } = await supabase.auth.getSession();
+    const authResult = await validateGuestAuth();
     
-    if (authError || !session) {
-      return NextResponse.json(
-        { success: false, error: { code: 'UNAUTHORIZED', message: 'Authentication required' } },
-        { status: 401 }
-      );
+    if (!authResult.success) {
+      return NextResponse.json(authResult.error, { status: authResult.status });
     }
     
-    // Get guest ID from session
-    const { data: guest, error: guestError } = await supabase
-      .from('guests')
-      .select('id, first_name, last_name, group_id')
-      .eq('email', session.user.email)
-      .single();
-    
-    if (guestError || !guest) {
-      return NextResponse.json(
-        { success: false, error: { code: 'NOT_FOUND', message: 'Guest not found' } },
-        { status: 404 }
-      );
-    }
+    const { guest } = authResult;
     
     // 2. VALIDATION (query parameters)
     const { searchParams } = new URL(request.url);

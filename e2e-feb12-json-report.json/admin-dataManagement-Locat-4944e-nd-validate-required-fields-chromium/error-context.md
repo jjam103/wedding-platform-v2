@@ -1,0 +1,77 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - link "Skip to main content" [ref=e2] [cursor=pointer]:
+    - /url: "#main-content"
+  - link "Skip to main content" [ref=e3] [cursor=pointer]:
+    - /url: "#main-content"
+  - generic [ref=e4]:
+    - navigation "Main navigation" [ref=e5]:
+      - generic [ref=e7]:
+        - link "Admin" [ref=e8] [cursor=pointer]:
+          - /url: /admin
+          - generic [ref=e9]: 🌴
+          - generic [ref=e10]: Admin
+        - button "Content" [ref=e11]:
+          - generic [ref=e12]: 📝
+          - generic [ref=e13]: Content
+        - button "Guests" [ref=e14]:
+          - generic [ref=e15]: 👥
+          - generic [ref=e16]: Guests
+        - button "RSVPs" [ref=e17]:
+          - generic [ref=e18]: ✓
+          - generic [ref=e19]: RSVPs
+        - button "Logistics" [ref=e20]:
+          - generic [ref=e21]: 🚗
+          - generic [ref=e22]: Logistics
+        - button "Admin" [ref=e23]:
+          - generic [ref=e24]: ⚙️
+          - generic [ref=e25]: Admin
+    - banner [ref=e26]:
+      - generic [ref=e27]:
+        - heading "Wedding Admin" [level=1] [ref=e29]
+        - toolbar "User actions" [ref=e30]:
+          - link "Preview guest portal in new tab" [ref=e31] [cursor=pointer]:
+            - /url: /
+            - generic [ref=e32]: 👁️
+            - generic [ref=e33]: Preview Guest Portal
+          - button "Notifications (coming soon)" [ref=e34]: 🔔
+          - button "User menu" [ref=e36]:
+            - generic [ref=e37]: A
+            - generic [ref=e38]: Admin
+            - generic [ref=e39]: ▼
+    - main [ref=e40]:
+      - generic [ref=e42]:
+        - generic [ref=e43]:
+          - heading "Locations" [level=1] [ref=e44]
+          - paragraph [ref=e45]: Manage location hierarchy
+        - generic [ref=e46]:
+          - textbox "Search locations..." [ref=e47]
+          - button "+ Add Location" [ref=e48]
+        - generic [ref=e49]:
+          - button "Add New Location" [ref=e50]:
+            - generic [ref=e51]: Add New Location
+            - generic [ref=e52]: ▼
+          - generic [ref=e53]:
+            - generic [ref=e54]:
+              - generic [ref=e55]:
+                - generic [ref=e56]: Location Name*
+                - textbox [ref=e57]:
+                  - /placeholder: e.g., Tamarindo Beach
+              - generic [ref=e58]:
+                - generic [ref=e59]: Parent Location
+                - combobox [ref=e60]
+              - generic [ref=e61]:
+                - generic [ref=e62]: Address
+                - textbox [ref=e63]:
+                  - /placeholder: e.g., Tamarindo, Guanacaste, Costa Rica
+              - generic [ref=e65]:
+                - generic [ref=e66]: Description
+                - textbox [ref=e67]:
+                  - /placeholder: Optional description
+            - generic [ref=e68]:
+              - button [ref=e69]: Create
+              - button [ref=e70]: Cancel
+        - generic [ref=e72]: Loading locations...
+```

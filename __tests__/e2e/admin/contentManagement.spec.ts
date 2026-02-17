@@ -423,8 +423,8 @@ test.describe('Home Page Editing', () => {
       });
     });
     
-    // Wait for cleanup to complete
-    await page.waitForTimeout(1000);
+    // PHASE 2 P2: Replace manual timeout with CSS wait
+    await waitForStyles(page);
     
     await page.goto('http://localhost:3000/admin/home-page', { waitUntil: 'domcontentloaded' });
     await expect(page.locator('h1:has-text("Home Page Editor")')).toBeVisible({ timeout: 10000 });

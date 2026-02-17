@@ -5,8 +5,7 @@
  */
 
 import { NextResponse } from 'next/server';
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
-import { cookies } from 'next/headers';
+import { createAuthenticatedClient } from '@/lib/supabaseServer';
 import { deleteContentPage } from '@/services/contentPagesService';
 import { deleteEvent } from '@/services/eventService';
 import { deleteActivity } from '@/services/activityService';
@@ -20,7 +19,7 @@ export async function DELETE(
     const { id } = await params;
     
     // 1. Auth check
-    const supabase = createRouteHandlerClient({ cookies });
+    const supabase = await createAuthenticatedClient();
     const {
       data: { session },
       error: authError,

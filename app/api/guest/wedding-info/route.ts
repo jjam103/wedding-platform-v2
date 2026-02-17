@@ -1,6 +1,6 @@
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
-import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
+import { validateGuestAuth } from '@/lib/guestAuth';
+import { createSupabaseClient } from '@/lib/supabase';
 
 /**
  * GET /api/guest/wedding-info
@@ -11,38 +11,32 @@ import { NextResponse } from 'next/server';
  */
 export async function GET() {
   try {
-    const supabase = createRouteHandlerClient({ cookies });
-
     // Check authentication
-    const {
-      data: { session },
-      error: authError,
-    } = await supabase.auth.getSession();
-
-    if (authError || !session) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: { code: 'UNAUTHORIZED', message: 'Authentication required' },
-        },
-        { status: 401 }
-      );
+    const authResult = await validateGuestAuth();
+    
+    if (!authResult.success) {
+      return NextResponse.json(authResult.error, { status: authResult.status });
     }
 
-    // Get wedding info from settings
+    const supabase = createSupabaseClient();
+
+    // Get wedding info from system_settings
     const { data: settings, error: settingsError } = await supabase
-      .from('settings')
+      .from('system_settings')
       .select('wedding_date, wedding_location, wedding_venue')
       .single();
 
-    if (settingsError) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: { code: 'DATABASE_ERROR', message: settingsError.message },
+    // Handle missing table or no data gracefully
+    // Return default values instead of error for better UX
+    if (settingsError || !settings) {
+      return NextResponse.json({
+        success: true,
+        data: {
+          date: null,
+          location: 'Costa Rica',
+          venue: 'TBD',
         },
-        { status: 500 }
-      );
+      });
     }
 
     return NextResponse.json({

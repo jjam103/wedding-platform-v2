@@ -20,15 +20,12 @@ CREATE TABLE IF NOT EXISTS cron_job_logs (
   metadata JSONB,
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
-
 -- Create indexes for efficient querying
 CREATE INDEX idx_cron_job_logs_job_type ON cron_job_logs(job_type);
 CREATE INDEX idx_cron_job_logs_status ON cron_job_logs(status);
 CREATE INDEX idx_cron_job_logs_started_at ON cron_job_logs(started_at DESC);
-
 -- Add RLS policies
 ALTER TABLE cron_job_logs ENABLE ROW LEVEL SECURITY;
-
 -- Only super admins can view cron job logs
 CREATE POLICY "super_admins_view_cron_logs"
 ON cron_job_logs FOR SELECT
@@ -39,14 +36,11 @@ USING (
     AND role = 'super_admin'
   )
 );
-
 -- System can insert cron job logs (service role key)
 CREATE POLICY "system_insert_cron_logs"
 ON cron_job_logs FOR INSERT
 WITH CHECK (true);
-
 -- System can update cron job logs (service role key)
 CREATE POLICY "system_update_cron_logs"
 ON cron_job_logs FOR UPDATE
 USING (true);
-

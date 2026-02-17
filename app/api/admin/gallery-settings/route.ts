@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
+import { createAuthenticatedClient } from '@/lib/supabaseServer';
 import * as gallerySettingsService from '@/services/gallerySettingsService';
 
 /**
@@ -15,7 +14,7 @@ import * as gallerySettingsService from '@/services/gallerySettingsService';
 export async function GET(request: Request) {
   try {
     // 1. Auth check
-    const supabase = createRouteHandlerClient({ cookies });
+    const supabase = await createAuthenticatedClient();
     const { data: { session }, error: authError } = await supabase.auth.getSession();
     
     if (authError || !session) {
@@ -76,7 +75,7 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   try {
     // 1. Auth check
-    const supabase = createRouteHandlerClient({ cookies });
+    const supabase = await createAuthenticatedClient();
     const { data: { session }, error: authError } = await supabase.auth.getSession();
     
     if (authError || !session) {

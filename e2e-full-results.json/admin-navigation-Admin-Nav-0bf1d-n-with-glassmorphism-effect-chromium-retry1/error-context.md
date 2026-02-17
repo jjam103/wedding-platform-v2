@@ -1,0 +1,460 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - link "Skip to main content" [ref=e2] [cursor=pointer]:
+    - /url: "#main-content"
+  - link "Skip to main content" [ref=e3] [cursor=pointer]:
+    - /url: "#main-content"
+  - generic [ref=e4]:
+    - navigation "Main navigation" [ref=e5]:
+      - generic [ref=e6]:
+        - generic [ref=e7]:
+          - link "Admin" [ref=e8] [cursor=pointer]:
+            - /url: /admin
+            - generic [ref=e9]: 🌴
+            - generic [ref=e10]: Admin
+          - button "Content" [ref=e11]:
+            - generic [ref=e12]: 📝
+            - generic [ref=e13]: Content
+          - button "Guests" [expanded] [ref=e14]:
+            - generic [ref=e15]: 👥
+            - generic [ref=e16]: Guests
+          - button "RSVPs" [ref=e17]:
+            - generic [ref=e18]: ✓
+            - generic [ref=e19]: RSVPs
+          - button "Logistics" [ref=e20]:
+            - generic [ref=e21]: 🚗
+            - generic [ref=e22]: Logistics
+          - button "Admin" [ref=e23]:
+            - generic [ref=e24]: ⚙️
+            - generic [ref=e25]: Admin
+        - tabpanel [ref=e26]:
+          - link "Guest List" [ref=e27] [cursor=pointer]:
+            - /url: /admin/guests
+          - link "Guest Groups" [ref=e28] [cursor=pointer]:
+            - /url: /admin/guest-groups
+          - link "Import/Export" [ref=e29] [cursor=pointer]:
+            - /url: /admin/guests/import-export
+    - banner [ref=e30]:
+      - generic [ref=e31]:
+        - heading "Wedding Admin" [level=1] [ref=e33]
+        - toolbar "User actions" [ref=e34]:
+          - button "Notifications (coming soon)" [ref=e35]: 🔔
+          - button "User menu" [ref=e37]:
+            - generic [ref=e38]: A
+            - generic [ref=e39]: Admin
+            - generic [ref=e40]: ▼
+    - main [ref=e41]:
+      - generic [ref=e43]:
+        - generic [ref=e44]:
+          - generic [ref=e45]:
+            - heading "Guest Management" [level=1] [ref=e46]
+            - paragraph [ref=e47]: Manage your wedding guest list and groups
+          - generic [ref=e48]:
+            - button "Import guests from CSV" [ref=e50] [cursor=pointer]: Import CSV
+            - button "Export guests to CSV" [ref=e51] [cursor=pointer]: Export CSV
+        - button "Manage Groups 238 groups • Click to expand" [ref=e53]:
+          - generic [ref=e54]:
+            - heading "Manage Groups" [level=2] [ref=e55]
+            - paragraph [ref=e56]: 238 groups • Click to expand
+          - generic [ref=e57]: ▼
+        - generic [ref=e58]:
+          - button "Add Guest" [ref=e59]:
+            - generic [ref=e60]: Add Guest
+            - generic [ref=e61]: ▼
+          - generic:
+            - generic:
+              - generic:
+                - generic: Group*
+                - combobox
+              - generic:
+                - generic: First Name*
+                - textbox:
+                  - /placeholder: Enter first name
+              - generic:
+                - generic: Last Name*
+                - textbox:
+                  - /placeholder: Enter last name
+              - generic:
+                - generic: Email
+                - textbox:
+                  - /placeholder: Enter email address
+              - generic:
+                - generic: Phone
+                - textbox:
+                  - /placeholder: Enter phone number
+              - generic:
+                - generic: Age Type*
+                - combobox
+              - generic:
+                - generic: Guest Type*
+                - combobox
+              - generic:
+                - generic:
+                  - generic: Dietary Restrictions
+                  - textbox:
+                    - /placeholder: Enter any dietary restrictions
+              - generic:
+                - generic: Arrival Date
+                - textbox
+              - generic:
+                - generic: Departure Date
+                - textbox
+              - generic:
+                - generic: Airport
+                - combobox
+              - generic:
+                - generic: Flight Number
+                - textbox:
+                  - /placeholder: Enter flight number
+              - generic:
+                - generic: Plus-One Name
+                - textbox:
+                  - /placeholder: Enter plus-one name
+              - generic:
+                - generic:
+                  - generic: Notes
+                  - textbox:
+                    - /placeholder: Enter any additional notes
+            - generic:
+              - button: Create
+              - button: Cancel
+        - generic [ref=e62]:
+          - heading "Search & Filters" [level=2] [ref=e63]
+          - generic [ref=e64]:
+            - generic [ref=e65]: Search Guests
+            - textbox "Search Guests" [ref=e66]:
+              - /placeholder: Search by name, email, or phone...
+          - generic [ref=e67]:
+            - generic [ref=e68]:
+              - generic [ref=e69]: RSVP Status
+              - combobox "RSVP Status" [ref=e70]:
+                - option "All" [selected]
+                - option "Pending"
+                - option "Attending"
+                - option "Declined"
+                - option "Maybe"
+            - generic [ref=e71]:
+              - generic [ref=e72]: Activity
+              - combobox "Activity" [ref=e73]:
+                - option "All" [selected]
+                - option "Test Beach Volleyball"
+            - generic [ref=e74]:
+              - generic [ref=e75]: Transportation
+              - combobox "Transportation" [ref=e76]:
+                - option "All" [selected]
+                - option "Has Transportation"
+                - option "No Transportation"
+            - generic [ref=e77]:
+              - generic [ref=e78]: Age Group
+              - combobox "Age Group" [ref=e79]:
+                - option "All" [selected]
+                - option "Adult"
+                - option "Child"
+                - option "Senior"
+            - generic [ref=e80]:
+              - generic [ref=e81]: Airport
+              - combobox "Airport" [ref=e82]:
+                - option "All" [selected]
+                - option "SJO (San José)"
+                - option "LIR (Liberia)"
+                - option "Other"
+          - generic [ref=e83]:
+            - generic [ref=e84]: Group By
+            - combobox "Group By" [ref=e85]:
+              - option "None" [selected]
+              - option "Group"
+              - option "Guest Type"
+              - option "Age Type"
+              - option "Airport"
+          - button "Clear All Filters" [ref=e87] [cursor=pointer]
+        - generic [ref=e88]:
+          - generic [ref=e90]:
+            - group "Filter controls" [ref=e91]:
+              - generic [ref=e92]:
+                - generic [ref=e93]: Filter by Group
+                - combobox "Filter by Group" [ref=e94]:
+                  - option "All Group" [selected]
+                  - option "Cleanup Test Group 1770225767151"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "E2E Test Group"
+                  - option "Isolation Test Group 1770225766626"
+              - generic [ref=e95]:
+                - generic [ref=e96]: Filter by Guest Type
+                - combobox "Filter by Guest Type" [ref=e97]:
+                  - option "All Guest Type" [selected]
+                  - option "Wedding Party"
+                  - option "Wedding Guest"
+                  - option "Pre-wedding Only"
+                  - option "Post-wedding Only"
+              - generic [ref=e98]:
+                - generic [ref=e99]: Filter by Age Type
+                - combobox "Filter by Age Type" [ref=e100]:
+                  - option "All Age Type" [selected]
+                  - option "Adult"
+                  - option "Child"
+                  - option "Senior"
+            - button "Export guests to CSV" [ref=e102] [cursor=pointer]: Export
+          - table "guests data table" [ref=e105]:
+            - rowgroup [ref=e106]:
+              - row "Select all rows First Name Last Name Email Group Guest Type Age Type Airport Actions" [ref=e107]:
+                - columnheader "Select all rows" [ref=e108]:
+                  - checkbox "Select all rows" [ref=e109]
+                - columnheader [ref=e110]
+                - columnheader "First Name" [ref=e111] [cursor=pointer]:
+                  - generic [ref=e113]: First Name
+                - columnheader "Last Name" [ref=e114] [cursor=pointer]:
+                  - generic [ref=e116]: Last Name
+                - columnheader "Email" [ref=e117] [cursor=pointer]:
+                  - generic [ref=e119]: Email
+                - columnheader "Group" [ref=e120] [cursor=pointer]:
+                  - generic [ref=e122]: Group
+                - columnheader "Guest Type" [ref=e123] [cursor=pointer]:
+                  - generic [ref=e125]: Guest Type
+                - columnheader "Age Type" [ref=e126] [cursor=pointer]:
+                  - generic [ref=e128]: Age Type
+                - columnheader "Airport" [ref=e129] [cursor=pointer]:
+                  - generic [ref=e131]: Airport
+                - columnheader "Actions" [ref=e132]
+            - rowgroup [ref=e133]:
+              - row "No guests found" [ref=e134]:
+                - cell "No guests found" [ref=e135]
+  - button "Open Next.js Dev Tools" [ref=e141] [cursor=pointer]:
+    - img [ref=e142]
+  - alert [ref=e145]
+```

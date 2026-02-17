@@ -108,6 +108,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json(result, { status: 201 });
   } catch (error) {
+    console.error('[Activities API] Unexpected error:', error);
     return NextResponse.json(
       {
         success: false,

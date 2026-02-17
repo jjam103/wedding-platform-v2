@@ -35,8 +35,22 @@ export function ToastProvider({ children }: ToastProviderProps) {
   const [toasts, setToasts] = useState<ToastData[]>([]);
 
   const addToast = useCallback((toast: Omit<ToastData, 'id'>) => {
-    const id = `toast-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-    setToasts((prev) => [...prev, { ...toast, id }]);
+    // Check if a toast with the same message already exists
+    setToasts((prev) => {
+      const isDuplicate = prev.some(
+        (existingToast) => 
+          existingToast.message === toast.message && 
+          existingToast.type === toast.type
+      );
+      
+      // If duplicate exists, don't add new toast
+      if (isDuplicate) {
+        return prev;
+      }
+      
+      const id = `toast-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+      return [...prev, { ...toast, id }];
+    });
   }, []);
 
   const removeToast = useCallback((id: string) => {

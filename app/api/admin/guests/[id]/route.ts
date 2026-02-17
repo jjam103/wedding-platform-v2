@@ -1,6 +1,7 @@
 import { createAuthenticatedClient } from '@/lib/supabaseServer';
 import { NextResponse } from 'next/server';
 import * as guestService from '@/services/guestService';
+import { ERROR_CODES } from '@/types';
 
 /**
  * GET /api/admin/guests/[id]
@@ -76,10 +77,24 @@ export async function PUT(
     // 2. Await params
     const { id } = await params;
 
-    // 4. Parse and validate request body
-    const body = await request.json();
+    // 3. Parse request body with explicit error handling
+    let body;
+    try {
+      body = await request.json();
+    } catch (error) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: {
+            code: ERROR_CODES.VALIDATION_ERROR,
+            message: 'Invalid JSON body',
+          },
+        },
+        { status: 400 }
+      );
+    }
 
-    // 5. Call service
+    // 4. Call service (validation happens in service layer)
     const result = await guestService.update(id, body);
 
     // 5. Return response with proper status

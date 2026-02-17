@@ -13,15 +13,30 @@ export function isE2ETestMode(): boolean {
   // Check multiple indicators of E2E test environment
   const indicators = [
     process.env.NODE_ENV === 'test',
-    process.env.E2E_TEST === 'true',
+    process.env.NEXT_PUBLIC_E2E_TEST === 'true',
     process.env.PLAYWRIGHT_TEST === 'true',
     // Check if running with Playwright web server
     process.env.PLAYWRIGHT === '1',
     // Check for test database URL
     process.env.NEXT_PUBLIC_SUPABASE_URL?.includes('test'),
+    // Check for USE_MOCK_B2 flag
+    process.env.USE_MOCK_B2 === 'true',
   ];
 
-  return indicators.some((indicator) => indicator === true);
+  const result = indicators.some((indicator) => indicator === true);
+  
+  if (result) {
+    console.log('🧪 [SERVICE DETECTOR] E2E test mode detected:', {
+      NODE_ENV: process.env.NODE_ENV,
+      NEXT_PUBLIC_E2E_TEST: process.env.NEXT_PUBLIC_E2E_TEST,
+      PLAYWRIGHT_TEST: process.env.PLAYWRIGHT_TEST,
+      PLAYWRIGHT: process.env.PLAYWRIGHT,
+      USE_MOCK_B2: process.env.USE_MOCK_B2,
+      testDatabase: process.env.NEXT_PUBLIC_SUPABASE_URL?.includes('test'),
+    });
+  }
+  
+  return result;
 }
 
 /**
@@ -127,7 +142,7 @@ export function getEnvironmentSummary() {
     isE2ETest: isE2ETestMode(),
     useMockServices: shouldUseMockServices(),
     indicators: {
-      e2eTest: process.env.E2E_TEST,
+      e2eTest: process.env.NEXT_PUBLIC_E2E_TEST,
       playwrightTest: process.env.PLAYWRIGHT_TEST,
       playwright: process.env.PLAYWRIGHT,
       testDatabase: process.env.NEXT_PUBLIC_SUPABASE_URL?.includes('test'),

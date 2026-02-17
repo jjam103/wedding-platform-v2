@@ -56,7 +56,7 @@ describe('RLS Policies Integration Tests', () => {
     }
   }, 10000);
   
-  describe('guest_groups Table RLS', () => {
+  describe('groups Table RLS', () => {
     it('should allow authenticated users to read guest groups', async () => {
       if (authSetupFailed || !testUser?.accessToken) {
         console.log('⏭️  Skipping: Authentication not configured');
@@ -66,7 +66,7 @@ describe('RLS Policies Integration Tests', () => {
       const client = createTestClient(testUser.accessToken);
       
       const { data, error } = await client
-        .from('guest_groups')
+        .from('groups')
         .select('*')
         .limit(10);
       
@@ -86,7 +86,7 @@ describe('RLS Policies Integration Tests', () => {
       const testGroup = createTestGuestGroup();
       
       const { data, error } = await client
-        .from('guest_groups')
+        .from('groups')
         .insert({
           name: testGroup.name,
           description: testGroup.description,
@@ -99,7 +99,7 @@ describe('RLS Policies Integration Tests', () => {
       expect(data).toBeDefined();
       
       if (data) {
-        trackEntity('guest_groups', data.id);
+        trackEntity('groups', data.id);
       }
     });
     
@@ -107,7 +107,7 @@ describe('RLS Policies Integration Tests', () => {
       const client = createTestClient(); // No access token
       
       const { data, error } = await client
-        .from('guest_groups')
+        .from('groups')
         .select('*')
         .limit(10);
       
@@ -145,7 +145,7 @@ describe('RLS Policies Integration Tests', () => {
       const serviceClient = createServiceClient();
       const testGroup = createTestGuestGroup();
       const { data: group } = await serviceClient
-        .from('guest_groups')
+        .from('groups')
         .insert({ name: testGroup.name, description: testGroup.description })
         .select()
         .single();
@@ -155,21 +155,22 @@ describe('RLS Policies Integration Tests', () => {
         return;
       }
       
-      trackEntity('guest_groups', group.id);
+      trackEntity('groups', group.id);
       
       // Now create guest with authenticated client
       const client = createTestClient(testUser.accessToken);
-      const testGuest = createTestGuest({ groupId: group.id });
+      const testGuest = createTestGuest({ group_id: group.id });
       
       const { data, error } = await client
         .from('guests')
         .insert({
-          first_name: testGuest.firstName,
-          last_name: testGuest.lastName,
+          first_name: testGuest.first_name,
+          last_name: testGuest.last_name,
           email: testGuest.email,
-          group_id: testGuest.groupId,
-          age_type: testGuest.ageType,
-          guest_type: testGuest.guestType,
+          group_id: testGuest.group_id,
+          age_type: testGuest.age_type,
+          guest_type: testGuest.guest_type,
+          invitation_sent: testGuest.invitation_sent,
         })
         .select()
         .single();
@@ -216,8 +217,12 @@ describe('RLS Policies Integration Tests', () => {
         .insert({
           name: testEvent.name,
           description: testEvent.description,
-          start_date: testEvent.startDate,
-          end_date: testEvent.endDate,
+          event_type: testEvent.event_type,
+          start_date: testEvent.start_date,
+          end_date: testEvent.end_date,
+          rsvp_required: testEvent.rsvp_required,
+          visibility: testEvent.visibility,
+          status: testEvent.status,
         })
         .select()
         .single();
@@ -709,7 +714,7 @@ describe('RLS Policies Integration Tests', () => {
       
       // Try to read from multiple tables
       const [groupsResult, guestsResult, eventsResult] = await Promise.all([
-        client.from('guest_groups').select('*').limit(1),
+        client.from('groups').select('*').limit(1),
         client.from('guests').select('*').limit(1),
         client.from('events').select('*').limit(1),
       ]);
@@ -727,7 +732,7 @@ describe('RLS Policies Integration Tests', () => {
  * 
  * These tests validate RLS policies for all major tables:
  * 
- * 1. **guest_groups**: Read, create, and auth enforcement
+ * 1. **groups**: Read, create, and auth enforcement
  * 2. **guests**: Read, create with proper group reference
  * 3. **events**: Read and create
  * 4. **activities**: Read operations

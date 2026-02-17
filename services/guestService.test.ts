@@ -2,7 +2,7 @@ import { describe, it, expect, jest, beforeEach } from '@jest/globals';
 import type { CreateGuestDTO, UpdateGuestDTO } from '@/schemas/guestSchemas';
 
 // Mock Supabase before importing guestService
-const mockFrom = jest.fn() as jest.Mock;
+const mockFrom = (jest.fn() as any) as jest.Mock;
 jest.mock('@/lib/supabase', () => ({
   supabase: {
     from: mockFrom,
@@ -1184,6 +1184,7 @@ describe('guestService', () => {
         phone: null,
         ageType: 'adult' as const,
         guestType: 'wedding_guest' as const,
+        authMethod: 'email_matching' as const,
         dietaryRestrictions: null,
         plusOneName: null,
         plusOneAttending: false,
@@ -1207,6 +1208,7 @@ describe('guestService', () => {
         phone: '+1234567890',
         ageType: 'adult' as const,
         guestType: 'wedding_guest' as const,
+        authMethod: 'email_matching' as const,
         dietaryRestrictions: 'Vegetarian',
         plusOneName: 'Plus One',
         plusOneAttending: true,
@@ -1501,7 +1503,7 @@ invalid-uuid,,Doe,invalid-email,,adult,wedding_guest,,,false,,,,,false,,,`;
     it('should inherit default auth method from settings when creating a guest', async () => {
       // Mock settingsService.getDefaultAuthMethod
       jest.doMock('./settingsService', () => ({
-        getDefaultAuthMethod: jest.fn().mockResolvedValue({
+        getDefaultAuthMethod: (jest.fn() as any).mockResolvedValue({
           success: true,
           data: 'magic_link',
         }),
@@ -1566,7 +1568,7 @@ invalid-uuid,,Doe,invalid-email,,adult,wedding_guest,,,false,,,,,false,,,`;
     it('should fallback to email_matching when settings fetch fails', async () => {
       // Mock settingsService.getDefaultAuthMethod to fail
       jest.doMock('./settingsService', () => ({
-        getDefaultAuthMethod: jest.fn().mockResolvedValue({
+        getDefaultAuthMethod: (jest.fn() as any).mockResolvedValue({
           success: false,
           error: { code: 'NOT_FOUND', message: 'Setting not found' },
         }),
@@ -1631,7 +1633,7 @@ invalid-uuid,,Doe,invalid-email,,adult,wedding_guest,,,false,,,,,false,,,`;
     it('should inherit auth method for bulk create operations', async () => {
       // Mock settingsService.getDefaultAuthMethod
       jest.doMock('./settingsService', () => ({
-        getDefaultAuthMethod: jest.fn().mockResolvedValue({
+        getDefaultAuthMethod: (jest.fn() as any).mockResolvedValue({
           success: true,
           data: 'magic_link',
         }),

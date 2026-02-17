@@ -7,6 +7,7 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   size?: 'sm' | 'md' | 'lg';
   loading?: boolean;
   fullWidth?: boolean;
+  'aria-label'?: string;
 }
 
 /**
@@ -57,9 +58,9 @@ export const Button = memo(function Button({
   };
 
   const sizeClasses = {
-    sm: 'px-3 py-1.5 text-sm min-h-[44px] md:min-h-0',
-    md: 'px-4 py-2 text-base min-h-[44px]',
-    lg: 'px-6 py-3 text-lg min-h-[44px]',
+    sm: 'px-3 py-1.5 text-sm min-h-[44px] min-w-[44px] md:min-h-0',
+    md: 'px-4 py-2 text-base min-h-[44px] min-w-[44px]',
+    lg: 'px-6 py-3 text-lg min-h-[44px] min-w-[44px]',
   };
 
   const widthClass = fullWidth ? 'w-full' : '';

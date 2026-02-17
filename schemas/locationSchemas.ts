@@ -5,7 +5,10 @@ import { z } from 'zod';
  */
 export const createLocationSchema = z.object({
   name: z.string().min(1, 'Name is required').max(200, 'Name must be 200 characters or less'),
-  parentLocationId: z.string().uuid('Invalid parent location ID').nullable().optional(),
+  parentLocationId: z.preprocess(
+    (val) => (val === '' || val === null || val === undefined) ? null : val,
+    z.string().uuid('Invalid parent location ID').nullable().optional()
+  ),
   address: z.string().max(500, 'Address must be 500 characters or less').nullable().optional(),
   coordinates: z
     .object({

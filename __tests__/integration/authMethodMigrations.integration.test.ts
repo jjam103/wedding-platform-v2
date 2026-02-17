@@ -27,7 +27,7 @@ describe('Authentication Method Migrations', () => {
       .single();
 
     if (groupError) throw groupError;
-    testGroupId = group.id;
+    testGroupId = (group as any).id;
   });
 
   afterAll(async () => {
@@ -67,9 +67,9 @@ describe('Authentication Method Migrations', () => {
 
       expect(error).toBeNull();
       expect(guest).toBeDefined();
-      expect(guest.auth_method).toBe('email_matching');
+      expect((guest as any).auth_method).toBe('email_matching');
 
-      testGuestId = guest.id;
+      testGuestId = (guest as any).id;
     });
 
     it('should allow setting auth_method to magic_link', async () => {
@@ -82,7 +82,7 @@ describe('Authentication Method Migrations', () => {
 
       expect(error).toBeNull();
       expect(guest).toBeDefined();
-      expect(guest.auth_method).toBe('magic_link');
+      expect((guest as any).auth_method).toBe('magic_link');
     });
 
     it('should reject invalid auth_method values', async () => {
@@ -104,7 +104,7 @@ describe('Authentication Method Migrations', () => {
       expect(error).toBeNull();
       expect(data).toBeDefined();
       if (data && data.length > 0) {
-        expect(data[0].default_auth_method).toBe('email_matching');
+        expect((data[0] as any).default_auth_method).toBe('email_matching');
       }
     });
 
@@ -120,18 +120,18 @@ describe('Authentication Method Migrations', () => {
         const { data: updated, error } = await supabase
           .from('system_settings')
           .update({ default_auth_method: 'magic_link' })
-          .eq('id', settings.id)
+          .eq('id', (settings as any).id)
           .select()
           .single();
 
         expect(error).toBeNull();
-        expect(updated?.default_auth_method).toBe('magic_link');
+        expect((updated as any)?.default_auth_method).toBe('magic_link');
 
         // Reset to default
         await supabase
           .from('system_settings')
           .update({ default_auth_method: 'email_matching' })
-          .eq('id', settings.id);
+          .eq('id', (settings as any).id);
       }
     });
 
@@ -198,12 +198,12 @@ describe('Authentication Method Migrations', () => {
 
       expect(error).toBeNull();
       expect(token).toBeDefined();
-      expect(token.token).toBe(testToken);
-      expect(token.guest_id).toBe(testGuestId);
-      expect(token.used).toBe(false);
-      expect(token.used_at).toBeNull();
+      expect((token as any).token).toBe(testToken);
+      expect((token as any).guest_id).toBe(testGuestId);
+      expect((token as any).used).toBe(false);
+      expect((token as any).used_at).toBeNull();
 
-      testTokenId = token.id;
+      testTokenId = (token as any).id;
     });
 
     it('should enforce unique constraint on token', async () => {
@@ -220,7 +220,7 @@ describe('Authentication Method Migrations', () => {
         .select()
         .single();
 
-      testTokenId = token1!.id;
+      testTokenId = (token1 as any)!.id;
 
       // Try to insert duplicate token
       const { error } = await supabase
@@ -250,7 +250,7 @@ describe('Authentication Method Migrations', () => {
         .select()
         .single();
 
-      const tempGuestId = tempGuest!.id;
+      const tempGuestId = (tempGuest as any)!.id;
 
       // Create token for temp guest
       const { data: token } = await supabase
@@ -263,7 +263,7 @@ describe('Authentication Method Migrations', () => {
         .select()
         .single();
 
-      const tokenId = token!.id;
+      const tokenId = (token as any)!.id;
 
       // Delete guest
       await supabase.from('guests').delete().eq('id', tempGuestId);
@@ -291,7 +291,7 @@ describe('Authentication Method Migrations', () => {
         .select()
         .single();
 
-      testTokenId = token!.id;
+      testTokenId = (token as any)!.id;
 
       // Query by token to verify index
       const { data, error } = await supabase
@@ -302,7 +302,7 @@ describe('Authentication Method Migrations', () => {
 
       expect(error).toBeNull();
       expect(data).toBeDefined();
-      expect(data.token).toBe(testToken + '_index');
+      expect((data as any).token).toBe(testToken + '_index');
     });
 
     it('should have index on guest_id column', async () => {
@@ -318,7 +318,7 @@ describe('Authentication Method Migrations', () => {
         .select()
         .single();
 
-      testTokenId = token!.id;
+      testTokenId = (token as any)!.id;
 
       // Query by guest_id to verify index
       const { data, error } = await supabase
@@ -348,10 +348,10 @@ describe('Authentication Method Migrations', () => {
 
       expect(error).toBeNull();
       expect(token).toBeDefined();
-      expect(token.ip_address).toBe('192.168.1.1');
-      expect(token.user_agent).toBe('Mozilla/5.0 Test Browser');
+      expect((token as any).ip_address).toBe('192.168.1.1');
+      expect((token as any).user_agent).toBe('Mozilla/5.0 Test Browser');
 
-      testTokenId = token.id;
+      testTokenId = (token as any).id;
     });
 
     it('should have mark_magic_link_token_used function', async () => {
@@ -368,7 +368,7 @@ describe('Authentication Method Migrations', () => {
         .select()
         .single();
 
-      testTokenId = token!.id;
+      testTokenId = (token as any)!.id;
 
       // Call function to mark as used
       const { data: result, error } = await supabase.rpc(
@@ -386,8 +386,8 @@ describe('Authentication Method Migrations', () => {
         .eq('id', testTokenId)
         .single();
 
-      expect(usedToken?.used).toBe(true);
-      expect(usedToken?.used_at).not.toBeNull();
+      expect((usedToken as any)?.used).toBe(true);
+      expect((usedToken as any)?.used_at).not.toBeNull();
     });
 
     it('should not mark expired token as used', async () => {
@@ -404,7 +404,7 @@ describe('Authentication Method Migrations', () => {
         .select()
         .single();
 
-      testTokenId = token!.id;
+      testTokenId = (token as any)!.id;
 
       // Try to mark expired token as used
       const { data: result } = await supabase.rpc(
@@ -421,7 +421,7 @@ describe('Authentication Method Migrations', () => {
         .eq('id', testTokenId)
         .single();
 
-      expect(unusedToken?.used).toBe(false);
+      expect((unusedToken as any)?.used).toBe(false);
     });
 
     it('should not mark already used token as used again', async () => {
@@ -440,7 +440,7 @@ describe('Authentication Method Migrations', () => {
         .select()
         .single();
 
-      testTokenId = token!.id;
+      testTokenId = (token as any)!.id;
 
       // Try to mark already used token
       const { data: result } = await supabase.rpc(
@@ -465,7 +465,7 @@ describe('Authentication Method Migrations', () => {
         .select()
         .single();
 
-      const oldTokenId = oldToken!.id;
+      const oldTokenId = (oldToken as any)!.id;
 
       // Call cleanup function
       const { error } = await supabase.rpc('cleanup_expired_magic_link_tokens');
@@ -513,7 +513,7 @@ describe('Authentication Method Migrations', () => {
         .select()
         .single();
 
-      const testTokenId = token!.id;
+      const testTokenId = (token as any)!.id;
 
       const startTime = Date.now();
 

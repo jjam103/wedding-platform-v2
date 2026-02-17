@@ -40,7 +40,7 @@ test.describe('Photo Upload', () => {
   test.beforeEach(async ({ page }) => {
     test.setTimeout(TEST_TIMEOUT);
     await page.goto(`${BASE_URL}/admin`);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('commit');
   });
 
   test.describe('Photo Upload & Storage', () => {
@@ -86,7 +86,7 @@ test.describe('Photo Upload', () => {
       });
       
       await page.goto(`${BASE_URL}/admin/photos`);
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('commit');
       
       const uploadButton = page.locator('button:has-text("Upload Photo"), button:has-text("Add Photo")').first();
       const hasUploadButton = await uploadButton.isVisible().catch(() => false);
@@ -114,7 +114,7 @@ test.describe('Photo Upload', () => {
       });
       
       await page.goto(`${BASE_URL}/admin/photos`);
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('commit');
       
       const uploadButton = page.locator('button:has-text("Upload Photo"), button:has-text("Add Photo")').first();
       const hasUploadButton = await uploadButton.isVisible().catch(() => false);
@@ -122,7 +122,8 @@ test.describe('Photo Upload', () => {
       if (hasUploadButton) {
         await uploadButton.click();
         await page.setInputFiles('input[type="file"]', TEST_PHOTO_PATH);
-        await expect(page.locator('text=/failed.*upload/i')).toBeVisible({ timeout: 5000 });
+        // Use more specific selector to avoid matching multiple elements
+        await expect(page.locator('text=/Failed to upload test-photo/i').first()).toBeVisible({ timeout: 5000 });
       }
     });
   });
@@ -192,7 +193,7 @@ test.describe('Photo Upload', () => {
   test.describe('Section Editor Photo Integration', () => {
     test('should select photos via PhotoPicker in section editor', async ({ page }) => {
       await page.goto(`${BASE_URL}/admin/activities`);
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('commit');
       
       const manageSectionsButton = page.locator('button:has-text("Manage Sections"), a:has-text("Manage Sections")').first();
       const hasButton = await manageSectionsButton.isVisible().catch(() => false);
@@ -203,7 +204,7 @@ test.describe('Photo Upload', () => {
       }
       
       await manageSectionsButton.click();
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('commit');
       
       const addPhotosButton = page.locator('button:has-text("Add Photos"), button:has-text("Select Photos")').first();
       const hasAddPhotos = await addPhotosButton.isVisible().catch(() => false);
@@ -225,7 +226,7 @@ test.describe('Photo Upload', () => {
 
     test('should display selected photos with thumbnails', async ({ page }) => {
       await page.goto(`${BASE_URL}/admin/activities`);
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('commit');
       
       const manageSectionsButton = page.locator('button:has-text("Manage Sections")').first();
       const hasButton = await manageSectionsButton.isVisible().catch(() => false);
@@ -245,7 +246,7 @@ test.describe('Photo Upload', () => {
 
     test('should remove individual photos from section', async ({ page }) => {
       await page.goto(`${BASE_URL}/admin/activities`);
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('commit');
       
       const manageSectionsButton = page.locator('button:has-text("Manage Sections")').first();
       const hasButton = await manageSectionsButton.isVisible().catch(() => false);
@@ -268,7 +269,7 @@ test.describe('Photo Upload', () => {
 
     test('should change photo display mode (gallery/carousel/loop)', async ({ page }) => {
       await page.goto(`${BASE_URL}/admin/activities`);
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('commit');
       
       const manageSectionsButton = page.locator('button:has-text("Manage Sections")').first();
       const hasButton = await manageSectionsButton.isVisible().catch(() => false);
@@ -351,7 +352,7 @@ test.describe('Photo Upload', () => {
   test.describe('Validation & Error Handling', () => {
     test('should validate file type on upload', async ({ page }) => {
       await page.goto(`${BASE_URL}/admin/photos`);
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('commit');
       
       const uploadButton = page.locator('button:has-text("Upload Photo")').first();
       const hasUploadButton = await uploadButton.isVisible().catch(() => false);
@@ -370,7 +371,7 @@ test.describe('Photo Upload', () => {
 
     test('should validate file size limits', async ({ page }) => {
       await page.goto(`${BASE_URL}/admin/photos`);
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('commit');
       
       const uploadButton = page.locator('button:has-text("Upload Photo")').first();
       const hasUploadButton = await uploadButton.isVisible().catch(() => false);

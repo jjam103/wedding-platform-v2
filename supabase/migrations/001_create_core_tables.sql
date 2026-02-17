@@ -3,7 +3,6 @@
 
 -- Enable UUID extension in public schema
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp" SCHEMA public;
-
 -- Users table (extends Supabase auth.users)
 CREATE TABLE IF NOT EXISTS users (
   id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
@@ -13,7 +12,6 @@ CREATE TABLE IF NOT EXISTS users (
   last_login TIMESTAMPTZ,
   CONSTRAINT valid_email CHECK (email ~* '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$')
 );
-
 -- Groups table (for family/guest grouping)
 CREATE TABLE IF NOT EXISTS groups (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -21,7 +19,6 @@ CREATE TABLE IF NOT EXISTS groups (
   description TEXT,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
-
 -- Group members table (for multi-owner coordination)
 CREATE TABLE IF NOT EXISTS group_members (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -31,7 +28,6 @@ CREATE TABLE IF NOT EXISTS group_members (
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   UNIQUE(group_id, user_id)
 );
-
 -- Guests table
 CREATE TABLE IF NOT EXISTS guests (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -58,7 +54,6 @@ CREATE TABLE IF NOT EXISTS guests (
   CONSTRAINT valid_guest_email CHECK (email IS NULL OR email ~* '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$'),
   CONSTRAINT valid_dates CHECK (arrival_date IS NULL OR departure_date IS NULL OR arrival_date <= departure_date)
 );
-
 -- Locations table (hierarchical)
 CREATE TABLE IF NOT EXISTS locations (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -69,7 +64,6 @@ CREATE TABLE IF NOT EXISTS locations (
   description TEXT,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
-
 -- Events table
 CREATE TABLE IF NOT EXISTS events (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -87,7 +81,6 @@ CREATE TABLE IF NOT EXISTS events (
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   CONSTRAINT valid_event_dates CHECK (end_date IS NULL OR start_date <= end_date)
 );
-
 -- Activities table
 CREATE TABLE IF NOT EXISTS activities (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -110,7 +103,6 @@ CREATE TABLE IF NOT EXISTS activities (
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   CONSTRAINT valid_activity_times CHECK (end_time IS NULL OR start_time <= end_time)
 );
-
 -- RSVPs table
 CREATE TABLE IF NOT EXISTS rsvps (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -131,7 +123,6 @@ CREATE TABLE IF NOT EXISTS rsvps (
   ),
   UNIQUE(guest_id, event_id, activity_id)
 );
-
 -- Create indexes for performance
 CREATE INDEX IF NOT EXISTS idx_guests_group_id ON guests(group_id);
 CREATE INDEX IF NOT EXISTS idx_guests_email ON guests(email);
@@ -146,7 +137,6 @@ CREATE INDEX IF NOT EXISTS idx_rsvps_guest_id ON rsvps(guest_id);
 CREATE INDEX IF NOT EXISTS idx_rsvps_event_id ON rsvps(event_id);
 CREATE INDEX IF NOT EXISTS idx_rsvps_activity_id ON rsvps(activity_id);
 CREATE INDEX IF NOT EXISTS idx_locations_parent_location_id ON locations(parent_location_id);
-
 -- Create updated_at trigger function
 CREATE OR REPLACE FUNCTION update_updated_at_column()
 RETURNS TRIGGER AS $$
@@ -155,20 +145,15 @@ BEGIN
   RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
-
 -- Apply updated_at triggers
 CREATE TRIGGER update_guests_updated_at BEFORE UPDATE ON guests
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
-
 CREATE TRIGGER update_events_updated_at BEFORE UPDATE ON events
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
-
 CREATE TRIGGER update_activities_updated_at BEFORE UPDATE ON activities
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
-
 CREATE TRIGGER update_rsvps_updated_at BEFORE UPDATE ON rsvps
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
-
 -- Comments for documentation
 COMMENT ON TABLE users IS 'User accounts with role-based access control';
 COMMENT ON TABLE groups IS 'Guest groups (families) for multi-owner coordination';

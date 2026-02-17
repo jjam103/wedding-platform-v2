@@ -61,7 +61,11 @@ export async function GET(request: Request) {
 
     return NextResponse.json(result, { status: 200 });
   } catch (error) {
-    console.error('Events API error:', error);
+    console.error('Events GET API error:', { 
+      path: request.url, 
+      error: error instanceof Error ? error.message : 'Unknown error',
+      stack: error instanceof Error ? error.stack : undefined
+    });
     return NextResponse.json(
       {
         success: false,
@@ -109,6 +113,11 @@ export async function POST(request: Request) {
 
     return NextResponse.json(result, { status: 201 });
   } catch (error) {
+    console.error('Events POST API error:', { 
+      path: request.url, 
+      error: error instanceof Error ? error.message : 'Unknown error',
+      stack: error instanceof Error ? error.stack : undefined
+    });
     return NextResponse.json(
       {
         success: false,

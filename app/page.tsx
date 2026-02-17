@@ -10,22 +10,24 @@ export default function Home() {
         </p>
         
         {/* Mobile-friendly navigation buttons */}
-        <div className="mt-8 flex flex-col sm:flex-row gap-4 justify-center">
-          <a
-            href="/guest/dashboard"
-            className="btn-primary-mobile text-center"
-            aria-label="Guest Portal"
-          >
-            🌴 Guest Portal
-          </a>
-          <a
-            href="/admin"
-            className="btn-secondary-mobile text-center"
-            aria-label="Admin Dashboard"
-          >
-            ⚙️ Admin Dashboard
-          </a>
-        </div>
+        <nav aria-label="Main navigation" className="mt-8">
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <a
+              href="/guest/dashboard"
+              className="btn-primary-mobile text-center"
+              aria-label="Guest Portal"
+            >
+              🌴 Guest Portal
+            </a>
+            <a
+              href="/admin"
+              className="btn-secondary-mobile text-center"
+              aria-label="Admin Dashboard"
+            >
+              ⚙️ Admin Dashboard
+            </a>
+          </div>
+        </nav>
       </div>
     </main>
   );

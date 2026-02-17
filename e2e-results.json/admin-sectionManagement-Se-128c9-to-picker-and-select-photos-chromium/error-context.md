@@ -1,0 +1,191 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - link "Skip to main content" [ref=e2] [cursor=pointer]:
+    - /url: "#main-content"
+  - link "Skip to main content" [ref=e3] [cursor=pointer]:
+    - /url: "#main-content"
+  - generic [ref=e4]:
+    - navigation "Main navigation" [ref=e5]:
+      - generic [ref=e6]:
+        - generic [ref=e7]:
+          - link "Admin" [ref=e8] [cursor=pointer]:
+            - /url: /admin
+            - generic [ref=e9]: 🌴
+            - generic [ref=e10]: Admin
+          - button "Content" [expanded] [ref=e11]:
+            - generic [ref=e12]: 📝
+            - generic [ref=e13]: Content
+          - button "Guests" [ref=e14]:
+            - generic [ref=e15]: 👥
+            - generic [ref=e16]: Guests
+          - button "RSVPs" [ref=e17]:
+            - generic [ref=e18]: ✓
+            - generic [ref=e19]: RSVPs
+          - button "Logistics" [ref=e20]:
+            - generic [ref=e21]: 🚗
+            - generic [ref=e22]: Logistics
+          - button "Admin" [ref=e23]:
+            - generic [ref=e24]: ⚙️
+            - generic [ref=e25]: Admin
+        - tabpanel [ref=e26]:
+          - link "Home Page" [ref=e27] [cursor=pointer]:
+            - /url: /admin/home-page
+          - link "Activities" [ref=e28] [cursor=pointer]:
+            - /url: /admin/activities
+          - link "Events" [ref=e29] [cursor=pointer]:
+            - /url: /admin/events
+          - link "Content Pages" [ref=e30] [cursor=pointer]:
+            - /url: /admin/content-pages
+          - link "Locations" [ref=e31] [cursor=pointer]:
+            - /url: /admin/locations
+          - link "Photos" [ref=e32] [cursor=pointer]:
+            - /url: /admin/photos
+    - banner [ref=e33]:
+      - generic [ref=e34]:
+        - heading "Wedding Admin" [level=1] [ref=e36]
+        - toolbar "User actions" [ref=e37]:
+          - button "Notifications (coming soon)" [ref=e38]: 🔔
+          - button "User menu" [ref=e40]:
+            - generic [ref=e41]: A
+            - generic [ref=e42]: Admin
+            - generic [ref=e43]: ▼
+    - main [ref=e44]:
+      - generic [ref=e46]:
+        - generic [ref=e47]:
+          - generic [ref=e48]:
+            - heading "Event Management" [level=1] [ref=e49]
+            - paragraph [ref=e50]: Manage your wedding events
+          - button "Create new event" [ref=e51] [cursor=pointer]: + Add Event
+        - generic [ref=e52]:
+          - button "Add New Event" [ref=e53]:
+            - generic [ref=e54]: Add New Event
+            - generic [ref=e55]: ▼
+          - generic:
+            - generic:
+              - generic:
+                - generic: Event Name*
+                - textbox:
+                  - /placeholder: Enter event name
+              - generic:
+                - generic: Event Type*
+                - combobox
+              - generic:
+                - generic: Description
+                - textbox:
+                  - /placeholder: Enter event description
+              - generic:
+                - generic: Start Date & Time*
+                - textbox
+              - generic:
+                - generic: End Date & Time
+                - textbox
+              - generic:
+                - generic: Status*
+                - combobox
+              - generic:
+                - generic: RSVP Required
+                - checkbox
+              - generic:
+                - generic: RSVP Deadline
+                - textbox
+            - generic:
+              - generic: Location
+              - generic:
+                - button: Select event location
+              - paragraph: Select the location where this event will take place
+            - generic:
+              - button: Create Event
+              - button: Cancel
+        - generic [ref=e56]:
+          - generic [ref=e58]:
+            - group "Filter controls" [ref=e59]:
+              - generic [ref=e60]:
+                - generic [ref=e61]: Filter by Status
+                - combobox "Filter by Status" [ref=e62]:
+                  - option "All Status" [selected]
+                  - option "Draft"
+                  - option "Published"
+              - generic [ref=e63]:
+                - generic [ref=e64]: Filter by Type
+                - combobox "Filter by Type" [ref=e65]:
+                  - option "All Type" [selected]
+                  - option "Ceremony"
+                  - option "Reception"
+                  - option "Pre-wedding"
+                  - option "Post-wedding"
+            - button "Export events to CSV" [ref=e67] [cursor=pointer]: Export
+          - table "events data table" [ref=e70]:
+            - rowgroup [ref=e71]:
+              - row "Select all rows Name Date Time Location Status Type Actions Actions" [ref=e72]:
+                - columnheader "Select all rows" [ref=e73]:
+                  - checkbox "Select all rows" [ref=e74]
+                - columnheader "Name" [ref=e75] [cursor=pointer]:
+                  - generic [ref=e77]: Name
+                - columnheader "Date" [ref=e78] [cursor=pointer]:
+                  - generic [ref=e80]: Date
+                - columnheader "Time" [ref=e81]:
+                  - generic [ref=e83]: Time
+                - columnheader "Location" [ref=e84] [cursor=pointer]:
+                  - generic [ref=e86]: Location
+                - columnheader "Status" [ref=e87] [cursor=pointer]:
+                  - generic [ref=e89]: Status
+                - columnheader "Type" [ref=e90] [cursor=pointer]:
+                  - generic [ref=e92]: Type
+                - columnheader "Actions" [ref=e93]:
+                  - generic [ref=e95]: Actions
+                - columnheader "Actions" [ref=e96]
+            - rowgroup [ref=e97]:
+              - 'row "Select row 1 Test Wedding Ceremony Jun 15, 2024 09:00 AM - Status: Active Ceremony View Test Wedding Ceremony detail page Manage sections for Test Wedding Ceremony Delete event 1" [ref=e98] [cursor=pointer]':
+                - cell "Select row 1" [ref=e99]:
+                  - checkbox "Select row 1" [ref=e100]
+                - cell "Test Wedding Ceremony" [ref=e101]
+                - cell "Jun 15, 2024" [ref=e102]
+                - cell "09:00 AM" [ref=e103]
+                - cell "-" [ref=e104]
+                - 'cell "Status: Active" [ref=e105]':
+                  - 'status "Status: Active" [ref=e106]': Active
+                - cell "Ceremony" [ref=e107]
+                - cell "View Test Wedding Ceremony detail page Manage sections for Test Wedding Ceremony" [ref=e108]:
+                  - generic [ref=e109]:
+                    - button "View Test Wedding Ceremony detail page" [ref=e110]: View
+                    - button "Manage sections for Test Wedding Ceremony" [ref=e111]: Manage Sections
+                - cell "Delete event 1" [ref=e112]:
+                  - button "Delete event 1" [ref=e113]: Delete
+              - 'row "Select row 2 Wedding Ceremony Mar 7, 2026 04:00 PM - Status: Inactive Ceremony View Wedding Ceremony detail page Manage sections for Wedding Ceremony Delete event 2" [ref=e114] [cursor=pointer]':
+                - cell "Select row 2" [ref=e115]:
+                  - checkbox "Select row 2" [ref=e116]
+                - cell "Wedding Ceremony" [ref=e117]
+                - cell "Mar 7, 2026" [ref=e118]
+                - cell "04:00 PM" [ref=e119]
+                - cell "-" [ref=e120]
+                - 'cell "Status: Inactive" [ref=e121]':
+                  - 'status "Status: Inactive" [ref=e122]': Inactive
+                - cell "Ceremony" [ref=e123]
+                - cell "View Wedding Ceremony detail page Manage sections for Wedding Ceremony" [ref=e124]:
+                  - generic [ref=e125]:
+                    - button "View Wedding Ceremony detail page" [ref=e126]: View
+                    - button "Manage sections for Wedding Ceremony" [ref=e127]: Manage Sections
+                - cell "Delete event 2" [ref=e128]:
+                  - button "Delete event 2" [ref=e129]: Delete
+              - 'row "Select row 3 Reception Mar 7, 2026 04:00 PM - Status: Inactive Reception View Reception detail page Manage sections for Reception Delete event 3" [ref=e130] [cursor=pointer]':
+                - cell "Select row 3" [ref=e131]:
+                  - checkbox "Select row 3" [ref=e132]
+                - cell "Reception" [ref=e133]
+                - cell "Mar 7, 2026" [ref=e134]
+                - cell "04:00 PM" [ref=e135]
+                - cell "-" [ref=e136]
+                - 'cell "Status: Inactive" [ref=e137]':
+                  - 'status "Status: Inactive" [ref=e138]': Inactive
+                - cell "Reception" [ref=e139]
+                - cell "View Reception detail page Manage sections for Reception" [ref=e140]:
+                  - generic [ref=e141]:
+                    - button "View Reception detail page" [ref=e142]: View
+                    - button "Manage sections for Reception" [ref=e143]: Manage Sections
+                - cell "Delete event 3" [ref=e144]:
+                  - button "Delete event 3" [ref=e145]: Delete
+  - button "Open Next.js Dev Tools" [ref=e151] [cursor=pointer]:
+    - img [ref=e152]
+  - alert [ref=e155]
+```

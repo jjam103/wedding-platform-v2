@@ -1,0 +1,100 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e1]:
+  - generic [ref=e6] [cursor=pointer]:
+    - button "Open Next.js Dev Tools" [ref=e7]:
+      - img [ref=e8]
+    - generic [ref=e11]:
+      - button "Open issues overlay" [ref=e12]:
+        - generic [ref=e13]:
+          - generic [ref=e14]: "0"
+          - generic [ref=e15]: "1"
+        - generic [ref=e16]: Issue
+      - button "Collapse issues badge" [ref=e17]:
+        - img [ref=e18]
+  - link "Skip to main content" [ref=e20] [cursor=pointer]:
+    - /url: "#main-content"
+  - link "Skip to main content" [ref=e21] [cursor=pointer]:
+    - /url: "#main-content"
+  - generic [ref=e22]:
+    - navigation "Main navigation" [ref=e23]:
+      - generic [ref=e25]:
+        - generic [ref=e26]:
+          - generic [ref=e27]: 🌴
+          - generic [ref=e28]: Admin
+        - button "Close menu" [expanded] [active] [ref=e29]:
+          - generic [ref=e30]: ✕
+    - dialog "Mobile navigation menu" [ref=e32]:
+      - generic [ref=e33]:
+        - generic [ref=e34]:
+          - generic [ref=e35]: 🌴
+          - generic [ref=e36]: Admin Menu
+        - button "Close menu" [ref=e37]:
+          - generic [ref=e38]: ✕
+      - link "Dashboard" [ref=e40] [cursor=pointer]:
+        - /url: /admin
+        - generic [ref=e41]: 🏠
+        - generic [ref=e42]: Dashboard
+      - generic [ref=e43]:
+        - button "Content" [ref=e45]:
+          - generic [ref=e46]: 📝
+          - generic [ref=e47]: Content
+          - generic [ref=e48]: ▶
+        - button "Guests" [ref=e50]:
+          - generic [ref=e51]: 👥
+          - generic [ref=e52]: Guests
+          - generic [ref=e53]: ▶
+        - button "RSVPs" [ref=e55]:
+          - generic [ref=e56]: ✓
+          - generic [ref=e57]: RSVPs
+          - generic [ref=e58]: ▶
+        - button "Logistics" [ref=e60]:
+          - generic [ref=e61]: 🚗
+          - generic [ref=e62]: Logistics
+          - generic [ref=e63]: ▶
+        - button "Admin" [ref=e65]:
+          - generic [ref=e66]: ⚙️
+          - generic [ref=e67]: Admin
+          - generic [ref=e68]: ▶
+      - paragraph [ref=e70]: Pura Vida! ☀️
+    - banner [ref=e71]:
+      - toolbar "User actions" [ref=e73]:
+        - button "Notifications (coming soon)" [ref=e74]: 🔔
+        - button "User menu" [ref=e76]:
+          - generic [ref=e77]: A
+          - generic [ref=e78]: ▼
+    - main [ref=e79]:
+      - status "Loading dashboard" [ref=e81]:
+        - generic [ref=e82]:
+          - generic [ref=e83]:
+            - status "Loading content" [ref=e84]
+            - status "Loading content" [ref=e85]
+          - generic [ref=e86]:
+            - status "Loading content" [ref=e87]
+            - status "Loading content" [ref=e88]
+          - generic [ref=e89]:
+            - status "Loading content" [ref=e90]
+            - status "Loading content" [ref=e91]
+          - generic [ref=e92]:
+            - status "Loading content" [ref=e93]
+            - status "Loading content" [ref=e94]
+        - generic [ref=e95]:
+          - status "Loading card" [ref=e96]:
+            - status "Loading content" [ref=e97]
+            - generic [ref=e98]:
+              - status "Loading content" [ref=e99]
+              - status "Loading content" [ref=e100]
+              - status "Loading content" [ref=e101]
+              - status "Loading content" [ref=e102]
+              - status "Loading content" [ref=e103]
+          - status "Loading card" [ref=e104]:
+            - status "Loading content" [ref=e105]
+            - generic [ref=e106]:
+              - status "Loading content" [ref=e107]
+              - status "Loading content" [ref=e108]
+              - status "Loading content" [ref=e109]
+              - status "Loading content" [ref=e110]
+              - status "Loading content" [ref=e111]
+  - alert [ref=e112]
+```

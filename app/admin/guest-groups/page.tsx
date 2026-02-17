@@ -74,6 +74,8 @@ export default function GuestGroupsPage() {
           type: 'success',
           message: isEdit ? 'Group updated successfully' : 'Group created successfully',
         });
+        // Add delay before fetching to ensure database consistency
+        await new Promise(resolve => setTimeout(resolve, 100));
         await fetchGroups();
         setIsFormOpen(false);
         setSelectedGroup(null);
@@ -97,6 +99,8 @@ export default function GuestGroupsPage() {
 
       if (result.success) {
         addToast({ type: 'success', message: 'Group deleted successfully' });
+        // Add delay before fetching to ensure database consistency
+        await new Promise(resolve => setTimeout(resolve, 100));
         await fetchGroups();
         setIsDeleteDialogOpen(false);
         setGroupToDelete(null);

@@ -31,7 +31,7 @@ describe('ActivityCard', () => {
 
     it('should render activity type badge', () => {
       const activity = createMockActivity({
-        activityType: 'ceremony',
+        activity_type: 'ceremony',
       });
 
       render(<ActivityCard activity={activity} onClick={mockOnClick} />);
@@ -41,7 +41,7 @@ describe('ActivityCard', () => {
 
     it('should render date and time', () => {
       const activity = createMockActivity({
-        startTime: '2025-06-15T14:30:00Z',
+        start_time: '2025-06-15T14:30:00Z',
       });
 
       render(<ActivityCard activity={activity} onClick={mockOnClick} />);
@@ -55,7 +55,7 @@ describe('ActivityCard', () => {
 
     it('should render location indicator when locationId present', () => {
       const activity = createMockActivity({
-        locationId: 'location-123',
+        location_id: 'location-123',
       });
 
       render(<ActivityCard activity={activity} onClick={mockOnClick} />);
@@ -258,7 +258,7 @@ describe('ActivityCard', () => {
       const activity = createMockActivity({
         name: 'Minimal Activity',
         description: null,
-        locationId: null,
+        location_id: null,
         capacity: null,
         netCost: 0,
         rsvpStatus: undefined,

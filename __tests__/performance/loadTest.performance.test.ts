@@ -118,10 +118,10 @@ describe('Performance: Load Testing', () => {
         .fill(null)
         .map((_, i) =>
           rsvpService.create({
-            guestId: `guest-${i}`,
-            eventId: 'event-1',
+            guest_id: `guest-${i}`,
+            event_id: 'event-1',
             status: 'attending',
-            guestCount: 2,
+            guest_count: 2,
           })
         );
 
@@ -194,7 +194,7 @@ describe('Performance: Load Testing', () => {
             case 2:
               return activityService.list({ page: 1, pageSize: 10 });
             case 3:
-              return rsvpService.list({ guestId: `guest-${i}` });
+              return rsvpService.list({ guest_id: `guest-${i}` });
             default:
               return guestService.get(`guest-${i}`);
           }
@@ -311,7 +311,7 @@ describe('Performance: Load Testing', () => {
 
       const startTime = performance.now();
 
-      const result = await guestService.exportToCSV({ groupId: 'group-1' });
+      const result = await guestService.exportToCSV(guests);
 
       const endTime = performance.now();
       const duration = endTime - startTime;
@@ -359,10 +359,10 @@ describe('Performance: Load Testing', () => {
       const rsvps = Array(120)
         .fill(null)
         .map((_, i) => ({
-          guestId: `guest-${i}`,
-          eventId: 'event-1',
+          guest_id: `guest-${i}`,
+          event_id: 'event-1',
           status: 'attending' as const,
-          guestCount: 2,
+          guest_count: 2,
         }));
 
       mockSupabase.select.mockResolvedValue({

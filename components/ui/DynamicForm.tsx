@@ -394,6 +394,7 @@ export function DynamicForm({
             onClick={onCancel}
             disabled={formState.submitting}
             className="w-full md:w-auto order-2 md:order-1"
+            data-testid="form-cancel-button"
           >
             {cancelLabel}
           </Button>
@@ -404,6 +405,7 @@ export function DynamicForm({
           loading={formState.submitting}
           disabled={formState.submitting}
           className="w-full md:w-auto order-1 md:order-2"
+          data-testid="form-submit-button"
         >
           {submitLabel}
         </Button>
